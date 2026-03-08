@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-import { db, initDb } from "@/db";
-import { birdingEvents, birdEntries } from "@/db/schema";
+import { getSession } from "../../../lib/auth";
+import { db, initDb } from "../../../db";
+import { birdingEvents, birdEntries } from "../../../db/schema";
 import { eq } from "drizzle-orm";
-import { generateCsv } from "@/lib/csv";
+import { generateCsv } from "../../../lib/csv";
 
 export async function GET() {
   const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   initDb();
 

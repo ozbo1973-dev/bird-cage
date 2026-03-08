@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { login } from "@/lib/auth";
+import { login } from "../../../../lib/auth";
 
 export async function POST(req: NextRequest) {
   const { username, password } = await req.json();
@@ -7,5 +7,8 @@ export async function POST(req: NextRequest) {
   if (ok) {
     return NextResponse.json({ ok: true });
   }
-  return NextResponse.json({ ok: false, error: "Invalid credentials" }, { status: 401 });
+  return NextResponse.json(
+    { ok: false, error: "Invalid credentials" },
+    { status: 401 },
+  );
 }

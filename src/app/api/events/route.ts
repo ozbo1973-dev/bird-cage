@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-import { db, initDb } from "@/db";
-import { birdingEvents, birdEntries } from "@/db/schema";
+import { getSession } from "../../../lib/auth";
+import { db, initDb } from "../../..//db";
+import { birdingEvents, birdEntries } from "../../../db/schema";
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   initDb();
 
@@ -19,24 +20,26 @@ export async function POST(req: NextRequest) {
 
   if (birds && birds.length > 0) {
     await db.insert(birdEntries).values(
-      birds.map((b: {
-        type: string;
-        species: string;
-        locationName: string;
-        lat?: number;
-        lng?: number;
-        dateStamp: string;
-        notes?: string;
-      }) => ({
-        eventId: event.id,
-        type: b.type,
-        species: b.species,
-        locationName: b.locationName,
-        lat: b.lat ?? null,
-        lng: b.lng ?? null,
-        dateStamp: b.dateStamp,
-        notes: b.notes ?? null,
-      }))
+      birds.map(
+        (b: {
+          type: string;
+          species: string;
+          locationName: string;
+          lat?: number;
+          lng?: number;
+          dateStamp: string;
+          notes?: string;
+        }) => ({
+          eventId: event.id,
+          type: b.type,
+          species: b.species,
+          locationName: b.locationName,
+          lat: b.lat ?? null,
+          lng: b.lng ?? null,
+          dateStamp: b.dateStamp,
+          notes: b.notes ?? null,
+        }),
+      ),
     );
   }
 

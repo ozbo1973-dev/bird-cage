@@ -1,6 +1,6 @@
-import { requireAuth } from "@/lib/auth";
-import { initDb } from "@/db";
-import EventForm from "@/components/EventForm";
+import { requireAuth } from "../../../lib/auth";
+import { initDb } from "../../../db";
+import EventForm from "../../../components/EventForm";
 import Link from "next/link";
 import styles from "./page.module.css";
 

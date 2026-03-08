@@ -1,10 +1,10 @@
-import { requireAuth } from "@/lib/auth";
-import { db, initDb } from "@/db";
-import { birdingEvents, birdEntries } from "@/db/schema";
+import { requireAuth } from "../../lib/auth";
+import { db, initDb } from "../../db";
+import { birdingEvents, birdEntries } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
-import LogoutButton from "@/components/LogoutButton";
-import DashboardTabs from "@/components/DashboardTabs";
+import LogoutButton from "../../components/LogoutButton";
+import DashboardTabs from "../../components/DashboardTabs";
 import styles from "./page.module.css";
 
 export default async function DashboardPage({

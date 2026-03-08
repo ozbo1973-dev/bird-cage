@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
-import LoginForm from "@/components/LoginForm";
+import { getSession } from "../../lib/auth";
+import LoginForm from "../../components/LoginForm";
 import styles from "./page.module.css";
 
 export default async function LoginPage() {
