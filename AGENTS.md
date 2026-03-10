@@ -25,6 +25,8 @@ The entire project should be packaged into a Docker container.
 This is a full stack application built in Next.js 16.
 The database should use SQLLite with Drizzle ORM and be created from scratch each time the Docker container is brought up, allowing for a users table with sign up and sign in.  
 The authentication currently has a mock auth system but will use Better Auth in future.
+Always use server side authentication. Do not implement client side authentication unless told specifically to do so.
+All server pages, actions, routes and data access layers should be implemented with server authentication.
 
 ## Color Scheme
 
@@ -35,3 +37,7 @@ The authentication currently has a mock auth system but will use Better Auth in 
 - Gray Text: `#888888`
 
 ## Implementation Status
+
+### BRD-3 - Better Auth (complete, PR #4)
+
+Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
