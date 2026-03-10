@@ -1,21 +1,19 @@
-import { NextResponse } from "next/server";
-import { getSession } from "../../../lib/auth";
-import { db, initDb } from "../../../db";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "../../../lib/auth";
+import { db } from "../../../db";
 import { birdingEvents, birdEntries } from "../../../db/schema";
 import { eq } from "drizzle-orm";
 import { generateCsv } from "../../../lib/csv";
 
-export async function GET() {
-  const session = await getSession();
+export async function GET(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers });
   if (!session)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  initDb();
 
   const events = await db
     .select()
     .from(birdingEvents)
-    .where(eq(birdingEvents.userId, session.id))
+    .where(eq(birdingEvents.userId, session.user.id))
     .orderBy(birdingEvents.date);
 
   const birds = await db.select().from(birdEntries);

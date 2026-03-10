@@ -32,3 +32,12 @@
   font-size: 0.85rem;
   color: #999;
 }
+
+.link {
+  color: #209dd7;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
