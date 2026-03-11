@@ -36,7 +36,9 @@ export default function EventForm() {
   const [saving, setSaving] = useState(false);
 
   function updateBird(index: number, field: keyof BirdEntry, value: string) {
-    setBirds((prev) => prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)));
+    setBirds((prev) =>
+      prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)),
+    );
   }
 
   function addBird() {
@@ -47,7 +49,7 @@ export default function EventForm() {
     setBirds((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
     setSaving(true);
@@ -86,7 +88,9 @@ export default function EventForm() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Event Details</h2>
         <div className={styles.field}>
-          <label htmlFor="title" className={styles.label}>Title</label>
+          <label htmlFor="title" className={styles.label}>
+            Title
+          </label>
           <input
             id="title"
             type="text"
@@ -98,7 +102,9 @@ export default function EventForm() {
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor="date" className={styles.label}>Date</label>
+          <label htmlFor="date" className={styles.label}>
+            Date
+          </label>
           <input
             id="date"
             type="date"
@@ -109,7 +115,9 @@ export default function EventForm() {
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor="notes" className={styles.label}>Notes</label>
+          <label htmlFor="notes" className={styles.label}>
+            Notes
+          </label>
           <textarea
             id="notes"
             value={notes}
@@ -139,7 +147,9 @@ export default function EventForm() {
             </div>
             <div className={styles.birdGrid}>
               <div className={styles.field}>
-                <label htmlFor={`bird-type-${index}`} className={styles.label}>Type</label>
+                <label htmlFor={`bird-type-${index}`} className={styles.label}>
+                  Type
+                </label>
                 <input
                   id={`bird-type-${index}`}
                   type="text"
@@ -151,7 +161,12 @@ export default function EventForm() {
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-species-${index}`} className={styles.label}>Species</label>
+                <label
+                  htmlFor={`bird-species-${index}`}
+                  className={styles.label}
+                >
+                  Species
+                </label>
                 <input
                   id={`bird-species-${index}`}
                   type="text"
@@ -163,30 +178,43 @@ export default function EventForm() {
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-location-${index}`} className={styles.label}>Location Name</label>
+                <label
+                  htmlFor={`bird-location-${index}`}
+                  className={styles.label}
+                >
+                  Location Name
+                </label>
                 <input
                   id={`bird-location-${index}`}
                   type="text"
                   value={bird.locationName}
-                  onChange={(e) => updateBird(index, "locationName", e.target.value)}
+                  onChange={(e) =>
+                    updateBird(index, "locationName", e.target.value)
+                  }
                   className={styles.input}
                   placeholder="e.g. Central Park, NY"
                   required
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-date-${index}`} className={styles.label}>Date Observed</label>
+                <label htmlFor={`bird-date-${index}`} className={styles.label}>
+                  Date Observed
+                </label>
                 <input
                   id={`bird-date-${index}`}
                   type="date"
                   value={bird.dateStamp}
-                  onChange={(e) => updateBird(index, "dateStamp", e.target.value)}
+                  onChange={(e) =>
+                    updateBird(index, "dateStamp", e.target.value)
+                  }
                   className={styles.input}
                   required
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-lat-${index}`} className={styles.label}>Latitude (optional)</label>
+                <label htmlFor={`bird-lat-${index}`} className={styles.label}>
+                  Latitude (optional)
+                </label>
                 <input
                   id={`bird-lat-${index}`}
                   type="number"
@@ -198,7 +226,9 @@ export default function EventForm() {
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-lng-${index}`} className={styles.label}>Longitude (optional)</label>
+                <label htmlFor={`bird-lng-${index}`} className={styles.label}>
+                  Longitude (optional)
+                </label>
                 <input
                   id={`bird-lng-${index}`}
                   type="number"
@@ -211,7 +241,9 @@ export default function EventForm() {
               </div>
             </div>
             <div className={styles.field}>
-              <label htmlFor={`bird-notes-${index}`} className={styles.label}>Notes</label>
+              <label htmlFor={`bird-notes-${index}`} className={styles.label}>
+                Notes
+              </label>
               <textarea
                 id={`bird-notes-${index}`}
                 value={bird.notes}

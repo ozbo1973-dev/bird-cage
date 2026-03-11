@@ -13,7 +13,7 @@ export default function SignupForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -44,7 +44,9 @@ export default function SignupForm() {
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.field}>
-        <label htmlFor="name" className={styles.label}>Name</label>
+        <label htmlFor="name" className={styles.label}>
+          Name
+        </label>
         <input
           id="name"
           type="text"
@@ -56,7 +58,9 @@ export default function SignupForm() {
         />
       </div>
       <div className={styles.field}>
-        <label htmlFor="email" className={styles.label}>Email</label>
+        <label htmlFor="email" className={styles.label}>
+          Email
+        </label>
         <input
           id="email"
           type="email"
@@ -68,7 +72,9 @@ export default function SignupForm() {
         />
       </div>
       <div className={styles.field}>
-        <label htmlFor="password" className={styles.label}>Password</label>
+        <label htmlFor="password" className={styles.label}>
+          Password
+        </label>
         <input
           id="password"
           type="password"
