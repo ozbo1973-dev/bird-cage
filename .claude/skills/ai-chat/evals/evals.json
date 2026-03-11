@@ -1,0 +1,23 @@
+{
+  "skill_name": "ai-chat",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a Next.js 16 app and want to add an AI chat page. Users should be able to type messages using a rich text editor (Tiptap), send them to Claude, and see the responses stream in. Show me how to set it up end to end.",
+      "expected_output": "Complete implementation including: API route with Anthropic SDK streaming, ChatInput with Tiptap editor, MessageList component, ChatWindow orchestrator, and shared Message type. Should cover SSR hydration fix (immediatelyRender: false), streaming accumulation pattern, and environment variable setup.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I already have a Next.js app with Tailwind. I just need the chat components — a Tiptap-based input with a send button, a message list that shows user and AI bubbles, and something that ties them together and calls my /api/chat endpoint. TypeScript please.",
+      "expected_output": "Focused component code: ChatInput with Tiptap, MessageList, and ChatWindow. Should wire ChatWindow to fetch /api/chat, handle streaming via ReadableStream reader, and accumulate tokens into assistant message state.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "How do I add a formatting toolbar to the Tiptap editor in my AI chat? I want bold and italic buttons that toggle active state visually.",
+      "expected_output": "Toolbar component using editor.chain().focus().toggleBold/Italic().run() and editor.isActive() for active styling. Should integrate cleanly inside or alongside the existing ChatInput component.",
+      "files": []
+    }
+  ]
+}

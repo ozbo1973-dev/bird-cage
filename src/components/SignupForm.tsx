@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
 import styles from "./AuthForm.module.css";
 
-export default function LoginForm() {
+export default function SignupForm() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,13 +19,14 @@ export default function LoginForm() {
     setLoading(true);
 
     startTransition(async () => {
-      const { error: authError } = await authClient.signIn.email({
+      const { error: authError } = await authClient.signUp.email({
+        name,
         email,
         password,
       });
       setLoading(false);
       if (authError) {
-        setError(authError.message ?? "Invalid email or password");
+        setError(authError.message ?? "Could not create account");
       } else {
         router.push("/dashboard");
       }
@@ -41,6 +43,20 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.field}>
+        <label htmlFor="name" className={styles.label}>
+          Name
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={styles.input}
+          required
+          autoComplete="name"
+        />
+      </div>
       <div className={styles.field}>
         <label htmlFor="email" className={styles.label}>
           Email
@@ -66,12 +82,13 @@ export default function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           className={styles.input}
           required
-          autoComplete="current-password"
+          autoComplete="new-password"
+          minLength={8}
         />
       </div>
       {error && <p className={styles.error}>{error}</p>}
       <button type="submit" disabled={loading} className={styles.btn}>
-        {loading ? "Signing in..." : "Sign In"}
+        {loading ? "Creating account..." : "Create Account"}
       </button>
       <div className={styles.divider}>or</div>
       <button type="button" onClick={handleGoogle} className={styles.googleBtn}>

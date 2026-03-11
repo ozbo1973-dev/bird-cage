@@ -4,7 +4,7 @@ import type { BirdingEvent, BirdEntry } from "@/db/schema";
 
 const baseEvent: BirdingEvent = {
   id: 1,
-  userId: 1,
+  userId: "user_1",
   title: "Morning Walk",
   date: "2024-03-01",
   notes: "Sunny day",

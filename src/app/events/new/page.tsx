@@ -1,12 +1,10 @@
-import { requireAuth } from "../../../lib/auth";
-import { initDb } from "../../../db";
+import { requireAuth } from "../../../lib/session";
 import EventForm from "../../../components/EventForm";
 import Link from "next/link";
 import styles from "./page.module.css";
 
 export default async function NewEventPage() {
   await requireAuth();
-  initDb();
 
   return (
     <div className={styles.page}>

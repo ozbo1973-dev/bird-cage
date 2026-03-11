@@ -1,5 +1,5 @@
-import { requireAuth } from "../../lib/auth";
-import { db, initDb } from "../../db";
+import { requireAuth } from "../../lib/session";
+import { db } from "../../db";
 import { birdingEvents, birdEntries } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
@@ -13,14 +13,12 @@ export default async function DashboardPage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const session = await requireAuth();
-  initDb();
-
   const { view = "timeline" } = await searchParams;
 
   const events = await db
     .select()
     .from(birdingEvents)
-    .where(eq(birdingEvents.userId, session.id))
+    .where(eq(birdingEvents.userId, session.user.id))
     .orderBy(birdingEvents.date);
 
   const birds = await db.select().from(birdEntries);
@@ -33,9 +31,9 @@ export default async function DashboardPage({
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.logo}>🐦 Bird Cage</h1>
+        <h1 className={styles.logo}>Bird Cage</h1>
         <div className={styles.headerActions}>
-          <span className={styles.username}>Welcome, {session.username}</span>
+          <span className={styles.username}>Welcome, {session.user.name}</span>
           <Link href="/events/new" className={styles.newEventBtn}>
             + New Event
           </Link>

@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "../../../lib/auth";
-import { db, initDb } from "../../..//db";
+import { auth } from "../../../lib/auth";
+import { db } from "../../../db";
 import { birdingEvents, birdEntries } from "../../../db/schema";
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
+  const session = await auth.api.getSession({ headers: req.headers });
   if (!session)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  initDb();
 
   const body = await req.json();
   const { title, date, notes, birds } = body;
 
   const [event] = await db
     .insert(birdingEvents)
-    .values({ userId: session.id, title, date, notes })
+    .values({ userId: session.user.id, title, date, notes })
     .returning();
 
   if (birds && birds.length > 0) {

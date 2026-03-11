@@ -8,12 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "tsx scripts/migrate.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "better-auth": "^1.5.4",
     "better-sqlite3": "^12.6.2",
     "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
@@ -30,6 +31,7 @@
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }
