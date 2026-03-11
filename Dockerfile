@@ -46,7 +46,7 @@ COPY --from=builder /app/scripts ./scripts
 COPY --from=prod-deps /app/node_modules ./node_modules
 
 COPY entrypoint.sh ./entrypoint.sh
-RUN chmod +x entrypoint.sh
+RUN sed -i 's/\r//' entrypoint.sh && chmod +x entrypoint.sh
 
 EXPOSE 3000
 ENV PORT=3000
