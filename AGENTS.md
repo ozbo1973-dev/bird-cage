@@ -38,6 +38,10 @@ All server pages, actions, routes and data access layers should be implemented w
 
 ## Implementation Status
 
+### BRD-6 - Docker Setup (complete, PR #5)
+
+Multi-stage Dockerfile with standalone Next.js output. Lazy DB connection fix for build-time SQLITE_BUSY. Entrypoint runs Drizzle migrations on startup so DB is created fresh each container run. `docker-compose.yml` wires all env vars. `next.config.ts` added with `output: "standalone"`.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
