@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./EventForm.module.css";
+import BirdChatWidget from "./BirdChatWidget";
 
 interface BirdEntry {
   type: string;
@@ -253,6 +254,12 @@ export default function EventForm() {
                 placeholder="Optional notes about this sighting"
               />
             </div>
+            <BirdChatWidget
+              onIdentified={({ type, species }) => {
+                updateBird(index, "type", type);
+                updateBird(index, "species", species);
+              }}
+            />
           </div>
         ))}
 
