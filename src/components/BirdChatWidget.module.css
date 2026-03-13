@@ -1,0 +1,126 @@
+.widget {
+  border: 1px solid #209dd7;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #f7fcff;
+}
+
+.header {
+  background: #209dd7;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.messages {
+  flex: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 0.875rem;
+}
+
+.placeholder {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.userMsg {
+  align-self: flex-end;
+  background: #032147;
+  color: white;
+  padding: 0.4rem 0.65rem;
+  border-radius: 10px 10px 2px 10px;
+  max-width: 85%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.assistantMsg {
+  align-self: flex-start;
+  background: white;
+  border: 1px solid #e0e0e0;
+  color: #333;
+  padding: 0.4rem 0.65rem;
+  border-radius: 10px 10px 10px 2px;
+  max-width: 90%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  background: #555;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-top: 1px solid #cce8f5;
+  background: white;
+}
+
+.input {
+  flex: 1;
+  border: 1px solid #cce8f5;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.875rem;
+  resize: none;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #209dd7;
+}
+
+.sendBtn {
+  background: #753991;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: background 0.15s;
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: #5e2d74;
+}
+
+.sendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.identified {
+  font-size: 0.8rem;
+  color: #209dd7;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-top: 1px solid #cce8f5;
+  margin: 0;
+  background: white;
+}

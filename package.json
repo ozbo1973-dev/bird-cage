@@ -15,10 +15,12 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "better-auth": "^1.5.4",
     "better-sqlite3": "^12.6.2",
     "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
+    "openai": "^6.27.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tsx": "^4.21.0"

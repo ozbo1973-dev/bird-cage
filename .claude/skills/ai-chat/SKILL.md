@@ -5,7 +5,7 @@ description: >
   to create, scaffold, or add a chat UI powered by an LLM — including prompts like "add an AI chat",
   "build a chatbot interface", "integrate Claude into my app", "create a chat component", or "set up
   streaming AI responses". Covers Tiptap rich text editor integration, OpenRouter streaming via the
-  Anthropic SDK, Next.js API routes, and full conversation history management. Trigger this skill even
+  OpenAI SDK, Next.js API routes, and full conversation history management. Trigger this skill even
   if the user just mentions "chat" alongside "AI", "Claude", "LLM", or "streaming".
 ---
 
@@ -13,19 +13,24 @@ description: >
 
 A complete implementation guide for a streaming AI chat interface using:
 - **Tiptap** — rich text editor for user input
-- **OpenRouter** — model-agnostic LLM access via the Anthropic SDK (default: `openai/gpt-oss-120b` with Cerebras inference)
+- **OpenRouter** — model-agnostic LLM access via the **OpenAI SDK** (default: `openai/gpt-4o-mini`)
 - **Next.js** — App Router with a server-side API route for the AI call
 - **TypeScript** — strict types throughout
 
+> **IMPORTANT:** OpenRouter exposes an **OpenAI-compatible** API (`/chat/completions`), NOT an Anthropic-compatible API. Always use the `openai` SDK, never `@anthropic-ai/sdk`, when calling OpenRouter. The Anthropic SDK sends to `/messages` which OpenRouter does not serve — this will result in a 404.
+
 ## Model Configuration
 
-The API route uses OpenRouter via the Anthropic SDK's `baseURL` + `defaultHeaders` pattern. The default model is `openrouter/openai/gpt-oss-120b`. The model is read from an env var so it can be swapped without code changes.
+The API route uses OpenRouter via the OpenAI SDK's `baseURL` + `defaultHeaders` pattern. The model is read from an env var so it can be swapped without code changes.
 
 ```env
 # .env.local
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=openrouter/openai/gpt-oss-120b   # optional override
+OPENROUTER_MODEL=openai/gpt-4o-mini   # optional override; use provider/model format
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+**Model ID format:** OpenRouter uses `provider/model` (e.g. `openai/gpt-4o`, `anthropic/claude-opus-4`, `meta-llama/llama-3.3-70b-instruct`). Do NOT use the `openrouter/` prefix in model IDs — that is a LiteLLM convention and will 404 on OpenRouter.
 
 ---
 
@@ -35,7 +40,7 @@ OPENROUTER_MODEL=openrouter/openai/gpt-oss-120b   # optional override
 app/
 ├── api/
 │   └── chat/
-│       └── route.ts        ← Server: streams Claude responses
+│       └── route.ts        ← Server: streams AI responses via OpenRouter
 ├── chat/
 │   └── page.tsx            ← Client: chat page
 components/
@@ -52,10 +57,10 @@ types/
 ## Step 1: Install dependencies
 
 ```bash
-pnpm add @anthropic-ai/sdk @tiptap/react @tiptap/pm @tiptap/starter-kit
+pnpm add openai @tiptap/react @tiptap/pm @tiptap/starter-kit
 ```
 
-> The Anthropic SDK is used here to talk to OpenRouter (not Anthropic directly). OpenRouter exposes an Anthropic-compatible API, so we reuse the same SDK with a different `baseURL` and API key.
+> Use the `openai` SDK (not `@anthropic-ai/sdk`) — OpenRouter is OpenAI-compatible.
 
 ---
 
@@ -77,17 +82,16 @@ export interface Message {
 
 ## Step 3: API Route (server)
 
-The API route receives the conversation history and streams back the assistant reply. It uses OpenRouter via the Anthropic SDK's `baseURL` override — this lets you swap models by changing one env var.
+The API route receives the conversation history and streams back the assistant reply using the OpenAI SDK pointed at OpenRouter.
 
 ```typescript
 // app/api/chat/route.ts
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { NextRequest } from 'next/server'
-import type { Role } from '@/types/chat'
 
-const DEFAULT_MODEL = 'openrouter/openai/gpt-oss-120b'
+const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 
-const client = new Anthropic({
+const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
@@ -97,8 +101,9 @@ const client = new Anthropic({
 })
 
 export async function POST(req: NextRequest) {
-  const { messages, model } = await req.json() as {
-    messages: { role: Role; content: string }[]
+  const { messages, systemPrompt, model } = await req.json() as {
+    messages: { role: 'user' | 'assistant'; content: string }[]
+    systemPrompt?: string
     model?: string
   }
 
@@ -111,17 +116,22 @@ export async function POST(req: NextRequest) {
   // Stream in the background — do not await
   ;(async () => {
     try {
-      const stream = client.messages.stream({
+      const stream = await client.chat.completions.create({
         model: selectedModel,
         max_tokens: 1024,
-        messages,
+        stream: true,
+        messages: [
+          ...(systemPrompt ? [{ role: 'system' as const, content: systemPrompt }] : []),
+          ...messages,
+        ],
       })
 
-      stream.on('text', async (text) => {
-        await writer.write(encoder.encode(text))
-      })
-
-      await stream.finalMessage()
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? ''
+        if (text) {
+          await writer.write(encoder.encode(text))
+        }
+      }
     } finally {
       await writer.close()
     }
@@ -133,9 +143,9 @@ export async function POST(req: NextRequest) {
 }
 ```
 
-**Model swapping:** Pass `model` in the request body from the client, or set `OPENROUTER_MODEL` in env. The default is `openrouter/openai/gpt-oss-120b` (Cerebras inference). Any OpenRouter model ID works — e.g. `anthropic/claude-opus-4`, `meta-llama/llama-3.3-70b-instruct`.
+**Model swapping:** Pass `model` in the request body from the client, or set `OPENROUTER_MODEL` in env.
 
-**Why a streaming route?** Streaming gives the user visible progress on long responses. The `TransformStream` bridges the Anthropic SDK stream to the browser's `ReadableStream`.
+**Why a streaming route?** Streaming gives the user visible progress on long responses. The `TransformStream` bridges the OpenAI SDK stream to the browser's `ReadableStream`.
 
 ---
 
@@ -355,14 +365,10 @@ Add to `.env.local`:
 
 ```env
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=openrouter/openai/gpt-oss-120b   # default; override to swap models
-NEXT_PUBLIC_APP_URL=http://localhost:3000          # sent as HTTP-Referer to OpenRouter
-NEXT_PUBLIC_APP_NAME=AI Chat                       # sent as X-Title to OpenRouter
+OPENROUTER_MODEL=openai/gpt-4o-mini     # default; use provider/model format
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # sent as HTTP-Referer to OpenRouter
+NEXT_PUBLIC_APP_NAME=AI Chat              # sent as X-Title to OpenRouter
 ```
-
-To swap to a different model at runtime, either:
-- Change `OPENROUTER_MODEL` in env and restart
-- Pass `model: 'some/other-model'` in the POST body from the client
 
 ---
 
@@ -396,6 +402,8 @@ Place `<Toolbar editor={editor} />` inside `ChatInput` above `<EditorContent />`
 
 | Problem | Fix |
 |---|---|
+| 404 from OpenRouter | Use `openai` SDK, not `@anthropic-ai/sdk`. Anthropic SDK POSTs to `/messages`; OpenRouter only serves `/chat/completions` |
+| Model ID 404 | Use `provider/model` format (e.g. `openai/gpt-4o`). Do NOT use `openrouter/` prefix — that is a LiteLLM convention, not OpenRouter's API |
 | SSR hydration mismatch with Tiptap | Add `immediatelyRender: false` to `useEditor` |
 | Two consecutive same-role messages | Always alternate user/assistant — enforce in `handleSend` |
 | Editor not clearing after send | Call `editor.commands.clearContent()` |
