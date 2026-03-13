@@ -15,7 +15,7 @@ When a user describes a bird they have seen, identify it and respond with:
 
 If you are still gathering information, do NOT include the JSON block yet.`;
 
-const DEFAULT_MODEL = "openai/gpt-4o-mini";
+const DEFAULT_MODEL = "openai/gpt-oss-120b";
 
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -28,10 +28,9 @@ const client = new OpenAI({
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
-  if (!session)
-    return new Response("Unauthorized", { status: 401 });
+  if (!session) return new Response("Unauthorized", { status: 401 });
 
-  const { messages } = await req.json() as {
+  const { messages } = (await req.json()) as {
     messages: { role: "user" | "assistant"; content: string }[];
   };
 
@@ -44,14 +43,12 @@ export async function POST(req: NextRequest) {
       model,
       max_tokens: 1024,
       stream: true,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...messages,
-      ],
+      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     });
   } catch (err) {
     const status = (err as { status?: number }).status ?? 500;
-    const message = (err as { message?: string }).message ?? "AI request failed";
+    const message =
+      (err as { message?: string }).message ?? "AI request failed";
     return new Response(JSON.stringify({ error: message }), {
       status,
       headers: { "Content-Type": "application/json" },
