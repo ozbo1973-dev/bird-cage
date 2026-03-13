@@ -37,22 +37,33 @@ export async function POST(req: NextRequest) {
 
   const model = process.env.OPENROUTER_MODEL ?? DEFAULT_MODEL;
 
+  // Create the stream first — allows errors (auth, quota, bad model) to surface as HTTP errors
+  let stream: Awaited<ReturnType<typeof client.chat.completions.create>>;
+  try {
+    stream = await client.chat.completions.create({
+      model,
+      max_tokens: 1024,
+      stream: true,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages,
+      ],
+    });
+  } catch (err) {
+    const status = (err as { status?: number }).status ?? 500;
+    const message = (err as { message?: string }).message ?? "AI request failed";
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const encoder = new TextEncoder();
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
 
   (async () => {
     try {
-      const stream = await client.chat.completions.create({
-        model,
-        max_tokens: 1024,
-        stream: true,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
-        ],
-      });
-
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? "";
         if (text) {

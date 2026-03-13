@@ -47,7 +47,11 @@ export default function BirdChatWidget({ onIdentified }: Props) {
         }),
       });
 
-      if (!res.ok || !res.body) throw new Error("Chat request failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? `Request failed (${res.status})`);
+      }
+      if (!res.body) throw new Error("No response body");
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -70,12 +74,13 @@ export default function BirdChatWidget({ onIdentified }: Props) {
         setIdentified(true);
         onIdentified(result);
       }
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
       setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: "assistant",
-          content: "Sorry, something went wrong. Please try again.",
+          content: message,
         };
         return updated;
       });
