@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import { auth } from "../../../lib/auth";
 
@@ -15,9 +15,9 @@ When a user describes a bird they have seen, identify it and respond with:
 
 If you are still gathering information, do NOT include the JSON block yet.`;
 
-const DEFAULT_MODEL = "openai/gpt-oss-120b";
+const DEFAULT_MODEL = "openai/gpt-4o-mini";
 
-const client = new Anthropic({
+const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
   defaultHeaders: {
@@ -43,18 +43,22 @@ export async function POST(req: NextRequest) {
 
   (async () => {
     try {
-      const stream = client.messages.stream({
+      const stream = await client.chat.completions.create({
         model,
         max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages,
+        stream: true,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...messages,
+        ],
       });
 
-      stream.on("text", async (text) => {
-        await writer.write(encoder.encode(text));
-      });
-
-      await stream.finalMessage();
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? "";
+        if (text) {
+          await writer.write(encoder.encode(text));
+        }
+      }
     } finally {
       await writer.close();
     }
