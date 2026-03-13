@@ -15,7 +15,7 @@ When a user describes a bird they have seen, identify it and respond with:
 
 If you are still gathering information, do NOT include the JSON block yet.`;
 
-const DEFAULT_MODEL = "openrouter/openai/gpt-oss-120b";
+const DEFAULT_MODEL = "openai/gpt-oss-120b";
 
 const client = new Anthropic({
   apiKey: process.env.OPENROUTER_API_KEY,
