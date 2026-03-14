@@ -1,14 +1,15 @@
 FROM node:20-slim AS base
 
-# Install build tools for better-sqlite3 native bindings
+# Install build tools for better-sqlite3 native bindings + pnpm
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
 # Install all dependencies (including dev for build)
 FROM base AS deps
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Build the Next.js app
 FROM base AS builder
@@ -18,13 +19,13 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+RUN pnpm run build
 
 # Install production-only dependencies with native bindings compiled
 FROM base AS prod-deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod
 
 # Production image
 FROM node:20-slim AS runner

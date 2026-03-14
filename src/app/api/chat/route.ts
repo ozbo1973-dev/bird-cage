@@ -15,16 +15,19 @@ When a user describes a bird they have seen, identify it and respond with:
 
 If you are still gathering information, do NOT include the JSON block yet.`;
 
-const DEFAULT_MODEL = "openai/gpt-oss-120b";
+const DEFAULT_MODEL = "openai/gpt-oss-120b:free";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-    "X-Title": "Bird Cage",
-  },
-});
+function getClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+    defaultHeaders: {
+      "HTTP-Referer":
+        process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+      "X-Title": "Bird Cage",
+    },
+  });
+}
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
@@ -35,6 +38,7 @@ export async function POST(req: NextRequest) {
   };
 
   const model = process.env.OPENROUTER_MODEL ?? DEFAULT_MODEL;
+  const client = getClient();
 
   // Create the stream first — allows errors (auth, quota, bad model) to surface as HTTP errors
   let stream: Awaited<ReturnType<typeof client.chat.completions.create>>;
