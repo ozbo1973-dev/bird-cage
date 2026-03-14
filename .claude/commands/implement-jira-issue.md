@@ -3,7 +3,7 @@ title: implement-jira-issue
 description: command used to instruct Claude Code to run the /feature-dev command using the given insructions to implement the Jira issue. The user will input the Jira issue  id and extra instructions are optional
 ---
 
-run the /feature-dev plugin with the following instructions:
+run the /feature-dev plugin with the below instructions. Make sure to not skip any steps in the feature-dev process.
 
 <instructions>
 -Implement Jira issue $1.
