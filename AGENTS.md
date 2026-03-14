@@ -50,6 +50,10 @@ Adds `scripts/seed.ts` that clears all data and re-seeds 4 test users (Alice, Bo
 
 Moved `BirdChatWidget` to the top of each bird sighting card so users can identify without scrolling. Removed `useEffect` auto-scroll. `parseIdentification` now extracts the AI summary text before the JSON block and returns it as `summary`. The `onIdentified` callback now also auto-populates the bird sighting `notes` field with the AI summary.
 
+### BRD-13 - Fix Vitest ERR_REQUIRE_ESM (complete, PR #9)
+
+Renamed `vitest.config.ts` to `vitest.config.mts` to force ESM loading. Root cause: vitest@4.x depends on `std-env@4.0.0` (ESM-only); vite@7 was loading the config as CJS and calling `require()` on it. All 17 unit tests pass.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
