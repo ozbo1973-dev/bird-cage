@@ -13,6 +13,16 @@ It has a red breast and dark back.`;
     expect(parseIdentification(text)).toEqual({
       type: "Songbird",
       species: "American Robin",
+      summary: "Based on your description, I can identify this bird.",
+    });
+  });
+
+  it("includes empty summary when JSON block is at start", () => {
+    const text = `{"identified": true, "type": "Raptor", "species": "Osprey"}`;
+    expect(parseIdentification(text)).toEqual({
+      type: "Raptor",
+      species: "Osprey",
+      summary: "",
     });
   });
 

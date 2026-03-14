@@ -146,6 +146,13 @@ export default function EventForm() {
                 </button>
               )}
             </div>
+            <BirdChatWidget
+              onIdentified={({ type, species, summary }) => {
+                updateBird(index, "type", type);
+                updateBird(index, "species", species);
+                if (summary) updateBird(index, "notes", summary);
+              }}
+            />
             <div className={styles.birdGrid}>
               <div className={styles.field}>
                 <label htmlFor={`bird-type-${index}`} className={styles.label}>
@@ -254,12 +261,6 @@ export default function EventForm() {
                 placeholder="Optional notes about this sighting"
               />
             </div>
-            <BirdChatWidget
-              onIdentified={({ type, species }) => {
-                updateBird(index, "type", type);
-                updateBird(index, "species", species);
-              }}
-            />
           </div>
         ))}
 

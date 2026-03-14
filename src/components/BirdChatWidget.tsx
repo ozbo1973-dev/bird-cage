@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import styles from "./BirdChatWidget.module.css";
 import { parseIdentification } from "@/lib/chat";
 import type { BirdIdentification } from "@/lib/chat";
@@ -19,11 +19,6 @@ export default function BirdChatWidget({ onIdentified }: Props) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [identified, setIdentified] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   async function send() {
     const text = input.trim();
@@ -116,7 +111,6 @@ export default function BirdChatWidget({ onIdentified }: Props) {
             )}
           </div>
         ))}
-        <div ref={bottomRef} />
       </div>
       {identified ? (
         <p className={styles.identified}>Bird identified — fields updated above.</p>

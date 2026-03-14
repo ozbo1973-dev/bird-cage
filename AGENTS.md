@@ -46,6 +46,10 @@ Multi-stage Dockerfile with standalone Next.js output. Lazy DB connection fix fo
 
 Adds `scripts/seed.ts` that clears all data and re-seeds 4 test users (Alice, Bob, Carol, David) each with 2 birding events and multiple bird sightings. Uses `auth.api.signUpEmail()` for proper Better Auth password hashing. All users share password `password1234`. Run with `pnpm db:seed`.
 
+### BRD-12 - AI Chat UI Updates (complete, PR #8)
+
+Moved `BirdChatWidget` to the top of each bird sighting card so users can identify without scrolling. Removed `useEffect` auto-scroll. `parseIdentification` now extracts the AI summary text before the JSON block and returns it as `summary`. The `onIdentified` callback now also auto-populates the bird sighting `notes` field with the AI summary.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
