@@ -1,0 +1,63 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (optional) -->
+  <rect width="300" height="200" fill="none"/>
+  
+  <!-- Classic Bird Cage - centered -->
+  <g transform="translate(50, 20)">
+    <!-- Bottom base -->
+    <ellipse cx="90" cy="140" rx="45" ry="15" fill="none" stroke="#8B5A2B" stroke-width="3"/>
+    
+    <!-- Cage main body (classic rounded shape) -->
+    <path d="M55 100 Q55 140 90 150 Q125 140 125 100" fill="none" stroke="#8B5A2B" stroke-width="3"/>
+    
+    <!-- Top dome/hanger -->
+    <ellipse cx="90" cy="85" rx="45" ry="15" fill="none" stroke="#8B5A2B" stroke-width="3"/>
+    <path d="M70 80 L65 60" stroke="#8B5A2B" stroke-width="2"/>
+    <path d="M110 80 L115 60" stroke="#8B5A2B" stroke-width="2"/>
+    <path d="M65 60 L115 60" stroke="#8B5A2B" stroke-width="2"/>
+    <circle cx="90" cy="57" r="4" fill="#8B5A2B"/>
+    
+    <!-- Horizontal rings -->
+    <ellipse cx="90" cy="105" rx="32" ry="8" fill="none" stroke="#8B5A2B" stroke-width="2"/>
+    <ellipse cx="90" cy="125" rx="30" ry="7" fill="none" stroke="#8B5A2B" stroke-width="2"/>
+    
+    <!-- Vertical bars -->
+    <line x1="70" y1="100" x2="70" y2="140" stroke="#8B5A2B" stroke-width="1.5"/>
+    <line x1="90" y1="95" x2="90" y2="145" stroke="#8B5A2B" stroke-width="1.5"/>
+    <line x1="110" y1="100" x2="110" y2="140" stroke="#8B5A2B" stroke-width="1.5"/>
+    
+    <!-- Cage door (open) -->
+    <path d="M100 110 L125 105 L125 135 L100 140" fill="none" stroke="#8B5A2B" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="100" y1="110" x2="100" y2="140" stroke="#8B5A2B" stroke-width="2"/>
+    
+    <!-- Cage bottom -->
+    <ellipse cx="90" cy="148" rx="35" ry="8" fill="#D2B48C" stroke="#8B5A2B" stroke-width="2"/>
+  </g>
+  
+  <!-- Bird flying out - positioned emerging from cage door -->
+  <g>
+    <!-- Bird body (green with light brown outline) -->
+    <ellipse cx="165" cy="110" rx="18" ry="12" fill="#4A5D23" stroke="#D2B48C" stroke-width="1.5"/>
+    
+    <!-- Bird head (green with light brown outline) -->
+    <circle cx="180" cy="102" r="8" fill="#4A5D23" stroke="#D2B48C" stroke-width="1.5"/>
+    
+    <!-- Bird beak (brown) -->
+    <polygon points="188,102 195,104 188,106" fill="#8B5A2B" stroke="#5D3A1A" stroke-width="1"/>
+    
+    <!-- Bird eye -->
+    <circle cx="182" cy="99" r="1.5" fill="white"/>
+    <circle cx="182.5" cy="98.5" r="0.5" fill="black"/>
+    
+    <!-- Bird wings (green with thin light brown outline) - positioned for flying out -->
+    <path d="M160 103 Q148 90 142 78" stroke="#D2B48C" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M158 114 Q145 115 135 118" stroke="#D2B48C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <!-- Inner wing details (green) -->
+    <path d="M160 103 Q148 90 142 78" stroke="#4A5D23" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M158 114 Q145 115 135 118" stroke="#4A5D23" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    
+    <!-- Bird tail (green with thin light brown outline) -->
+    <path d="M150 110 Q140 115 130 122" stroke="#D2B48C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M150 110 Q140 115 130 122" stroke="#4A5D23" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
