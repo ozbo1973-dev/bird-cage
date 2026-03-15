@@ -63,6 +63,10 @@ Moved `BirdChatWidget` to the top of each bird sighting card so users can identi
 
 Renamed `vitest.config.ts` to `vitest.config.mts` to force ESM loading. Root cause: vitest@4.x depends on `std-env@4.0.0` (ESM-only); vite@7 was loading the config as CJS and calling `require()` on it. All 17 unit tests pass.
 
+### BRD-10 - Improve Editing of Events and Bird Sightings (complete, PR #10)
+
+Events can now be created without bird sightings (birds optional, form starts empty). Dashboard cards have Edit, Delete, and Add Bird actions on all three views (Timeline, Species, Location). Edit navigates to `/events/[id]/edit`, Add Bird to `/events/[id]/add-bird`. Delete uses a CSS-modules confirmation dialog. Individual bird sightings can also be deleted. New DAL layer (`src/lib/dal/events.ts`) fixes a security bug where all users' birds were fetched. PUT is wrapped in a Drizzle transaction for atomicity.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
