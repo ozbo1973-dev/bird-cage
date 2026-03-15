@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./BirdActions.module.css";
 
@@ -28,6 +29,9 @@ export default function BirdActions({ birdId, birdSpecies }: Props) {
 
   return (
     <>
+      <Link href={`/birds/${birdId}/edit`} className={styles.viewBtn}>
+        View
+      </Link>
       <button
         type="button"
         onClick={() => setConfirming(true)}
