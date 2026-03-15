@@ -9,6 +9,7 @@
 }
 
 .dialog {
+  position: static;
   border: none;
   border-radius: 8px;
   padding: 1.5rem;
