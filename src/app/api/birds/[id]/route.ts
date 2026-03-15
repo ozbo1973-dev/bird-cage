@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { birdingEvents, birdEntries } from "@/db/schema";
+import { isSafeFilename } from "@/lib/uploads";
 
 export async function PUT(
   req: NextRequest,
@@ -25,15 +26,19 @@ export async function PUT(
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
-  const { type, species, locationName, lat, lng, dateStamp, notes } = body;
+  const { type, species, locationName, lat, lng, dateStamp, notes, photoPath } = body;
 
   if (!type || !species || !locationName || !dateStamp) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  if (photoPath && !isSafeFilename(photoPath)) {
+    return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
+  }
+
   await db
     .update(birdEntries)
-    .set({ type, species, locationName, lat: lat ?? null, lng: lng ?? null, dateStamp, notes: notes ?? null })
+    .set({ type, species, locationName, lat: lat ?? null, lng: lng ?? null, dateStamp, notes: notes ?? null, photoPath: photoPath ?? null })
     .where(eq(birdEntries.id, birdId));
 
   return NextResponse.json({ ok: true });

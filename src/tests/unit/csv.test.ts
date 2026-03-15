@@ -21,6 +21,7 @@ const baseBird: BirdEntry = {
   lng: -73.9683,
   dateStamp: "2024-03-01",
   notes: "Spotted near the pond",
+  photoPath: null,
 };
 
 describe("generateCsv", () => {

@@ -71,6 +71,9 @@ function TimelineView({ events }: { events: EventWithBirds[] }) {
             <ul className={styles.birdList}>
               {event.birds.map((bird) => (
                 <li key={bird.id} className={styles.birdItem}>
+                  {bird.photoPath
+                    ? <img src={`/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
+                    : <div className={styles.noPhoto}>No Photo</div>}
                   <div className={styles.birdItemInfo}>
                     <span className={styles.birdName}>{bird.species}</span>
                     <span className={styles.birdMeta}>{bird.type} · {bird.locationName}</span>
@@ -110,6 +113,9 @@ function SpeciesView({ events }: { events: EventWithBirds[] }) {
           <ul className={styles.birdList}>
             {entries.map(({ bird, eventTitle, eventDate }) => (
               <li key={bird.id} className={styles.birdItem}>
+                {bird.photoPath
+                  ? <img src={`/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
+                  : <div className={styles.noPhoto}>No Photo</div>}
                 <div className={styles.birdItemInfo}>
                   <span className={styles.birdName}>{eventTitle}</span>
                   <span className={styles.birdMeta}>{eventDate} · {bird.locationName}</span>
@@ -151,6 +157,9 @@ function LocationView({ events }: { events: EventWithBirds[] }) {
             <ul className={styles.birdList}>
               {entries.map(({ bird, eventTitle, eventDate }) => (
                 <li key={bird.id} className={styles.birdItem}>
+                  {bird.photoPath
+                    ? <img src={`/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
+                    : <div className={styles.noPhoto}>No Photo</div>}
                   <div className={styles.birdItemInfo}>
                     <span className={styles.birdName}>{bird.species} ({bird.type})</span>
                     <span className={styles.birdMeta}>{eventTitle} · {eventDate}</span>

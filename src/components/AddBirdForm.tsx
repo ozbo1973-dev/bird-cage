@@ -24,6 +24,12 @@ export default function AddBirdForm({ eventId }: Props) {
   const [saving, setSaving] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState("");
+  const [photoPath, setPhotoPath] = useState("");
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [photoStatus, setPhotoStatus] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  const [photoIdentified, setPhotoIdentified] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -45,6 +51,59 @@ export default function AddBirdForm({ eventId }: Props) {
     );
   }
 
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoError("");
+    setPhotoStatus("Uploading photo...");
+    setPhotoUploading(true);
+    setPhotoPreview((prev) => {
+      if (prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const uploadRes = await fetch("/api/uploads", { method: "POST", body: form });
+      if (!uploadRes.ok) {
+        const body = await uploadRes.json().catch(() => ({}));
+        setPhotoError((body as { error?: string }).error ?? "Upload failed");
+        setPhotoStatus("");
+        return;
+      }
+
+      const { path: uploadedPath } = (await uploadRes.json()) as { path: string };
+      setPhotoPath(uploadedPath);
+      setPhotoStatus("Identifying bird from photo...");
+
+      const identRes = await fetch("/api/identify-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoPath: uploadedPath }),
+      });
+
+      if (!identRes.ok) {
+        setPhotoStatus("Photo uploaded. Could not identify bird — please use the chat below.");
+        return;
+      }
+
+      const result = (await identRes.json()) as { type: string; species: string; summary: string };
+      setType(result.type);
+      setSpecies(result.species);
+      if (result.summary) setNotes(result.summary);
+      setPhotoIdentified(true);
+      setPhotoStatus("Bird identified from photo — fields populated.");
+    } catch {
+      setPhotoError("Something went wrong. Please try again.");
+      setPhotoStatus("");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
@@ -62,6 +121,7 @@ export default function AddBirdForm({ eventId }: Props) {
           lng: lng !== "" ? parseFloat(lng) : null,
           dateStamp,
           notes,
+          photoPath: photoPath || null,
         }),
       });
 
@@ -78,13 +138,31 @@ export default function AddBirdForm({ eventId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <BirdChatWidget
-        onIdentified={({ type: t, species: s, summary }) => {
-          setType(t);
-          setSpecies(s);
-          if (summary) setNotes(summary);
-        }}
-      />
+      <div className={styles.photoSection}>
+        <label className={styles.photoLabel}>Photo (optional)</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoChange}
+          disabled={photoUploading}
+          className={styles.photoInput}
+        />
+        {photoPreview && (
+          <img src={photoPreview} alt="Preview" className={styles.photoThumb} />
+        )}
+        {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
+        {photoError && <span className={styles.photoError}>{photoError}</span>}
+      </div>
+
+      {!photoIdentified && (
+        <BirdChatWidget
+          onIdentified={({ type: t, species: s, summary }) => {
+            setType(t);
+            setSpecies(s);
+            if (summary) setNotes(summary);
+          }}
+        />
+      )}
 
       <div className={styles.grid}>
         <div className={styles.field}>

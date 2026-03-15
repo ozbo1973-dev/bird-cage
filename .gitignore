@@ -20,6 +20,9 @@
 *.db-shm
 *.db-wal
 
+# uploaded photos
+/uploads
+
 # next.js
 /.next/
 /out/
