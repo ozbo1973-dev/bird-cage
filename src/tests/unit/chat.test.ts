@@ -45,4 +45,13 @@ It has a red breast and dark back.`;
     const text = `{"identified": true, "type": "Raptor"}`;
     expect(parseIdentification(text)).toBeNull();
   });
+
+  it("parses multiline JSON inside a markdown code fence", () => {
+    const text = `Here is my identification.\n\n\`\`\`json\n{\n  "identified": true,\n  "type": "Songbird",\n  "species": "Red-breasted Nuthatch"\n}\n\`\`\``;
+    expect(parseIdentification(text)).toEqual({
+      type: "Songbird",
+      species: "Red-breasted Nuthatch",
+      summary: "Here is my identification.",
+    });
+  });
 });
