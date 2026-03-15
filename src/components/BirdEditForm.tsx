@@ -7,9 +7,10 @@ import styles from "./BirdEditForm.module.css";
 
 interface Props {
   bird: BirdEntry;
+  returnTo?: string;
 }
 
-export default function BirdEditForm({ bird }: Props) {
+export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   const router = useRouter();
   const [type, setType] = useState(bird.type);
   const [species, setSpecies] = useState(bird.species);
@@ -44,7 +45,7 @@ export default function BirdEditForm({ bird }: Props) {
       setSaving(false);
 
       if (res.ok) {
-        router.push("/dashboard");
+        router.push(returnTo);
         router.refresh();
       } else {
         setError("Failed to save changes. Please try again.");
@@ -159,7 +160,7 @@ export default function BirdEditForm({ bird }: Props) {
       <div className={styles.actions}>
         <button
           type="button"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push(returnTo)}
           className={styles.cancelBtn}
         >
           Cancel

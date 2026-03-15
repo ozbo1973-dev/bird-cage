@@ -2,6 +2,7 @@
 
 import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import styles from "./EventForm.module.css";
 import BirdChatWidget from "./BirdChatWidget";
 import type { BirdingEvent, BirdEntry } from "@/db/schema";
@@ -173,13 +174,23 @@ export default function EventForm({ initialData }: Props) {
           <div key={index} className={styles.birdCard}>
             <div className={styles.birdCardHeader}>
               <span className={styles.birdIndex}>Bird #{index + 1}</span>
-              <button
-                type="button"
-                onClick={() => removeBird(index)}
-                className={styles.removeBtn}
-              >
-                Remove
-              </button>
+              <div className={styles.birdCardActions}>
+                {isEdit && initialData!.birds[index] && (
+                  <Link
+                    href={`/birds/${initialData!.birds[index].id}/edit?from=/events/${initialData!.event.id}/edit`}
+                    className={styles.editBirdBtn}
+                  >
+                    Edit
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeBird(index)}
+                  className={styles.removeBtn}
+                >
+                  Remove
+                </button>
+              </div>
             </div>
             {!isEdit && (
               <BirdChatWidget
