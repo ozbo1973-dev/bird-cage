@@ -181,13 +181,15 @@ export default function EventForm({ initialData }: Props) {
                 Remove
               </button>
             </div>
-            <BirdChatWidget
-              onIdentified={({ type, species, summary }) => {
-                updateBird(index, "type", type);
-                updateBird(index, "species", species);
-                if (summary) updateBird(index, "notes", summary);
-              }}
-            />
+            {!isEdit && (
+              <BirdChatWidget
+                onIdentified={({ type, species, summary }) => {
+                  updateBird(index, "type", type);
+                  updateBird(index, "species", species);
+                  if (summary) updateBird(index, "notes", summary);
+                }}
+              />
+            )}
             <div className={styles.birdGrid}>
               <div className={styles.field}>
                 <label htmlFor={`bird-type-${index}`} className={styles.label}>

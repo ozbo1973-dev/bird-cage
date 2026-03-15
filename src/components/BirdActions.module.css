@@ -1,3 +1,21 @@
+.viewBtn {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #209dd7;
+  border-radius: 4px;
+  background: white;
+  color: #209dd7;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.viewBtn:hover {
+  background: #209dd7;
+  color: white;
+}
+
 .deleteBtn {
   padding: 0.2rem 0.5rem;
   border: 1px solid #c0392b;

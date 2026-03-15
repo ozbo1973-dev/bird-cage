@@ -27,6 +27,20 @@ export async function getUserEvents(userId: string): Promise<EventWithBirds[]> {
   }));
 }
 
+/** Fetch a single bird entry, enforcing user ownership via the parent event. Returns null if not found or not owned. */
+export async function getBirdEntry(
+  birdId: number,
+  userId: string,
+): Promise<BirdEntry | null> {
+  const [row] = await db
+    .select({ bird: birdEntries })
+    .from(birdEntries)
+    .innerJoin(birdingEvents, eq(birdEntries.eventId, birdingEvents.id))
+    .where(and(eq(birdEntries.id, birdId), eq(birdingEvents.userId, userId)));
+
+  return row?.bird ?? null;
+}
+
 /** Fetch a single event with its birds, enforcing user ownership. Returns null if not found or not owned. */
 export async function getEventWithBirds(
   eventId: number,
