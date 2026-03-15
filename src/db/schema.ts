@@ -116,6 +116,7 @@ export const birdEntries = sqliteTable("bird_entries", {
   lng: real("lng"),
   dateStamp: text("date_stamp").notNull(),
   notes: text("notes"),
+  photoPath: text("photo_path"),
 });
 
 // Relations

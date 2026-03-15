@@ -15,6 +15,13 @@
       "when": 1773145256211,
       "tag": "0001_white_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1742000000000,
+      "tag": "0002_add_photo_path",
+      "breakpoints": true
     }
   ]
 }

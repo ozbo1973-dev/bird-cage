@@ -21,6 +21,48 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   const [notes, setNotes] = useState(bird.notes ?? "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [photoPath, setPhotoPath] = useState(bird.photoPath ?? "");
+  const [photoPreview, setPhotoPreview] = useState(
+    bird.photoPath ? `/api/uploads/${bird.photoPath}` : "",
+  );
+  const [photoStatus, setPhotoStatus] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  const [photoUploading, setPhotoUploading] = useState(false);
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoError("");
+    setPhotoStatus("Uploading photo...");
+    setPhotoUploading(true);
+    setPhotoPreview((prev) => {
+      if (prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const res = await fetch("/api/uploads", { method: "POST", body: form });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setPhotoError((body as { error?: string }).error ?? "Upload failed");
+        setPhotoStatus("");
+        return;
+      }
+
+      const { path: uploadedPath } = (await res.json()) as { path: string };
+      setPhotoPath(uploadedPath);
+      setPhotoStatus("Photo uploaded.");
+    } catch {
+      setPhotoError("Something went wrong. Please try again.");
+      setPhotoStatus("");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
 
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
@@ -39,6 +81,7 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
           lng: lng !== "" ? parseFloat(lng) : null,
           dateStamp,
           notes,
+          photoPath: photoPath || null,
         }),
       });
 
@@ -55,6 +98,22 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.photoSection}>
+        <label className={styles.photoLabel}>Photo (optional)</label>
+        {photoPreview && (
+          <img src={photoPreview} alt="Bird photo" className={styles.photoThumb} />
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoChange}
+          disabled={photoUploading}
+          className={styles.photoInput}
+        />
+        {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
+        {photoError && <span className={styles.photoError}>{photoError}</span>}
+      </div>
+
       <div className={styles.grid}>
         <div className={styles.field}>
           <label htmlFor="type" className={styles.label}>
