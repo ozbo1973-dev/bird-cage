@@ -16,6 +16,11 @@
   text-align: center;
 }
 
+.logoImg {
+  margin: 0 auto 0.5rem;
+  display: block;
+}
+
 .title {
   font-size: 2rem;
   font-weight: 700;

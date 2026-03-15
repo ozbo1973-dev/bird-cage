@@ -15,8 +15,7 @@
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 700;
+  display: block;
 }
 
 .headerActions {
@@ -39,6 +38,9 @@
   font-size: 0.9rem;
   font-weight: 500;
   transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .newEventBtn:hover {
