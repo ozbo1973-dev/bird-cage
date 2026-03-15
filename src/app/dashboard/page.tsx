@@ -1,7 +1,5 @@
 import { requireAuth } from "../../lib/session";
-import { db } from "../../db";
-import { birdingEvents, birdEntries } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { getUserEvents } from "../../lib/dal/events";
 import Link from "next/link";
 import LogoutButton from "../../components/LogoutButton";
 import DashboardTabs from "../../components/DashboardTabs";
@@ -15,18 +13,7 @@ export default async function DashboardPage({
   const session = await requireAuth();
   const { view = "timeline" } = await searchParams;
 
-  const events = await db
-    .select()
-    .from(birdingEvents)
-    .where(eq(birdingEvents.userId, session.user.id))
-    .orderBy(birdingEvents.date);
-
-  const birds = await db.select().from(birdEntries);
-
-  const eventsWithBirds = events.map((event) => ({
-    ...event,
-    birds: birds.filter((b) => b.eventId === event.id),
-  }));
+  const eventsWithBirds = await getUserEvents(session.user.id);
 
   return (
     <div className={styles.page}>

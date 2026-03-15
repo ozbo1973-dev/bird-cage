@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import type { BirdingEvent, BirdEntry } from "@/db/schema";
+import type { BirdEntry } from "@/db/schema";
+import type { EventWithBirds } from "@/lib/dal/events";
+import EventActions from "./EventActions";
+import BirdActions from "./BirdActions";
 import styles from "./DashboardTabs.module.css";
-
-type EventWithBirds = BirdingEvent & { birds: BirdEntry[] };
 
 interface Props {
   view: string;
@@ -68,12 +69,16 @@ function TimelineView({ events }: { events: EventWithBirds[] }) {
             <ul className={styles.birdList}>
               {event.birds.map((bird) => (
                 <li key={bird.id} className={styles.birdItem}>
-                  <span className={styles.birdName}>{bird.species}</span>
-                  <span className={styles.birdMeta}>{bird.type} · {bird.locationName}</span>
+                  <div className={styles.birdItemInfo}>
+                    <span className={styles.birdName}>{bird.species}</span>
+                    <span className={styles.birdMeta}>{bird.type} · {bird.locationName}</span>
+                  </div>
+                  <BirdActions birdId={bird.id} birdSpecies={bird.species} />
                 </li>
               ))}
             </ul>
           )}
+          <EventActions eventId={event.id} eventTitle={event.title} />
         </div>
       ))}
     </div>
@@ -103,9 +108,12 @@ function SpeciesView({ events }: { events: EventWithBirds[] }) {
           <ul className={styles.birdList}>
             {entries.map(({ bird, eventTitle, eventDate }) => (
               <li key={bird.id} className={styles.birdItem}>
-                <span className={styles.birdName}>{eventTitle}</span>
-                <span className={styles.birdMeta}>{eventDate} · {bird.locationName}</span>
-                {bird.notes && <span className={styles.birdNotes}>{bird.notes}</span>}
+                <div className={styles.birdItemInfo}>
+                  <span className={styles.birdName}>{eventTitle}</span>
+                  <span className={styles.birdMeta}>{eventDate} · {bird.locationName}</span>
+                  {bird.notes && <span className={styles.birdNotes}>{bird.notes}</span>}
+                </div>
+                <BirdActions birdId={bird.id} birdSpecies={bird.species} />
               </li>
             ))}
           </ul>
@@ -134,17 +142,20 @@ function LocationView({ events }: { events: EventWithBirds[] }) {
     <div className={styles.list}>
       {sorted.map(([location, entries]) => (
         <div key={location} className={styles.card}>
-          <h2 className={styles.cardTitle}>📍 {location}</h2>
+          <h2 className={styles.cardTitle}>{location}</h2>
           <ul className={styles.birdList}>
             {entries.map(({ bird, eventTitle, eventDate }) => (
               <li key={bird.id} className={styles.birdItem}>
-                <span className={styles.birdName}>{bird.species} ({bird.type})</span>
-                <span className={styles.birdMeta}>{eventTitle} · {eventDate}</span>
-                {bird.lat != null && bird.lng != null && (
-                  <span className={styles.birdMeta}>
-                    {bird.lat.toFixed(4)}, {bird.lng.toFixed(4)}
-                  </span>
-                )}
+                <div className={styles.birdItemInfo}>
+                  <span className={styles.birdName}>{bird.species} ({bird.type})</span>
+                  <span className={styles.birdMeta}>{eventTitle} · {eventDate}</span>
+                  {bird.lat != null && bird.lng != null && (
+                    <span className={styles.birdMeta}>
+                      {bird.lat.toFixed(4)}, {bird.lng.toFixed(4)}
+                    </span>
+                  )}
+                </div>
+                <BirdActions birdId={bird.id} birdSpecies={bird.species} />
               </li>
             ))}
           </ul>

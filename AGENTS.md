@@ -27,6 +27,15 @@ The database should use SQLLite with Drizzle ORM and be created from scratch eac
 The authentication currently has a mock auth system but will use Better Auth in future.
 Always use server side authentication. Do not implement client side authentication unless told specifically to do so.
 All server pages, actions, routes and data access layers should be implemented with server authentication.
+React.FormEvent is deprecated, if using in a Form to handle event, use React.SubmitEvent.
+-example:
+
+```tsx
+function handleSubmit(e: React.SubmitEven) {
+  e.preventDefault();
+  //...rest of function
+}
+```
 
 ## Color Scheme
 
@@ -53,6 +62,10 @@ Moved `BirdChatWidget` to the top of each bird sighting card so users can identi
 ### BRD-13 - Fix Vitest ERR_REQUIRE_ESM (complete, PR #9)
 
 Renamed `vitest.config.ts` to `vitest.config.mts` to force ESM loading. Root cause: vitest@4.x depends on `std-env@4.0.0` (ESM-only); vite@7 was loading the config as CJS and calling `require()` on it. All 17 unit tests pass.
+
+### BRD-10 - Improve Editing of Events and Bird Sightings (complete, PR #10)
+
+Events can now be created without bird sightings (birds optional, form starts empty). Dashboard cards have Edit, Delete, and Add Bird actions on all three views (Timeline, Species, Location). Edit navigates to `/events/[id]/edit`, Add Bird to `/events/[id]/add-bird`. Delete uses a CSS-modules confirmation dialog. Individual bird sightings can also be deleted. New DAL layer (`src/lib/dal/events.ts`) fixes a security bug where all users' birds were fetched. PUT is wrapped in a Drizzle transaction for atomicity.
 
 ### BRD-3 - Better Auth (complete, PR #4)
 

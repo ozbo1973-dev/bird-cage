@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./EventForm.module.css";
 import BirdChatWidget from "./BirdChatWidget";
+import type { BirdingEvent, BirdEntry } from "@/db/schema";
 
-interface BirdEntry {
+interface BirdFormEntry {
   type: string;
   species: string;
   locationName: string;
@@ -15,7 +16,16 @@ interface BirdEntry {
   notes: string;
 }
 
-function emptyBird(): BirdEntry {
+interface InitialData {
+  event: BirdingEvent;
+  birds: BirdEntry[];
+}
+
+interface Props {
+  initialData?: InitialData;
+}
+
+function emptyBird(): BirdFormEntry {
   return {
     type: "",
     species: "",
@@ -27,16 +37,38 @@ function emptyBird(): BirdEntry {
   };
 }
 
-export default function EventForm() {
+function toBirdFormEntry(b: BirdEntry): BirdFormEntry {
+  return {
+    type: b.type,
+    species: b.species,
+    locationName: b.locationName,
+    lat: b.lat != null ? String(b.lat) : "",
+    lng: b.lng != null ? String(b.lng) : "",
+    dateStamp: b.dateStamp,
+    notes: b.notes ?? "",
+  };
+}
+
+export default function EventForm({ initialData }: Props) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [notes, setNotes] = useState("");
-  const [birds, setBirds] = useState<BirdEntry[]>([emptyBird()]);
+  const isEdit = !!initialData;
+
+  const [title, setTitle] = useState(initialData?.event.title ?? "");
+  const [date, setDate] = useState(
+    initialData?.event.date ?? new Date().toISOString().slice(0, 10),
+  );
+  const [notes, setNotes] = useState(initialData?.event.notes ?? "");
+  const [birds, setBirds] = useState<BirdFormEntry[]>(
+    initialData ? initialData.birds.map(toBirdFormEntry) : [],
+  );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  function updateBird(index: number, field: keyof BirdEntry, value: string) {
+  function updateBird(
+    index: number,
+    field: keyof BirdFormEntry,
+    value: string,
+  ) {
     setBirds((prev) =>
       prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)),
     );
@@ -50,7 +82,7 @@ export default function EventForm() {
     setBirds((prev) => prev.filter((_, i) => i !== index));
   }
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
     setSaving(true);
@@ -68,20 +100,25 @@ export default function EventForm() {
         })),
     };
 
-    const res = await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    const url = isEdit ? `/api/events/${initialData!.event.id}` : "/api/events";
+    const method = isEdit ? "PUT" : "POST";
+
+    startTransition(async () => {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      setSaving(false);
+
+      if (res.ok) {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setError("Failed to save event. Please try again.");
+      }
     });
-
-    setSaving(false);
-
-    if (res.ok) {
-      router.push("/dashboard");
-      router.refresh();
-    } else {
-      setError("Failed to save event. Please try again.");
-    }
   }
 
   return (
@@ -136,15 +173,13 @@ export default function EventForm() {
           <div key={index} className={styles.birdCard}>
             <div className={styles.birdCardHeader}>
               <span className={styles.birdIndex}>Bird #{index + 1}</span>
-              {birds.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeBird(index)}
-                  className={styles.removeBtn}
-                >
-                  Remove
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => removeBird(index)}
+                className={styles.removeBtn}
+              >
+                Remove
+              </button>
             </div>
             <BirdChatWidget
               onIdentified={({ type, species, summary }) => {
@@ -265,7 +300,7 @@ export default function EventForm() {
         ))}
 
         <button type="button" onClick={addBird} className={styles.addBirdBtn}>
-          + Add Another Bird
+          + Add Bird
         </button>
       </section>
 
@@ -280,7 +315,7 @@ export default function EventForm() {
           Cancel
         </button>
         <button type="submit" disabled={saving} className={styles.saveBtn}>
-          {saving ? "Saving…" : "Save Event"}
+          {saving ? "Saving…" : isEdit ? "Save Changes" : "Save Event"}
         </button>
       </div>
     </form>
