@@ -79,6 +79,10 @@ View button added to each bird record card on the dashboard (next to Delete), li
 
 Edit link added to each bird sighting card on the event edit page, navigating to `/birds/[id]/edit?from=/events/[eventId]/edit`. `BirdEditPage` reads the `?from=` search param and passes it as `returnTo` to `BirdEditForm`. Both Cancel and on-save redirect use `returnTo`, defaulting to `/dashboard` when no param is present.
 
+### BRD-5 - Improve UX with Location Identification and UI (complete, PR #14)
+
+"Use my location" button added to `AddBirdForm` — calls browser Geolocation API and autofills lat/lng only when fields are blank; does not trigger on edit. In the dashboard Location tab, a Map button (dark green, `#2c6e49`) is conditionally shown per bird record when coordinates are present; clicking it opens an embedded OpenStreetMap iframe in an in-app `MapDialog` dialog. New `MapDialog` component and 8 unit tests added (33 total passing).
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.

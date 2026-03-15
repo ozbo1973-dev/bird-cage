@@ -120,3 +120,26 @@
   color: #aaa;
   font-style: italic;
 }
+
+.mapBtn {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #2c6e49;
+  border-radius: 4px;
+  background: white;
+  color: #2c6e49;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mapBtn:hover {
+  background: #2c6e49;
+  color: white;
+}
+
+.birdActions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
