@@ -71,6 +71,10 @@ Events can now be created without bird sightings (birds optional, form starts em
 
 Added `position: static` to `.dialog` in `ConfirmDialog.module.css`. Root cause: HTML `<dialog>` defaults to `position: absolute`, bypassing the backdrop's flexbox centering and rendering the dialog at the far left. The fix makes it participate in flex layout and center correctly on screen.
 
+### BRD-21 - Improve Bird Record UX (complete, PR #12)
+
+View button added to each bird record card on the dashboard (next to Delete), linking to `/birds/[id]/edit`. New server-authenticated `/birds/[id]/edit` page with `BirdEditForm` client component for viewing and updating all sighting fields (no AI chat). `PUT /api/birds/[id]` route added with ownership verification and required-field validation. `getBirdEntry` DAL function added with user ownership enforcement. `BirdChatWidget` hidden in `EventForm` when editing (`{!isEdit && ...}`).
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
