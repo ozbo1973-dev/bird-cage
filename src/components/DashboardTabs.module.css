@@ -130,8 +130,6 @@
   font-size: 0.75rem;
   cursor: pointer;
   flex-shrink: 0;
-  text-decoration: none;
-  display: inline-block;
 }
 
 .mapBtn:hover {

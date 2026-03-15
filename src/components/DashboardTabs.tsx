@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import type { BirdEntry } from "@/db/schema";
 import type { EventWithBirds } from "@/lib/dal/events";
 import EventActions from "./EventActions";
 import BirdActions from "./BirdActions";
+import MapDialog from "./MapDialog";
 import styles from "./DashboardTabs.module.css";
 
 interface Props {
@@ -124,6 +126,8 @@ function SpeciesView({ events }: { events: EventWithBirds[] }) {
 }
 
 function LocationView({ events }: { events: EventWithBirds[] }) {
+  const [mapBird, setMapBird] = useState<BirdEntry | null>(null);
+
   const locationMap = new Map<string, { bird: BirdEntry; eventTitle: string; eventDate: string }[]>();
   for (const event of events) {
     for (const bird of event.birds) {
@@ -139,40 +143,50 @@ function LocationView({ events }: { events: EventWithBirds[] }) {
   }
 
   return (
-    <div className={styles.list}>
-      {sorted.map(([location, entries]) => (
-        <div key={location} className={styles.card}>
-          <h2 className={styles.cardTitle}>{location}</h2>
-          <ul className={styles.birdList}>
-            {entries.map(({ bird, eventTitle, eventDate }) => (
-              <li key={bird.id} className={styles.birdItem}>
-                <div className={styles.birdItemInfo}>
-                  <span className={styles.birdName}>{bird.species} ({bird.type})</span>
-                  <span className={styles.birdMeta}>{eventTitle} · {eventDate}</span>
-                  {bird.lat != null && bird.lng != null && (
-                    <span className={styles.birdMeta}>
-                      {bird.lat.toFixed(4)}, {bird.lng.toFixed(4)}
-                    </span>
-                  )}
-                </div>
-                <div className={styles.birdActions}>
-                  {bird.lat != null && bird.lng != null && (
-                    <a
-                      href={`https://www.openstreetmap.org/?mlat=${bird.lat}&mlon=${bird.lng}&zoom=14`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.mapBtn}
-                    >
-                      Map
-                    </a>
-                  )}
-                  <BirdActions birdId={bird.id} birdSpecies={bird.species} />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className={styles.list}>
+        {sorted.map(([location, entries]) => (
+          <div key={location} className={styles.card}>
+            <h2 className={styles.cardTitle}>{location}</h2>
+            <ul className={styles.birdList}>
+              {entries.map(({ bird, eventTitle, eventDate }) => (
+                <li key={bird.id} className={styles.birdItem}>
+                  <div className={styles.birdItemInfo}>
+                    <span className={styles.birdName}>{bird.species} ({bird.type})</span>
+                    <span className={styles.birdMeta}>{eventTitle} · {eventDate}</span>
+                    {bird.lat != null && bird.lng != null && (
+                      <span className={styles.birdMeta}>
+                        {bird.lat.toFixed(4)}, {bird.lng.toFixed(4)}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.birdActions}>
+                    {bird.lat != null && bird.lng != null && (
+                      <button
+                        type="button"
+                        onClick={() => setMapBird(bird)}
+                        className={styles.mapBtn}
+                      >
+                        Map
+                      </button>
+                    )}
+                    <BirdActions birdId={bird.id} birdSpecies={bird.species} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      {mapBird?.lat != null && mapBird?.lng != null && (
+        <MapDialog
+          open={true}
+          lat={mapBird.lat}
+          lng={mapBird.lng}
+          label={`${mapBird.species} — ${mapBird.locationName}`}
+          onClose={() => setMapBird(null)}
+        />
+      )}
+    </>
   );
 }
