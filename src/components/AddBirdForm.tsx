@@ -16,12 +16,14 @@ export default function AddBirdForm({ eventId }: Props) {
   const [locationName, setLocationName] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
-  const [dateStamp, setDateStamp] = useState(new Date().toISOString().slice(0, 10));
+  const [dateStamp, setDateStamp] = useState(
+    new Date().toISOString().slice(0, 10),
+  );
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
     setSaving(true);

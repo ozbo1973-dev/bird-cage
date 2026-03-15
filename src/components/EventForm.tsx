@@ -64,7 +64,11 @@ export default function EventForm({ initialData }: Props) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  function updateBird(index: number, field: keyof BirdFormEntry, value: string) {
+  function updateBird(
+    index: number,
+    field: keyof BirdFormEntry,
+    value: string,
+  ) {
     setBirds((prev) =>
       prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)),
     );
@@ -78,7 +82,7 @@ export default function EventForm({ initialData }: Props) {
     setBirds((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
     setSaving(true);
@@ -200,7 +204,10 @@ export default function EventForm({ initialData }: Props) {
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-species-${index}`} className={styles.label}>
+                <label
+                  htmlFor={`bird-species-${index}`}
+                  className={styles.label}
+                >
                   Species
                 </label>
                 <input
@@ -214,14 +221,19 @@ export default function EventForm({ initialData }: Props) {
                 />
               </div>
               <div className={styles.field}>
-                <label htmlFor={`bird-location-${index}`} className={styles.label}>
+                <label
+                  htmlFor={`bird-location-${index}`}
+                  className={styles.label}
+                >
                   Location Name
                 </label>
                 <input
                   id={`bird-location-${index}`}
                   type="text"
                   value={bird.locationName}
-                  onChange={(e) => updateBird(index, "locationName", e.target.value)}
+                  onChange={(e) =>
+                    updateBird(index, "locationName", e.target.value)
+                  }
                   className={styles.input}
                   placeholder="e.g. Central Park, NY"
                   required
@@ -235,7 +247,9 @@ export default function EventForm({ initialData }: Props) {
                   id={`bird-date-${index}`}
                   type="date"
                   value={bird.dateStamp}
-                  onChange={(e) => updateBird(index, "dateStamp", e.target.value)}
+                  onChange={(e) =>
+                    updateBird(index, "dateStamp", e.target.value)
+                  }
                   className={styles.input}
                   required
                 />
