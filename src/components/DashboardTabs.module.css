@@ -123,17 +123,17 @@
 
 .mapBtn {
   padding: 0.2rem 0.5rem;
-  border: 1px solid #ecad0a;
+  border: 1px solid #2c6e49;
   border-radius: 4px;
   background: white;
-  color: #ecad0a;
+  color: #2c6e49;
   font-size: 0.75rem;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .mapBtn:hover {
-  background: #ecad0a;
+  background: #2c6e49;
   color: white;
 }
 
