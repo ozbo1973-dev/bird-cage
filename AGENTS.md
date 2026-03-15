@@ -67,6 +67,10 @@ Renamed `vitest.config.ts` to `vitest.config.mts` to force ESM loading. Root cau
 
 Events can now be created without bird sightings (birds optional, form starts empty). Dashboard cards have Edit, Delete, and Add Bird actions on all three views (Timeline, Species, Location). Edit navigates to `/events/[id]/edit`, Add Bird to `/events/[id]/add-bird`. Delete uses a CSS-modules confirmation dialog. Individual bird sightings can also be deleted. New DAL layer (`src/lib/dal/events.ts`) fixes a security bug where all users' birds were fetched. PUT is wrapped in a Drizzle transaction for atomicity.
 
+### BRD-16 - Fix Dialog UI Issues (complete, PR #11)
+
+Added `position: static` to `.dialog` in `ConfirmDialog.module.css`. Root cause: HTML `<dialog>` defaults to `position: absolute`, bypassing the backdrop's flexbox centering and rendering the dialog at the far left. The fix makes it participate in flex layout and center correctly on screen.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
