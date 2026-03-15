@@ -39,6 +39,7 @@ export default function BirdActions({ birdId, birdSpecies }: Props) {
         onClick={() => setConfirming(true)}
         className={styles.deleteBtn}
       >
+        <Bird size={14} />
         Delete
       </button>
       {error && <p className={styles.error}>{error}</p>}

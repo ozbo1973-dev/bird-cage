@@ -12,7 +12,7 @@ export default async function SignupPage() {
   return (
     <main className={styles.main}>
       <div className={styles.card}>
-        <Image src="/logo.svg" alt="Bird Cage" width={80} height={80} className={styles.logoImg} />
+        <Image src="/logo.svg" alt="Bird Cage" width={220} height={147} className={styles.logoImg} />
         <h1 className={styles.title}>Bird Cage</h1>
         <p className={styles.subtitle}>Create your account</p>
         <SignupForm />

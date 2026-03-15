@@ -27,6 +27,9 @@
   font-size: 0.75rem;
   cursor: pointer;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .deleteBtn:hover {

@@ -16,6 +16,8 @@
 
 .logo {
   display: block;
+  width: 200px !important;
+  height: auto !important;
 }
 
 .headerActions {
