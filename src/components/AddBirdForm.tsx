@@ -22,6 +22,28 @@ export default function AddBirdForm({ eventId }: Props) {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState("");
+
+  function useMyLocation() {
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser.");
+      return;
+    }
+    setGeoLoading(true);
+    setGeoError("");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (lat === "") setLat(String(position.coords.latitude));
+        if (lng === "") setLng(String(position.coords.longitude));
+        setGeoLoading(false);
+      },
+      () => {
+        setGeoError("Unable to retrieve your location.");
+        setGeoLoading(false);
+      },
+    );
+  }
 
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
@@ -148,6 +170,18 @@ export default function AddBirdForm({ eventId }: Props) {
             placeholder="e.g. -73.9683"
           />
         </div>
+      </div>
+
+      <div className={styles.geoRow}>
+        <button
+          type="button"
+          onClick={useMyLocation}
+          disabled={geoLoading}
+          className={styles.geoBtn}
+        >
+          {geoLoading ? "Detecting location..." : "Use my location"}
+        </button>
+        {geoError && <span className={styles.geoError}>{geoError}</span>}
       </div>
 
       <div className={styles.field}>

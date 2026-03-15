@@ -155,7 +155,19 @@ function LocationView({ events }: { events: EventWithBirds[] }) {
                     </span>
                   )}
                 </div>
-                <BirdActions birdId={bird.id} birdSpecies={bird.species} />
+                <div className={styles.birdActions}>
+                  {bird.lat != null && bird.lng != null && (
+                    <a
+                      href={`https://www.openstreetmap.org/?mlat=${bird.lat}&mlon=${bird.lng}&zoom=14`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mapBtn}
+                    >
+                      Map
+                    </a>
+                  )}
+                  <BirdActions birdId={bird.id} birdSpecies={bird.species} />
+                </div>
               </li>
             ))}
           </ul>
