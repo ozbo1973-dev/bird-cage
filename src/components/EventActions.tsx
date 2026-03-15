@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Bird, Calendar } from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./EventActions.module.css";
 
@@ -31,9 +32,11 @@ export default function EventActions({ eventId, eventTitle }: Props) {
     <>
       <div className={styles.actions}>
         <Link href={`/events/${eventId}/add-bird`} className={styles.btn}>
-          + Add Bird
+          <Bird size={14} />
+          Add Bird
         </Link>
         <Link href={`/events/${eventId}/edit`} className={styles.btn}>
+          <Calendar size={14} />
           Edit
         </Link>
         <button
@@ -41,6 +44,7 @@ export default function EventActions({ eventId, eventTitle }: Props) {
           onClick={() => setConfirming(true)}
           className={styles.dangerBtn}
         >
+          <Calendar size={14} />
           Delete
         </button>
       </div>

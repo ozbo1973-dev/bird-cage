@@ -15,7 +15,9 @@
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .btn:hover {
@@ -32,6 +34,9 @@
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .dangerBtn:hover {

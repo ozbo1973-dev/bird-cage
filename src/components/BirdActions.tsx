@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Bird } from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog";
 import styles from "./BirdActions.module.css";
 
@@ -30,6 +31,7 @@ export default function BirdActions({ birdId, birdSpecies }: Props) {
   return (
     <>
       <Link href={`/birds/${birdId}/edit`} className={styles.viewBtn}>
+        <Bird size={14} />
         View
       </Link>
       <button
@@ -37,6 +39,7 @@ export default function BirdActions({ birdId, birdSpecies }: Props) {
         onClick={() => setConfirming(true)}
         className={styles.deleteBtn}
       >
+        <Bird size={14} />
         Delete
       </button>
       {error && <p className={styles.error}>{error}</p>}

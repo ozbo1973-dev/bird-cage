@@ -87,6 +87,10 @@ Edit link added to each bird sighting card on the event edit page, navigating to
 
 Photo upload added to `AddBirdForm` and `BirdEditForm`. `POST /api/uploads` saves files to filesystem (`UPLOAD_DIR` env, default `./uploads/`); `GET /api/uploads/[filename]` serves them with canonical path check and `nosniff` headers. `POST /api/identify-photo` base64-encodes the image and sends it to `openai/gpt-4o` via OpenRouter, parsing the response with `parseIdentification`. On success the chat widget is hidden and type/species/notes are auto-populated. `photo_path` nullable column added to `bird_entries` via migration `0002_add_photo_path.sql`. All 3 dashboard views show a 48px inline thumbnail or a "No Photo" placeholder. 7 new unit tests (40 total).
 
+### BRD-52 - UI Improvement with Logo and Buttons (complete, PR #16)
+
+Installed `lucide-react`. Added `logo.svg` to dashboard nav bar and `logo-text.svg` to sign-in/sign-up pages via Next.js `Image`. Added `Bird` icon to View and Delete buttons in `BirdActions`, Add Bird button in `EventActions`. Added `CalendarPlus` icon to New Event button and `Calendar` icon to event Edit and Delete buttons. Button CSS updated to `inline-flex` for icon alignment.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
