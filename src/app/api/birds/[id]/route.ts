@@ -3,7 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { birdingEvents, birdEntries } from "@/db/schema";
-import { isSafeFilename } from "@/lib/uploads";
+import { isSafeFilename, deleteUploadedFile } from "@/lib/uploads";
 
 export async function PUT(
   req: NextRequest,
@@ -57,7 +57,7 @@ export async function DELETE(
 
   // Single query: verify the bird exists and belongs to the session user
   const [row] = await db
-    .select({ birdId: birdEntries.id })
+    .select({ birdId: birdEntries.id, photoPath: birdEntries.photoPath })
     .from(birdEntries)
     .innerJoin(birdingEvents, eq(birdEntries.eventId, birdingEvents.id))
     .where(and(eq(birdEntries.id, birdId), eq(birdingEvents.userId, session.user.id)));
@@ -65,6 +65,7 @@ export async function DELETE(
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.delete(birdEntries).where(eq(birdEntries.id, birdId));
+  deleteUploadedFile(row.photoPath);
 
   return NextResponse.json({ ok: true });
 }
