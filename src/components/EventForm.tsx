@@ -15,6 +15,28 @@ interface BirdFormEntry {
   lng: string;
   dateStamp: string;
   notes: string;
+  photoPath: string;
+}
+
+interface BirdPhotoState {
+  preview: string;
+  status: string;
+  error: string;
+  uploading: boolean;
+  identified: boolean;
+}
+
+interface BirdGeoState {
+  loading: boolean;
+  error: string;
+}
+
+function emptyPhotoState(): BirdPhotoState {
+  return { preview: "", status: "", error: "", uploading: false, identified: false };
+}
+
+function emptyGeoState(): BirdGeoState {
+  return { loading: false, error: "" };
 }
 
 interface InitialData {
@@ -35,6 +57,7 @@ function emptyBird(): BirdFormEntry {
     lng: "",
     dateStamp: new Date().toISOString().slice(0, 10),
     notes: "",
+    photoPath: "",
   };
 }
 
@@ -47,6 +70,7 @@ function toBirdFormEntry(b: BirdEntry): BirdFormEntry {
     lng: b.lng != null ? String(b.lng) : "",
     dateStamp: b.dateStamp,
     notes: b.notes ?? "",
+    photoPath: b.photoPath ?? "",
   };
 }
 
@@ -61,6 +85,12 @@ export default function EventForm({ initialData }: Props) {
   const [notes, setNotes] = useState(initialData?.event.notes ?? "");
   const [birds, setBirds] = useState<BirdFormEntry[]>(
     initialData ? initialData.birds.map(toBirdFormEntry) : [],
+  );
+  const [birdPhotos, setBirdPhotos] = useState<BirdPhotoState[]>(
+    initialData ? initialData.birds.map(() => emptyPhotoState()) : [],
+  );
+  const [birdGeo, setBirdGeo] = useState<BirdGeoState[]>(
+    initialData ? initialData.birds.map(() => emptyGeoState()) : [],
   );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -77,10 +107,89 @@ export default function EventForm({ initialData }: Props) {
 
   function addBird() {
     setBirds((prev) => [...prev, emptyBird()]);
+    setBirdPhotos((prev) => [...prev, emptyPhotoState()]);
+    setBirdGeo((prev) => [...prev, emptyGeoState()]);
   }
 
   function removeBird(index: number) {
     setBirds((prev) => prev.filter((_, i) => i !== index));
+    setBirdPhotos((prev) => prev.filter((_, i) => i !== index));
+    setBirdGeo((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updatePhoto(index: number, patch: Partial<BirdPhotoState>) {
+    setBirdPhotos((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, ...patch } : p)),
+    );
+  }
+
+  function updateGeo(index: number, patch: Partial<BirdGeoState>) {
+    setBirdGeo((prev) =>
+      prev.map((g, i) => (i === index ? { ...g, ...patch } : g)),
+    );
+  }
+
+  async function handlePhotoChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    updatePhoto(index, { error: "", status: "Uploading photo...", uploading: true });
+    const preview = URL.createObjectURL(file);
+    updatePhoto(index, { preview });
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const uploadRes = await fetch("/api/uploads", { method: "POST", body: form });
+      if (!uploadRes.ok) {
+        const body = await uploadRes.json().catch(() => ({}));
+        updatePhoto(index, { error: (body as { error?: string }).error ?? "Upload failed", status: "", uploading: false });
+        return;
+      }
+
+      const { path: uploadedPath } = (await uploadRes.json()) as { path: string };
+      updateBird(index, "photoPath", uploadedPath);
+
+      updatePhoto(index, { status: "Identifying bird from photo..." });
+
+      const identRes = await fetch("/api/identify-photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoPath: uploadedPath }),
+      });
+
+      if (!identRes.ok) {
+        updatePhoto(index, { status: "Photo uploaded. Could not identify bird — please use the chat below.", uploading: false });
+        return;
+      }
+
+      const result = (await identRes.json()) as { type: string; species: string; summary: string };
+      updateBird(index, "type", result.type);
+      updateBird(index, "species", result.species);
+      if (result.summary) updateBird(index, "notes", result.summary);
+      updatePhoto(index, { identified: true, status: "Bird identified from photo — fields populated.", uploading: false });
+    } catch {
+      updatePhoto(index, { error: "Something went wrong. Please try again.", status: "", uploading: false });
+    }
+  }
+
+  function useMyLocation(index: number) {
+    if (!navigator.geolocation) {
+      updateGeo(index, { error: "Geolocation is not supported by your browser." });
+      return;
+    }
+    updateGeo(index, { loading: true, error: "" });
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (birds[index].lat === "") updateBird(index, "lat", String(position.coords.latitude));
+        if (birds[index].lng === "") updateBird(index, "lng", String(position.coords.longitude));
+        updateGeo(index, { loading: false });
+      },
+      () => {
+        updateGeo(index, { loading: false, error: "Unable to retrieve your location." });
+      },
+    );
   }
 
   function handleSubmit(e: React.SubmitEvent) {
@@ -98,6 +207,7 @@ export default function EventForm({ initialData }: Props) {
           ...b,
           lat: b.lat !== "" ? parseFloat(b.lat) : null,
           lng: b.lng !== "" ? parseFloat(b.lng) : null,
+          photoPath: b.photoPath || null,
         })),
     };
 
@@ -193,13 +303,36 @@ export default function EventForm({ initialData }: Props) {
               </div>
             </div>
             {!isEdit && (
-              <BirdChatWidget
-                onIdentified={({ type, species, summary }) => {
-                  updateBird(index, "type", type);
-                  updateBird(index, "species", species);
-                  if (summary) updateBird(index, "notes", summary);
-                }}
-              />
+              <>
+                <div className={styles.photoSection}>
+                  <label className={styles.photoLabel}>Photo (optional)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handlePhotoChange(index, e)}
+                    disabled={birdPhotos[index]?.uploading}
+                    className={styles.photoInput}
+                  />
+                  {birdPhotos[index]?.preview && (
+                    <img src={birdPhotos[index].preview} alt="Preview" className={styles.photoThumb} />
+                  )}
+                  {birdPhotos[index]?.status && (
+                    <span className={styles.photoStatus}>{birdPhotos[index].status}</span>
+                  )}
+                  {birdPhotos[index]?.error && (
+                    <span className={styles.photoError}>{birdPhotos[index].error}</span>
+                  )}
+                </div>
+                {!birdPhotos[index]?.identified && (
+                  <BirdChatWidget
+                    onIdentified={({ type, species, summary }) => {
+                      updateBird(index, "type", type);
+                      updateBird(index, "species", species);
+                      if (summary) updateBird(index, "notes", summary);
+                    }}
+                  />
+                )}
+              </>
             )}
             <div className={styles.birdGrid}>
               <div className={styles.field}>
@@ -296,6 +429,21 @@ export default function EventForm({ initialData }: Props) {
                 />
               </div>
             </div>
+            {!isEdit && (
+              <div className={styles.geoRow}>
+                <button
+                  type="button"
+                  onClick={() => useMyLocation(index)}
+                  disabled={birdGeo[index]?.loading}
+                  className={styles.geoBtn}
+                >
+                  {birdGeo[index]?.loading ? "Detecting location..." : "Use my location"}
+                </button>
+                {birdGeo[index]?.error && (
+                  <span className={styles.geoError}>{birdGeo[index].error}</span>
+                )}
+              </div>
+            )}
             <div className={styles.field}>
               <label htmlFor={`bird-notes-${index}`} className={styles.label}>
                 Notes
