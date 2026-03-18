@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
           lng?: number;
           dateStamp: string;
           notes?: string;
+          photoPath?: string;
         }) => ({
           eventId: event.id,
           type: b.type,
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
           lng: b.lng ?? null,
           dateStamp: b.dateStamp,
           notes: b.notes ?? null,
+          photoPath: b.photoPath ?? null,
         }),
       ),
     );

@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { birdingEvents, birdEntries } from "@/db/schema";
+import { deleteUploadedFile } from "@/lib/uploads";
 
 type BirdPayload = {
   type: string;
@@ -34,6 +35,11 @@ export async function PUT(
 
   const { title, date, notes, birds } = await req.json();
 
+  const existingBirds = await db
+    .select({ photoPath: birdEntries.photoPath })
+    .from(birdEntries)
+    .where(eq(birdEntries.eventId, eventId));
+
   await db.transaction(async (tx) => {
     await tx
       .update(birdingEvents)
@@ -58,6 +64,8 @@ export async function PUT(
     }
   });
 
+  for (const bird of existingBirds) deleteUploadedFile(bird.photoPath);
+
   return NextResponse.json({ ok: true });
 }
 
@@ -79,7 +87,14 @@ export async function DELETE(
 
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const birds = await db
+    .select({ photoPath: birdEntries.photoPath })
+    .from(birdEntries)
+    .where(eq(birdEntries.eventId, eventId));
+
   await db.delete(birdingEvents).where(eq(birdingEvents.id, eventId));
+
+  for (const bird of birds) deleteUploadedFile(bird.photoPath);
 
   return NextResponse.json({ ok: true });
 }

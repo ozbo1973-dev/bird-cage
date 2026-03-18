@@ -41,6 +41,29 @@ describe("buildMapUrl", () => {
   });
 });
 
+/** Mirrors the conditional location button display in BirdEditForm */
+function shouldShowLocationButton(lat: string, lng: string): boolean {
+  return lat === "" && lng === "";
+}
+
+describe("shouldShowLocationButton (BirdEditForm)", () => {
+  it("shows button when both lat and lng are blank", () => {
+    expect(shouldShowLocationButton("", "")).toBe(true);
+  });
+
+  it("hides button when lat has a value", () => {
+    expect(shouldShowLocationButton("40.7851", "")).toBe(false);
+  });
+
+  it("hides button when lng has a value", () => {
+    expect(shouldShowLocationButton("", "-73.9683")).toBe(false);
+  });
+
+  it("hides button when both have values", () => {
+    expect(shouldShowLocationButton("40.7851", "-73.9683")).toBe(false);
+  });
+});
+
 describe("shouldShowMapButton", () => {
   it("shows button when both lat and lng are present", () => {
     expect(shouldShowMapButton(40.7851, -73.9683)).toBe(true);

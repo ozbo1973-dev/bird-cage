@@ -106,6 +106,38 @@
   cursor: not-allowed;
 }
 
+.geoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.geoBtn {
+  background: none;
+  border: 1px solid #209dd7;
+  color: #209dd7;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.geoBtn:hover:not(:disabled) {
+  background: #209dd7;
+  color: white;
+}
+
+.geoBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.geoError {
+  font-size: 0.8rem;
+  color: #c0392b;
+}
+
 .photoSection {
   display: flex;
   flex-direction: column;

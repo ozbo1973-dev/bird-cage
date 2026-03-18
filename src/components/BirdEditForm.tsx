@@ -21,6 +21,8 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   const [notes, setNotes] = useState(bird.notes ?? "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState("");
   const [photoPath, setPhotoPath] = useState(bird.photoPath ?? "");
   const [photoPreview, setPhotoPreview] = useState(
     bird.photoPath ? `/api/uploads/${bird.photoPath}` : "",
@@ -28,6 +30,26 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   const [photoStatus, setPhotoStatus] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [photoUploading, setPhotoUploading] = useState(false);
+
+  function useMyLocation() {
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser.");
+      return;
+    }
+    setGeoLoading(true);
+    setGeoError("");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (lat === "") setLat(String(position.coords.latitude));
+        if (lng === "") setLng(String(position.coords.longitude));
+        setGeoLoading(false);
+      },
+      () => {
+        setGeoError("Unable to retrieve your location.");
+        setGeoLoading(false);
+      },
+    );
+  }
 
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -199,6 +221,20 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
           />
         </div>
       </div>
+
+      {lat === "" && lng === "" && (
+        <div className={styles.geoRow}>
+          <button
+            type="button"
+            onClick={useMyLocation}
+            disabled={geoLoading}
+            className={styles.geoBtn}
+          >
+            {geoLoading ? "Detecting location..." : "Use my location"}
+          </button>
+          {geoError && <span className={styles.geoError}>{geoError}</span>}
+        </div>
+      )}
 
       <div className={styles.field}>
         <label htmlFor="notes" className={styles.label}>

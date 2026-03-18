@@ -21,3 +21,13 @@ export function isSafeFilename(filename: string): boolean {
     !filename.includes("..")
   );
 }
+
+/** Deletes an uploaded file by filename. Silently ignores missing files. */
+export function deleteUploadedFile(filename: string | null | undefined): void {
+  if (!filename || !isSafeFilename(filename)) return;
+  try {
+    fs.unlinkSync(getUploadPath(filename));
+  } catch {
+    // file already gone — ignore
+  }
+}
