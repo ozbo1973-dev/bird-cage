@@ -3,6 +3,7 @@
 import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { BirdEntry } from "@/db/schema";
+import DragDropZone from "./DragDropZone";
 import styles from "./BirdEditForm.module.css";
 
 interface Props {
@@ -51,9 +52,7 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
     );
   }
 
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handlePhotoFile(file: File) {
 
     setPhotoError("");
     setPhotoStatus("Uploading photo...");
@@ -84,6 +83,11 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
     } finally {
       setPhotoUploading(false);
     }
+  }
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handlePhotoFile(file);
   }
 
   function handleSubmit(e: React.SubmitEvent) {
@@ -120,21 +124,27 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.photoSection}>
-        <label className={styles.photoLabel}>Photo (optional)</label>
-        {photoPreview && (
-          <img src={photoPreview} alt="Bird photo" className={styles.photoThumb} />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChange}
-          disabled={photoUploading}
-          className={styles.photoInput}
-        />
-        {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
-        {photoError && <span className={styles.photoError}>{photoError}</span>}
-      </div>
+      <DragDropZone
+        onFile={handlePhotoFile}
+        onError={setPhotoError}
+        disabled={photoUploading}
+      >
+        <div className={styles.photoSection}>
+          <label className={styles.photoLabel}>Photo (optional)</label>
+          {photoPreview && (
+            <img src={photoPreview} alt="Bird photo" className={styles.photoThumb} />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            disabled={photoUploading}
+            className={styles.photoInput}
+          />
+          {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
+          {photoError && <span className={styles.photoError}>{photoError}</span>}
+        </div>
+      </DragDropZone>
 
       <div className={styles.grid}>
         <div className={styles.field}>
