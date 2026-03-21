@@ -1,16 +1,38 @@
 ---
 title: implement-jira-issue
-description: command used to instruct Claude Code to run the /feature-dev command using the given insructions to implement the Jira issue. The user will input the Jira issue  id and extra instructions are optional
+description: command used to instruct Claude Code to retrieve the indicated task  run the /feature-dev command using the given insructions to implement the plan located in the /docs/plan/jira directory. The plan   id and extra instructions are optional
+argument-hint: "<issue-id> [extra instructions]"
 ---
 
-run the /feature-dev plugin with the below instructions. Make sure to not skip any steps in the feature-dev process.
+# Implement Jira Issue
 
-<instructions>
--Implement Jira issue $1.  Use all the subtask work items as an implementation guide.
--Create a new branch before implementation.
--Update the Jira issue $1 status to IN PROGRESS.
--Update each subtask to Done when the task has been finished.
--Test and verify tests pass and raise a PR when completed.
--<optional_human-input> $2 </optional_human-input>
--DO NOT mark jira issue as done until you are told specifically. Human will manually verify.
-</instructions>
+Arguments: $ARGUMENTS
+
+Extract the issue ID from the arguments (e.g. `BRD-23`). Any remaining text after the issue ID is extra instructions.
+
+## Step 1: Read the implementation plan
+
+Read the plan file at `/docs/plan/jira/<issue-id>.md` (e.g. `/docs/plan/jira/BRD-23.md`).
+
+- Do NOT use Jira tools. All required information is in the plan file.
+- If the file does not exist, stop and tell the user.
+
+## Step 2: Run feature-dev
+
+Run the `/feature-dev` command using the contents of the plan file as the feature description. Pass any extra instructions from the arguments along as additional context.
+
+Follow every phase of the feature-dev process without skipping any steps:
+
+1. Discovery — confirm understanding of what needs to be built from the plan file
+2. Codebase Exploration — explore relevant existing code
+3. Clarifying Questions — ask the user before designing (skip only if the plan fully specifies everything)
+4. Architecture Design — propose approaches and get user approval
+5. Implementation — implement after explicit user approval
+6. Quality Review — run code-reviewer agents and present findings
+7. Summary — summarize what was built
+
+## Step 3: After implementation
+
+- Create a new git branch before starting implementation
+- Ensure all tests pass
+- Raise a PR when complete
