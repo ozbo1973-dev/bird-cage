@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./EventForm.module.css";
 import BirdChatWidget from "./BirdChatWidget";
+import DragDropZone from "./DragDropZone";
 import type { BirdingEvent, BirdEntry } from "@/db/schema";
 
 interface BirdFormEntry {
@@ -129,9 +130,7 @@ export default function EventForm({ initialData }: Props) {
     );
   }
 
-  async function handlePhotoChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handlePhotoFile(index: number, file: File) {
 
     updatePhoto(index, { error: "", status: "Uploading photo...", uploading: true });
     const preview = URL.createObjectURL(file);
@@ -172,6 +171,11 @@ export default function EventForm({ initialData }: Props) {
     } catch {
       updatePhoto(index, { error: "Something went wrong. Please try again.", status: "", uploading: false });
     }
+  }
+
+  function handlePhotoChange(index: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handlePhotoFile(index, file);
   }
 
   function useMyLocation(index: number) {
@@ -304,25 +308,31 @@ export default function EventForm({ initialData }: Props) {
             </div>
             {!isEdit && (
               <>
-                <div className={styles.photoSection}>
-                  <label className={styles.photoLabel}>Photo (optional)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handlePhotoChange(index, e)}
-                    disabled={birdPhotos[index]?.uploading}
-                    className={styles.photoInput}
-                  />
-                  {birdPhotos[index]?.preview && (
-                    <img src={birdPhotos[index].preview} alt="Preview" className={styles.photoThumb} />
-                  )}
-                  {birdPhotos[index]?.status && (
-                    <span className={styles.photoStatus}>{birdPhotos[index].status}</span>
-                  )}
-                  {birdPhotos[index]?.error && (
-                    <span className={styles.photoError}>{birdPhotos[index].error}</span>
-                  )}
-                </div>
+                <DragDropZone
+                  onFile={(file) => handlePhotoFile(index, file)}
+                  onError={(msg) => updatePhoto(index, { error: msg })}
+                  disabled={birdPhotos[index]?.uploading}
+                >
+                  <div className={styles.photoSection}>
+                    <label className={styles.photoLabel}>Photo (optional)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePhotoChange(index, e)}
+                      disabled={birdPhotos[index]?.uploading}
+                      className={styles.photoInput}
+                    />
+                    {birdPhotos[index]?.preview && (
+                      <img src={birdPhotos[index].preview} alt="Preview" className={styles.photoThumb} />
+                    )}
+                    {birdPhotos[index]?.status && (
+                      <span className={styles.photoStatus}>{birdPhotos[index].status}</span>
+                    )}
+                    {birdPhotos[index]?.error && (
+                      <span className={styles.photoError}>{birdPhotos[index].error}</span>
+                    )}
+                  </div>
+                </DragDropZone>
                 {!birdPhotos[index]?.identified && (
                   <BirdChatWidget
                     onIdentified={({ type, species, summary }) => {

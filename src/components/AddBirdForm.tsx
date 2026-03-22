@@ -3,6 +3,7 @@
 import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import BirdChatWidget from "./BirdChatWidget";
+import DragDropZone from "./DragDropZone";
 import styles from "./AddBirdForm.module.css";
 
 interface Props {
@@ -51,9 +52,7 @@ export default function AddBirdForm({ eventId }: Props) {
     );
   }
 
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handlePhotoFile(file: File) {
 
     setPhotoError("");
     setPhotoStatus("Uploading photo...");
@@ -104,6 +103,11 @@ export default function AddBirdForm({ eventId }: Props) {
     }
   }
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handlePhotoFile(file);
+  }
+
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
@@ -138,21 +142,27 @@ export default function AddBirdForm({ eventId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <div className={styles.photoSection}>
-        <label className={styles.photoLabel}>Photo (optional)</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChange}
-          disabled={photoUploading}
-          className={styles.photoInput}
-        />
-        {photoPreview && (
-          <img src={photoPreview} alt="Preview" className={styles.photoThumb} />
-        )}
-        {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
-        {photoError && <span className={styles.photoError}>{photoError}</span>}
-      </div>
+      <DragDropZone
+        onFile={handlePhotoFile}
+        onError={setPhotoError}
+        disabled={photoUploading}
+      >
+        <div className={styles.photoSection}>
+          <label className={styles.photoLabel}>Photo (optional)</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            disabled={photoUploading}
+            className={styles.photoInput}
+          />
+          {photoPreview && (
+            <img src={photoPreview} alt="Preview" className={styles.photoThumb} />
+          )}
+          {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
+          {photoError && <span className={styles.photoError}>{photoError}</span>}
+        </div>
+      </DragDropZone>
 
       {!photoIdentified && (
         <BirdChatWidget
