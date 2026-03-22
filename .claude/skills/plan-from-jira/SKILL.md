@@ -33,7 +33,6 @@ Create a GitHub issue using your GitHub tools.
 
   ```
   To implement: run the implement-jira-issue command for <ISSUE-ID>
-  Note: DO NOT run the command — this will be done in a later process.
   ```
 
 Do not create any Jira tickets or read any PRD file — this skill operates on a single existing Jira issue only.
