@@ -91,6 +91,10 @@ Photo upload added to `AddBirdForm` and `BirdEditForm`. `POST /api/uploads` save
 
 Installed `lucide-react`. Added `logo.svg` to dashboard nav bar and `logo-text.svg` to sign-in/sign-up pages via Next.js `Image`. Added `Bird` icon to View and Delete buttons in `BirdActions`, Add Bird button in `EventActions`. Added `CalendarPlus` icon to New Event button and `Calendar` icon to event Edit and Delete buttons. Button CSS updated to `inline-flex` for icon alignment.
 
+### BRD-46 - Drag-and-Drop Photo Upload (complete, PR #21)
+
+Drag-and-drop photo upload added to `AddBirdForm` and `BirdEditForm`. Users can drag an image onto the upload area or click to browse. Existing file-upload and photo-identification flow unchanged.
+
 ### BRD-43 - Missing Photo Upload and Use Location on Bird Form (complete, PR #17)
 
 Photo upload section and "Use My Location" button added to `EventForm` inline bird cards (new event flow). `BirdEditForm` now shows "Use My Location" only when lat/lng fields are blank. `POST /api/events` updated to persist `photoPath` for inline birds. `deleteUploadedFile` helper added to `uploads.ts`; called in `DELETE /api/birds/[id]`, `DELETE /api/events/[id]`, and `PUT /api/events/[id]` to clean up photo files when records are removed. 4 new unit tests (44 total).
