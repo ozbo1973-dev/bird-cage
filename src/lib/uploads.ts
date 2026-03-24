@@ -22,11 +22,28 @@ export function isSafeFilename(filename: string): boolean {
   );
 }
 
-/** Deletes an uploaded file by filename. Silently ignores missing files. */
-export function deleteUploadedFile(filename: string | null | undefined): void {
-  if (!filename || !isSafeFilename(filename)) return;
+/**
+ * Deletes an uploaded file.
+ * Handles both Vercel Blob URLs (https://...) and local filenames.
+ */
+export async function deleteUploadedFile(fileRef: string | null | undefined): Promise<void> {
+  if (!fileRef) return;
+
+  if (fileRef.startsWith("https://")) {
+    // Vercel Blob URL — delete from cloud storage
+    const { del } = await import("@vercel/blob");
+    try {
+      await del(fileRef);
+    } catch {
+      // blob already gone — ignore
+    }
+    return;
+  }
+
+  // Local filesystem fallback
+  if (!isSafeFilename(fileRef)) return;
   try {
-    fs.unlinkSync(getUploadPath(filename));
+    fs.unlinkSync(getUploadPath(fileRef));
   } catch {
     // file already gone — ignore
   }

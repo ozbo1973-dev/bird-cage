@@ -31,21 +31,32 @@ export async function POST(req: NextRequest) {
 
   const { photoPath } = (await req.json()) as { photoPath: string };
 
-  if (!photoPath || !isSafeFilename(photoPath)) {
+  if (!photoPath) {
     return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
   }
 
-  const filePath = getUploadPath(photoPath);
-  let buffer: Buffer;
-  try {
-    buffer = await fs.readFile(filePath);
-  } catch {
-    return NextResponse.json({ error: "Photo not found" }, { status: 404 });
-  }
+  let imageContent: { type: "image_url"; image_url: { url: string } };
 
-  const ext = path.extname(photoPath).toLowerCase().replace(".", "");
-  const mimeType = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
-  const dataUrl = `data:${mimeType};base64,${buffer.toString("base64")}`;
+  if (photoPath.startsWith("https://")) {
+    // Vercel Blob URL — pass directly to vision model
+    imageContent = { type: "image_url", image_url: { url: photoPath } };
+  } else {
+    // Local filesystem — read and base64-encode
+    if (!isSafeFilename(photoPath)) {
+      return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
+    }
+    const filePath = getUploadPath(photoPath);
+    let buffer: Buffer;
+    try {
+      buffer = await fs.readFile(filePath);
+    } catch {
+      return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+    }
+    const ext = path.extname(photoPath).toLowerCase().replace(".", "");
+    const mimeType = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
+    const dataUrl = `data:${mimeType};base64,${buffer.toString("base64")}`;
+    imageContent = { type: "image_url", image_url: { url: dataUrl } };
+  }
 
   const client = getClient();
 
@@ -58,7 +69,7 @@ export async function POST(req: NextRequest) {
         {
           role: "user",
           content: [
-            { type: "image_url", image_url: { url: dataUrl } },
+            imageContent,
             { type: "text", text: IDENTIFY_PROMPT },
           ],
         },

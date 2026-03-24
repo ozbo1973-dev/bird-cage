@@ -64,7 +64,7 @@ export async function PUT(
     }
   });
 
-  for (const bird of existingBirds) deleteUploadedFile(bird.photoPath);
+  await Promise.all(existingBirds.map((bird) => deleteUploadedFile(bird.photoPath)));
 
   return NextResponse.json({ ok: true });
 }
@@ -94,7 +94,7 @@ export async function DELETE(
 
   await db.delete(birdingEvents).where(eq(birdingEvents.id, eventId));
 
-  for (const bird of birds) deleteUploadedFile(bird.photoPath);
+  await Promise.all(birds.map((bird) => deleteUploadedFile(bird.photoPath)));
 
   return NextResponse.json({ ok: true });
 }

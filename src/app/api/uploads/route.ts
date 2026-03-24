@@ -31,10 +31,18 @@ export async function POST(req: NextRequest) {
   if (!ALLOWED_EXTS.has(ext)) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
   }
+
   const filename = `${randomUUID()}${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  await fs.writeFile(path.join(getUploadDir(), filename), buffer);
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    // Vercel Blob — store in cloud storage
+    const { put } = await import("@vercel/blob");
+    const blob = await put(`bird-photos/${filename}`, buffer, { access: "public" });
+    return NextResponse.json({ path: blob.url });
+  }
 
+  // Local filesystem fallback (development)
+  await fs.writeFile(path.join(getUploadDir(), filename), buffer);
   return NextResponse.json({ path: filename });
 }
