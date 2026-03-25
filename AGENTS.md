@@ -99,6 +99,10 @@ Drag-and-drop photo upload added to `AddBirdForm` and `BirdEditForm`. Users can 
 
 Photo upload section and "Use My Location" button added to `EventForm` inline bird cards (new event flow). `BirdEditForm` now shows "Use My Location" only when lat/lng fields are blank. `POST /api/events` updated to persist `photoPath` for inline birds. `deleteUploadedFile` helper added to `uploads.ts`; called in `DELETE /api/birds/[id]`, `DELETE /api/events/[id]`, and `PUT /api/events/[id]` to clean up photo files when records are removed. 4 new unit tests (44 total).
 
+### BRD-60 - Review for Production and Create Plan for Changes (complete)
+
+Full codebase audit for Vercel production readiness. Documented Vercel deployment requirements, planned migration from SQLite to Turso (libSQL), reviewed Better Auth configuration needs, and compiled a detailed production readiness report covering env vars, DB changes, and auth setup.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
