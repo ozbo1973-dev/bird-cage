@@ -65,7 +65,7 @@ export async function DELETE(
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.delete(birdEntries).where(eq(birdEntries.id, birdId));
-  deleteUploadedFile(row.photoPath);
+  await deleteUploadedFile(row.photoPath);
 
   return NextResponse.json({ ok: true });
 }

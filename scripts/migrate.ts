@@ -1,23 +1,24 @@
 /**
  * Startup migration script.
- * Run this before starting the Next.js server (e.g. in Docker entrypoint).
+ * Run this before starting the Next.js server (e.g. in Docker entrypoint or Vercel build).
  * Usage: npx tsx scripts/migrate.ts
+ *
+ * Environment variables:
+ *   TURSO_DATABASE_URL  — libSQL URL (e.g. libsql://your-db.turso.io or file:./bird-cage.db)
+ *   TURSO_AUTH_TOKEN    — Turso auth token (required for remote databases)
  */
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import { migrate } from "drizzle-orm/libsql/migrator";
 import path from "path";
 
-const DB_PATH =
-  process.env.DATABASE_URL ?? path.join(process.cwd(), "bird-cage.db");
+const url = process.env.TURSO_DATABASE_URL ?? "file:./bird-cage.db";
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
-const sqlite = new Database(DB_PATH);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+const client = createClient({ url, authToken });
+const db = drizzle(client);
 
-const db = drizzle(sqlite);
-
-migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
 
 console.log("Migrations applied successfully");
-sqlite.close();
+await client.close();

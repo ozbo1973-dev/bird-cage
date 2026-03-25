@@ -1,0 +1,15 @@
+{
+  "buildCommand": "pnpm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "TURSO_DATABASE_URL": "@turso-database-url",
+    "TURSO_AUTH_TOKEN": "@turso-auth-token",
+    "BETTER_AUTH_SECRET": "@better-auth-secret",
+    "BETTER_AUTH_URL": "@better-auth-url",
+    "GOOGLE_CLIENT_ID": "@google-client-id",
+    "GOOGLE_CLIENT_SECRET": "@google-client-secret",
+    "OPENROUTER_API_KEY": "@openrouter-api-key",
+    "BLOB_READ_WRITE_TOKEN": "@blob-read-write-token"
+  }
+}

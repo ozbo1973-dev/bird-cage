@@ -10,6 +10,13 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     autoSignIn: true,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      // TODO: wire up a real email provider (e.g. Resend, SendGrid) before going live
+      console.log(`[email-verification] Send to ${user.email}: ${url}`);
+    },
   },
   socialProviders: {
     google: {
