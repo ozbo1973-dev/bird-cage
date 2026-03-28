@@ -18,7 +18,10 @@ const authToken = process.env.TURSO_AUTH_TOKEN;
 const client = createClient({ url, authToken });
 const db = drizzle(client);
 
-await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+async function main() {
+  await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+  console.log("Migrations applied successfully");
+  await client.close();
+}
 
-console.log("Migrations applied successfully");
-await client.close();
+main();
