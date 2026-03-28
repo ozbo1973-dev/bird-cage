@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     // Vercel Blob — store in cloud storage
     const { put } = await import("@vercel/blob");
-    const blob = await put(`bird-photos/${filename}`, buffer, { access: "public" });
+    const blob = await put(`bird-photos/${filename}`, buffer, { access: "private" });
     return NextResponse.json({ path: blob.url });
   }
 
