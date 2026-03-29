@@ -103,6 +103,10 @@ Photo upload section and "Use My Location" button added to `EventForm` inline bi
 
 Full codebase audit for Vercel production readiness. Documented Vercel deployment requirements, planned migration from SQLite to Turso (libSQL), reviewed Better Auth configuration needs, and compiled a detailed production readiness report covering env vars, DB changes, and auth setup.
 
+### BRD-66 - Create Skill to set up and use Resend for emails (complete)
+
+Created a reusable `resend` skill for agents to install and configure Resend email service in Next.js projects. Covers package installation, API key setup, React Email templates, and transactional email sending via Next.js API routes.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
