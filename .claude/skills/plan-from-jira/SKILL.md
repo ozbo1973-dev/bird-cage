@@ -24,7 +24,15 @@ The plan file should include:
 - A sequenced list of implementation steps derived from the issue description and subtasks
 - Any relevant technical notes or constraints from the issue
 
-## Step 3 — Create the GitHub issue
+## Step 3 - Create New Branch
+
+Once the plan has been created, A new branch should be created in order to hold all the changes the will take place from the feature implementation. The Git hub issue in the next step must be part of the new branch.
+
+- create a new branch using the convention of feature/<<feature-to-implement>>
+- commit changes and push to github.
+- This MUST BE DONE before the Git Hub issue is created
+
+## Step 4 — Create the GitHub issue
 
 Create a GitHub issue using your GitHub tools.
 
