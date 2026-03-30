@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAuth } from "@/lib/session";
+import { requireVerifiedAuth } from "@/lib/session";
 import { getEventWithBirds } from "@/lib/dal/events";
 import AddBirdForm from "@/components/AddBirdForm";
 import Link from "next/link";
@@ -10,7 +10,7 @@ export default async function AddBirdPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await requireAuth();
+  const session = await requireVerifiedAuth();
   const { id } = await params;
   const eventId = parseInt(id, 10);
 

@@ -1,10 +1,10 @@
-import { requireAuth } from "../../../lib/session";
+import { requireVerifiedAuth } from "../../../lib/session";
 import EventForm from "../../../components/EventForm";
 import Link from "next/link";
 import styles from "./page.module.css";
 
 export default async function NewEventPage() {
-  await requireAuth();
+  await requireVerifiedAuth();
 
   return (
     <div className={styles.page}>
