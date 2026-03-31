@@ -24,7 +24,11 @@ export default function LoginForm() {
       });
       setLoading(false);
       if (authError) {
-        setError(authError.message ?? "Invalid email or password");
+        if (authError.code === "EMAIL_NOT_VERIFIED") {
+          router.push("/verify-email");
+        } else {
+          setError(authError.message ?? "Invalid email or password");
+        }
       } else {
         router.push("/dashboard");
       }
