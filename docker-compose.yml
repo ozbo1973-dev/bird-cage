@@ -12,4 +12,6 @@ services:
       - DATABASE_URL=/app/bird-cage.db
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
     restart: unless-stopped
