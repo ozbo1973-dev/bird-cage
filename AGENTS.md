@@ -107,6 +107,10 @@ Full codebase audit for Vercel production readiness. Documented Vercel deploymen
 
 Created a reusable `resend` skill for agents to install and configure Resend email service in Next.js projects. Covers package installation, API key setup, React Email templates, and transactional email sending via Next.js API routes.
 
+### BRD-69 - Finish BetterAuth Email Verification (complete)
+
+Email verification flow completed using Resend. `nextCookies()` plugin added to `auth.ts` for server-side cookie handling. Signup and login converted from client-side `authClient` to server actions (`app/signup/actions.ts`, `app/login/actions.ts`) calling `auth.api.signUpEmail()` / `auth.api.signInEmail()`. Unverified users redirected to `/verify-email` page with resend option. `auth-client.ts` simplified — now only used for Google OAuth and `useSession()`.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.

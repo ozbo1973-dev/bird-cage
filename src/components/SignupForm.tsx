@@ -3,6 +3,7 @@
 import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
+import { signUpAction } from "@/app/signup/actions";
 import styles from "./AuthForm.module.css";
 
 export default function SignupForm() {
@@ -19,16 +20,18 @@ export default function SignupForm() {
     setLoading(true);
 
     startTransition(async () => {
-      const { error: authError } = await authClient.signUp.email({
-        name,
-        email,
-        password,
-      });
-      setLoading(false);
-      if (authError) {
-        setError(authError.message ?? "Could not create account");
-      } else {
-        router.push("/dashboard");
+      try {
+        const { error } = await signUpAction(name, email, password);
+        if (error) {
+          setError(error);
+        } else {
+          router.push("/dashboard");
+        }
+      } catch (err) {
+        console.error("Signup error:", err);
+        setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
       }
     });
   }

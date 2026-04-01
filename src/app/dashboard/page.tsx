@@ -1,4 +1,4 @@
-import { requireAuth } from "../../lib/session";
+import { requireVerifiedAuth } from "../../lib/session";
 import { getUserEvents } from "../../lib/dal/events";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,7 +12,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
-  const session = await requireAuth();
+  const session = await requireVerifiedAuth();
   const { view = "timeline" } = await searchParams;
 
   const eventsWithBirds = await getUserEvents(session.user.id);

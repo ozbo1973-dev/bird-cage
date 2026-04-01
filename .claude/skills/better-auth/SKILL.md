@@ -20,7 +20,6 @@ BETTER_AUTH_SECRET=        # openssl rand -base64 32
 BETTER_AUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ## Step 1 — Install
@@ -31,9 +30,12 @@ pnpm add better-auth
 
 ## Step 2 — Auth server config (`lib/auth.ts`)
 
+Include `nextCookies()` as the **last plugin** — required for server actions to set session cookies.
+
 ```ts
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 
 export const auth = betterAuth({
@@ -50,6 +52,7 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
+  plugins: [nextCookies()], // must be last
 });
 ```
 
@@ -108,17 +111,75 @@ export async function proxy(request: NextRequest) {
 }
 ```
 
-## Step 6 — Auth client (`lib/auth-client.ts`)
+## Step 6 — Server actions for sign-in and sign-up
+
+**Always use server actions for email/password auth** — do not use `authClient.signIn.email()` or `authClient.signUp.email()` from client components. Server actions are more secure (credentials stay on the server) and avoid browser fetch issues with missing env vars.
+
+**`app/signup/actions.ts`**:
+```ts
+"use server";
+import { auth } from "@/lib/auth";
+import { APIError } from "better-auth/api";
+
+export async function signUpAction(name: string, email: string, password: string) {
+  try {
+    await auth.api.signUpEmail({ body: { name, email, password } });
+    return { error: null };
+  } catch (e) {
+    if (e instanceof APIError) return { error: e.message };
+    return { error: "Could not create account" };
+  }
+}
+```
+
+**`app/login/actions.ts`**:
+```ts
+"use server";
+import { auth } from "@/lib/auth";
+import { APIError } from "better-auth/api";
+
+export async function signInAction(email: string, password: string) {
+  try {
+    await auth.api.signInEmail({ body: { email, password } });
+    return { error: null };
+  } catch (e) {
+    if (e instanceof APIError) return { error: e.message };
+    return { error: "Invalid email or password" };
+  }
+}
+```
+
+**Form component pattern** (client component calls server action):
+```ts
+startTransition(async () => {
+  try {
+    const { error } = await signInAction(email, password);
+    if (error) {
+      setError(error);
+    } else {
+      router.push("/dashboard");
+    }
+  } catch (err) {
+    setError("An unexpected error occurred. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+});
+```
+
+## Step 7 — Auth client (`lib/auth-client.ts`)
+
+The auth client is **only needed for Google OAuth and the `useSession()` hook**. Do not use it for email/password sign-in or sign-up.
 
 ```ts
 import { createAuthClient } from "better-auth/react";
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-});
+export const authClient = createAuthClient();
 ```
 
-## Step 7 — Server-side session helper
+No `baseURL` needed — Better Auth defaults to the current origin.
+
+## Step 8 — Server-side session helper
 
 In Server Components and Server Actions:
 
@@ -129,25 +190,22 @@ import { headers } from "next/headers";
 const session = await auth.api.getSession({ headers: await headers() });
 ```
 
-## Client usage patterns
+## Auth patterns reference
 
 ```ts
-// Sign up
-await authClient.signUp.email({ email, password, name });
+// Sign up (use server action — see Step 6)
+// Sign in with email (use server action — see Step 6)
 
-// Sign in with email
-await authClient.signIn.email({ email, password });
-
-// Sign in with Google
+// Sign in with Google (client-side only — OAuth redirect flow)
 await authClient.signIn.social({
   provider: "google",
   callbackURL: "/dashboard",
 });
 
-// Sign out
+// Sign out (can be called from client or server action)
 await authClient.signOut();
 
-// React hook
+// React hook for reading session on client
 const { data: session, isPending } = authClient.useSession();
 ```
 
@@ -162,11 +220,11 @@ Register the callback URL in Google Cloud Console:
 
 - The SQLite DB path must be a volume-mounted path so it persists between container restarts.
 - All env vars must be passed through `docker-compose.yml` or `.env` file at container runtime.
-- `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` should reflect the public-facing URL, not `localhost`, in production.
+- `BETTER_AUTH_URL` should reflect the public-facing URL, not `localhost`, in production.
 
 ## Code style reminders
 
 - No emojis in any output
 - Strict TypeScript — no `any`, no non-null assertions except for required env vars
 - Server Components by default; only use `"use client"` where auth client hooks are needed
-- Keep auth logic in `lib/` — no auth code in UI components directly
+- Keep auth logic in `lib/` and `actions.ts` files — no auth code in UI components directly

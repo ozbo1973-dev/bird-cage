@@ -3,6 +3,7 @@
 import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
+import { signInAction } from "@/app/login/actions";
 import styles from "./AuthForm.module.css";
 
 export default function LoginForm() {
@@ -18,15 +19,22 @@ export default function LoginForm() {
     setLoading(true);
 
     startTransition(async () => {
-      const { error: authError } = await authClient.signIn.email({
-        email,
-        password,
-      });
-      setLoading(false);
-      if (authError) {
-        setError(authError.message ?? "Invalid email or password");
-      } else {
-        router.push("/dashboard");
+      try {
+        const { error } = await signInAction(email, password);
+        if (error) {
+          if (error.includes("EMAIL_NOT_VERIFIED") || error.includes("email not verified")) {
+            router.push("/verify-email");
+          } else {
+            setError(error);
+          }
+        } else {
+          router.push("/dashboard");
+        }
+      } catch (err) {
+        console.error("Sign in error:", err);
+        setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
       }
     });
   }
