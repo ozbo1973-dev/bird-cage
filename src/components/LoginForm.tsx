@@ -18,19 +18,25 @@ export default function LoginForm() {
     setLoading(true);
 
     startTransition(async () => {
-      const { error: authError } = await authClient.signIn.email({
-        email,
-        password,
-      });
-      setLoading(false);
-      if (authError) {
-        if (authError.code === "EMAIL_NOT_VERIFIED") {
-          router.push("/verify-email");
+      try {
+        const { error: authError } = await authClient.signIn.email({
+          email,
+          password,
+        });
+        if (authError) {
+          if (authError.code === "EMAIL_NOT_VERIFIED") {
+            router.push("/verify-email");
+          } else {
+            setError(authError.message ?? "Invalid email or password");
+          }
         } else {
-          setError(authError.message ?? "Invalid email or password");
+          router.push("/dashboard");
         }
-      } else {
-        router.push("/dashboard");
+      } catch (err) {
+        console.error("Sign in error:", err);
+        setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
       }
     });
   }
