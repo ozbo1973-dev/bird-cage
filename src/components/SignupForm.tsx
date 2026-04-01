@@ -30,8 +30,9 @@ export default function SignupForm() {
         } else {
           router.push("/dashboard");
         }
-      } catch {
-        setError("An unexpected error occurred. Please try again.");
+      } catch (err) {
+        console.error("Signup error:", err);
+        setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
       } finally {
         setLoading(false);
       }
