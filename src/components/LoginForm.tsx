@@ -3,6 +3,7 @@
 import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
+import { signInAction } from "@/app/login/actions";
 import styles from "./AuthForm.module.css";
 
 export default function LoginForm() {
@@ -19,15 +20,12 @@ export default function LoginForm() {
 
     startTransition(async () => {
       try {
-        const { error: authError } = await authClient.signIn.email({
-          email,
-          password,
-        });
-        if (authError) {
-          if (authError.code === "EMAIL_NOT_VERIFIED") {
+        const { error } = await signInAction(email, password);
+        if (error) {
+          if (error.includes("EMAIL_NOT_VERIFIED") || error.includes("email not verified")) {
             router.push("/verify-email");
           } else {
-            setError(authError.message ?? "Invalid email or password");
+            setError(error);
           }
         } else {
           router.push("/dashboard");
