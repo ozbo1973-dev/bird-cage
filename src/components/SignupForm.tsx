@@ -19,16 +19,21 @@ export default function SignupForm() {
     setLoading(true);
 
     startTransition(async () => {
-      const { error: authError } = await authClient.signUp.email({
-        name,
-        email,
-        password,
-      });
-      setLoading(false);
-      if (authError) {
-        setError(authError.message ?? "Could not create account");
-      } else {
-        router.push("/dashboard");
+      try {
+        const { error: authError } = await authClient.signUp.email({
+          name,
+          email,
+          password,
+        });
+        if (authError) {
+          setError(authError.message ?? "Could not create account");
+        } else {
+          router.push("/dashboard");
+        }
+      } catch {
+        setError("An unexpected error occurred. Please try again.");
+      } finally {
+        setLoading(false);
       }
     });
   }
