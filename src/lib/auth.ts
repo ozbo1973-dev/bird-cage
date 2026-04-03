@@ -3,10 +3,22 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
 import { db } from "../db";
+import { getAuthBaseUrl } from "./get-auth-base-url";
+
+const baseURL = getAuthBaseUrl();
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL,
   secret: process.env.BETTER_AUTH_SECRET,
+  trustedOrigins: [
+    "http://localhost:3000",
+    ...(process.env.NEXT_PUBLIC_APP_URL
+      ? [process.env.NEXT_PUBLIC_APP_URL]
+      : []),
+    ...(process.env.VERCEL_URL
+      ? [`https://${process.env.VERCEL_URL}`]
+      : []),
+  ],
   database: drizzleAdapter(db, { provider: "sqlite" }),
   emailAndPassword: {
     enabled: true,
