@@ -111,6 +111,10 @@ Created a reusable `resend` skill for agents to install and configure Resend ema
 
 Email verification flow completed using Resend. `nextCookies()` plugin added to `auth.ts` for server-side cookie handling. Signup and login converted from client-side `authClient` to server actions (`app/signup/actions.ts`, `app/login/actions.ts`) calling `auth.api.signUpEmail()` / `auth.api.signInEmail()`. Unverified users redirected to `/verify-email` page with resend option. `auth-client.ts` simplified — now only used for Google OAuth and `useSession()`.
 
+### BRD-73 - Determine which database URL to use (complete, PR #30)
+
+Environment-aware auth URL configuration implemented. Created `src/lib/get-auth-base-url.ts` utility that resolves `baseURL` based on `VERCEL_ENV` and `VERCEL_URL`. Better Auth `allowedHosts` updated to cover `localhost:3000`, `*.vercel.app` (preview), and the production domain. Google OAuth callback URL dynamically constructed per environment.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
