@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import fs from "fs/promises";
-import path from "path";
 import { auth } from "@/lib/auth";
-import { getUploadPath, isSafeFilename } from "@/lib/uploads";
 import { parseIdentification } from "@/lib/chat";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 
@@ -30,33 +27,11 @@ export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { photoPath } = (await req.json()) as { photoPath: string };
+  const body = (await req.json()) as { photoBase64?: string };
+  const { photoBase64 } = body;
 
-  if (!photoPath) {
-    return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
-  }
-
-  let imageContent: { type: "image_url"; image_url: { url: string } };
-
-  if (photoPath.startsWith("https://")) {
-    // Vercel Blob URL — pass directly to vision model
-    imageContent = { type: "image_url", image_url: { url: photoPath } };
-  } else {
-    // Local filesystem — read and base64-encode
-    if (!isSafeFilename(photoPath)) {
-      return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
-    }
-    const filePath = getUploadPath(photoPath);
-    let buffer: Buffer;
-    try {
-      buffer = await fs.readFile(filePath);
-    } catch {
-      return NextResponse.json({ error: "Photo not found" }, { status: 404 });
-    }
-    const ext = path.extname(photoPath).toLowerCase().replace(".", "");
-    const mimeType = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
-    const dataUrl = `data:${mimeType};base64,${buffer.toString("base64")}`;
-    imageContent = { type: "image_url", image_url: { url: dataUrl } };
+  if (!photoBase64 || !photoBase64.startsWith("data:image/")) {
+    return NextResponse.json({ error: "Invalid or missing photo data" }, { status: 400 });
   }
 
   const client = getClient();
@@ -70,7 +45,7 @@ export async function POST(req: NextRequest) {
         {
           role: "user",
           content: [
-            imageContent,
+            { type: "image_url", image_url: { url: photoBase64 } },
             { type: "text", text: IDENTIFY_PROMPT },
           ],
         },

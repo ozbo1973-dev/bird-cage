@@ -25,7 +25,7 @@ export default function AddBirdForm({ eventId }: Props) {
   const [saving, setSaving] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState("");
-  const [photoPath, setPhotoPath] = useState("");
+  const [photoData, setPhotoData] = useState("");
   const [photoPreview, setPhotoPreview] = useState("");
   const [photoStatus, setPhotoStatus] = useState("");
   const [photoError, setPhotoError] = useState("");
@@ -53,39 +53,29 @@ export default function AddBirdForm({ eventId }: Props) {
   }
 
   async function handlePhotoFile(file: File) {
-
     setPhotoError("");
-    setPhotoStatus("Uploading photo...");
+    setPhotoStatus("Reading photo...");
     setPhotoUploading(true);
-    setPhotoPreview((prev) => {
-      if (prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
-
-    const form = new FormData();
-    form.append("file", file);
+    setPhotoPreview(URL.createObjectURL(file));
 
     try {
-      const uploadRes = await fetch("/api/uploads", { method: "POST", body: form });
-      if (!uploadRes.ok) {
-        const body = await uploadRes.json().catch(() => ({}));
-        setPhotoError((body as { error?: string }).error ?? "Upload failed");
-        setPhotoStatus("");
-        return;
-      }
-
-      const { path: uploadedPath } = (await uploadRes.json()) as { path: string };
-      setPhotoPath(uploadedPath);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      setPhotoData(base64);
       setPhotoStatus("Identifying bird from photo...");
 
       const identRes = await fetch("/api/identify-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoPath: uploadedPath }),
+        body: JSON.stringify({ photoBase64: base64 }),
       });
 
       if (!identRes.ok) {
-        setPhotoStatus("Photo uploaded. Could not identify bird — please use the chat below.");
+        setPhotoStatus("Photo ready. Could not identify bird — please use the chat below.");
         return;
       }
 
@@ -125,7 +115,7 @@ export default function AddBirdForm({ eventId }: Props) {
           lng: lng !== "" ? parseFloat(lng) : null,
           dateStamp,
           notes,
-          photoPath: photoPath || null,
+          photoData: photoData || null,
         }),
       });
 

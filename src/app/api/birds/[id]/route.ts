@@ -26,19 +26,19 @@ export async function PUT(
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
-  const { type, species, locationName, lat, lng, dateStamp, notes, photoPath } = body;
+  const { type, species, locationName, lat, lng, dateStamp, notes, photoPath, photoData } = body;
 
   if (!type || !species || !locationName || !dateStamp) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  if (photoPath && !isSafeFilename(photoPath)) {
+  if (photoPath && !isSafeFilename(photoPath) && !photoPath.startsWith("https://")) {
     return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
   }
 
   await db
     .update(birdEntries)
-    .set({ type, species, locationName, lat: lat ?? null, lng: lng ?? null, dateStamp, notes: notes ?? null, photoPath: photoPath ?? null })
+    .set({ type, species, locationName, lat: lat ?? null, lng: lng ?? null, dateStamp, notes: notes ?? null, photoPath: photoData ? null : (photoPath ?? null), photoData: photoData ?? null })
     .where(eq(birdEntries.id, birdId));
 
   return NextResponse.json({ ok: true });
