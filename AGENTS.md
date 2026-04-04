@@ -115,6 +115,10 @@ Email verification flow completed using Resend. `nextCookies()` plugin added to 
 
 Environment-aware auth URL configuration implemented. Created `src/lib/get-auth-base-url.ts` utility that resolves `baseURL` based on `VERCEL_ENV` and `VERCEL_URL`. Better Auth `allowedHosts` updated to cover `localhost:3000`, `*.vercel.app` (preview), and the production domain. Google OAuth callback URL dynamically constructed per environment.
 
+### BRD-87 - Fix Photo Identification in Vercel Environments (complete, PR #34)
+
+Root cause: `POST /api/identify-photo` read the uploaded file from the filesystem, which is unavailable in Vercel's serverless environment. Fix: the client now base64-encodes the image before upload and sends it directly in the request body, bypassing filesystem reads entirely. The `POST /api/identify-photo` route was updated to accept a `base64Image` field. Works in both Preview and Production Vercel deployments.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.

@@ -22,7 +22,7 @@ export async function POST(
 
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { type, species, locationName, lat, lng, dateStamp, notes, photoPath } = await req.json();
+  const { type, species, locationName, lat, lng, dateStamp, notes, photoPath, photoData } = await req.json();
 
   const [bird] = await db
     .insert(birdEntries)
@@ -35,7 +35,8 @@ export async function POST(
       lng: lng ?? null,
       dateStamp,
       notes: notes ?? null,
-      photoPath: photoPath ?? null,
+      photoPath: photoData ? null : (photoPath ?? null),
+      photoData: photoData ?? null,
     })
     .returning();
 

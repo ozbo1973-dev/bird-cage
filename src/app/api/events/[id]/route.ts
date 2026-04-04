@@ -13,6 +13,8 @@ type BirdPayload = {
   lng?: number | null;
   dateStamp: string;
   notes?: string | null;
+  photoPath?: string | null;
+  photoData?: string | null;
 };
 
 export async function PUT(
@@ -59,6 +61,8 @@ export async function PUT(
           lng: b.lng ?? null,
           dateStamp: b.dateStamp,
           notes: b.notes ?? null,
+          photoPath: b.photoData ? null : (b.photoPath ?? null),
+          photoData: b.photoData ?? null,
         })),
       );
     }
