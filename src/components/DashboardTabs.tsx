@@ -71,8 +71,8 @@ function TimelineView({ events }: { events: EventWithBirds[] }) {
             <ul className={styles.birdList}>
               {event.birds.map((bird) => (
                 <li key={bird.id} className={styles.birdItem}>
-                  {bird.photoPath
-                    ? <img src={`/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
+                  {bird.photoData || bird.photoPath
+                    ? <img src={bird.photoData ?? `/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
                     : <div className={styles.noPhoto}>No Photo</div>}
                   <div className={styles.birdItemInfo}>
                     <span className={styles.birdName}>{bird.species}</span>
@@ -113,8 +113,8 @@ function SpeciesView({ events }: { events: EventWithBirds[] }) {
           <ul className={styles.birdList}>
             {entries.map(({ bird, eventTitle, eventDate }) => (
               <li key={bird.id} className={styles.birdItem}>
-                {bird.photoPath
-                  ? <img src={`/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
+                {bird.photoData || bird.photoPath
+                  ? <img src={bird.photoData ?? `/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
                   : <div className={styles.noPhoto}>No Photo</div>}
                 <div className={styles.birdItemInfo}>
                   <span className={styles.birdName}>{eventTitle}</span>
@@ -157,8 +157,8 @@ function LocationView({ events }: { events: EventWithBirds[] }) {
             <ul className={styles.birdList}>
               {entries.map(({ bird, eventTitle, eventDate }) => (
                 <li key={bird.id} className={styles.birdItem}>
-                  {bird.photoPath
-                    ? <img src={`/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
+                  {bird.photoData || bird.photoPath
+                    ? <img src={bird.photoData ?? `/api/uploads/${bird.photoPath}`} alt={bird.species} className={styles.birdThumb} />
                     : <div className={styles.noPhoto}>No Photo</div>}
                   <div className={styles.birdItemInfo}>
                     <span className={styles.birdName}>{bird.species} ({bird.type})</span>

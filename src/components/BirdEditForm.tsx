@@ -25,8 +25,13 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState("");
   const [photoPath, setPhotoPath] = useState(bird.photoPath ?? "");
+  const [photoData, setPhotoData] = useState(bird.photoData ?? "");
   const [photoPreview, setPhotoPreview] = useState(
-    bird.photoPath ? `/api/uploads/${bird.photoPath}` : "",
+    bird.photoData
+      ? bird.photoData
+      : bird.photoPath
+      ? `/api/uploads/${bird.photoPath}`
+      : "",
   );
   const [photoStatus, setPhotoStatus] = useState("");
   const [photoError, setPhotoError] = useState("");
@@ -53,30 +58,21 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   }
 
   async function handlePhotoFile(file: File) {
-
     setPhotoError("");
-    setPhotoStatus("Uploading photo...");
+    setPhotoStatus("Reading photo...");
     setPhotoUploading(true);
-    setPhotoPreview((prev) => {
-      if (prev.startsWith("blob:")) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
-
-    const form = new FormData();
-    form.append("file", file);
+    setPhotoPreview(URL.createObjectURL(file));
 
     try {
-      const res = await fetch("/api/uploads", { method: "POST", body: form });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setPhotoError((body as { error?: string }).error ?? "Upload failed");
-        setPhotoStatus("");
-        return;
-      }
-
-      const { path: uploadedPath } = (await res.json()) as { path: string };
-      setPhotoPath(uploadedPath);
-      setPhotoStatus("Photo uploaded.");
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      setPhotoData(base64);
+      setPhotoPath("");
+      setPhotoStatus("Photo ready.");
     } catch {
       setPhotoError("Something went wrong. Please try again.");
       setPhotoStatus("");
@@ -107,7 +103,8 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
           lng: lng !== "" ? parseFloat(lng) : null,
           dateStamp,
           notes,
-          photoPath: photoPath || null,
+          photoPath: photoData ? null : (photoPath || null),
+          photoData: photoData || null,
         }),
       });
 

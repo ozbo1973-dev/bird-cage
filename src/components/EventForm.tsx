@@ -17,6 +17,7 @@ interface BirdFormEntry {
   dateStamp: string;
   notes: string;
   photoPath: string;
+  photoData: string;
 }
 
 interface BirdPhotoState {
@@ -59,6 +60,7 @@ function emptyBird(): BirdFormEntry {
     dateStamp: new Date().toISOString().slice(0, 10),
     notes: "",
     photoPath: "",
+    photoData: "",
   };
 }
 
@@ -72,6 +74,7 @@ function toBirdFormEntry(b: BirdEntry): BirdFormEntry {
     dateStamp: b.dateStamp,
     notes: b.notes ?? "",
     photoPath: b.photoPath ?? "",
+    photoData: b.photoData ?? "",
   };
 }
 
@@ -131,35 +134,29 @@ export default function EventForm({ initialData }: Props) {
   }
 
   async function handlePhotoFile(index: number, file: File) {
-
-    updatePhoto(index, { error: "", status: "Uploading photo...", uploading: true });
-    const preview = URL.createObjectURL(file);
-    updatePhoto(index, { preview });
-
-    const form = new FormData();
-    form.append("file", file);
+    updatePhoto(index, { error: "", status: "Reading photo...", uploading: true });
+    updatePhoto(index, { preview: URL.createObjectURL(file) });
 
     try {
-      const uploadRes = await fetch("/api/uploads", { method: "POST", body: form });
-      if (!uploadRes.ok) {
-        const body = await uploadRes.json().catch(() => ({}));
-        updatePhoto(index, { error: (body as { error?: string }).error ?? "Upload failed", status: "", uploading: false });
-        return;
-      }
-
-      const { path: uploadedPath } = (await uploadRes.json()) as { path: string };
-      updateBird(index, "photoPath", uploadedPath);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      updateBird(index, "photoData", base64);
+      updateBird(index, "photoPath", "");
 
       updatePhoto(index, { status: "Identifying bird from photo..." });
 
       const identRes = await fetch("/api/identify-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoPath: uploadedPath }),
+        body: JSON.stringify({ photoBase64: base64 }),
       });
 
       if (!identRes.ok) {
-        updatePhoto(index, { status: "Photo uploaded. Could not identify bird — please use the chat below.", uploading: false });
+        updatePhoto(index, { status: "Photo ready. Could not identify bird — please use the chat below.", uploading: false });
         return;
       }
 
@@ -211,7 +208,8 @@ export default function EventForm({ initialData }: Props) {
           ...b,
           lat: b.lat !== "" ? parseFloat(b.lat) : null,
           lng: b.lng !== "" ? parseFloat(b.lng) : null,
-          photoPath: b.photoPath || null,
+          photoPath: b.photoData ? null : (b.photoPath || null),
+          photoData: b.photoData || null,
         })),
     };
 
