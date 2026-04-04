@@ -25,7 +25,7 @@ export default function SignupForm() {
         if (error) {
           setError(error);
         } else {
-          router.push("/dashboard");
+          router.push("/verify-email");
         }
       } catch (err) {
         console.error("Signup error:", err);
