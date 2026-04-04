@@ -22,6 +22,11 @@ export default async function LoginPage() {
             Sign up
           </Link>
         </p>
+        <p className={styles.backLink}>
+          <Link href="/" className={styles.link}>
+            ← Back to Home
+          </Link>
+        </p>
       </div>
     </main>
   );
