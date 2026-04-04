@@ -7,7 +7,10 @@ import Image from "next/image";
 
 export default async function SignupPage() {
   const session = await getSession();
-  if (session) redirect("/dashboard");
+  if (session) {
+    if (session.user.emailVerified) redirect("/dashboard");
+    else redirect("/verify-email");
+  }
 
   return (
     <main className={styles.main}>
