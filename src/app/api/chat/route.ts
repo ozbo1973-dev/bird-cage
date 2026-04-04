@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import { auth } from "../../../lib/auth";
+import { getAuthBaseUrl } from "../../../lib/get-auth-base-url";
 
 const SYSTEM_PROMPT = `You are an expert ornithologist helping birding enthusiasts identify birds.
 
@@ -22,8 +23,7 @@ function getClient() {
     apiKey: process.env.OPENROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
     defaultHeaders: {
-      "HTTP-Referer":
-        process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+      "HTTP-Referer": getAuthBaseUrl(),
       "X-Title": "Bird Cage",
     },
   });

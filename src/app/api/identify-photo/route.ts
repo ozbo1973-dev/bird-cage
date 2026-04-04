@@ -5,6 +5,7 @@ import path from "path";
 import { auth } from "@/lib/auth";
 import { getUploadPath, isSafeFilename } from "@/lib/uploads";
 import { parseIdentification } from "@/lib/chat";
+import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 
 const VISION_MODEL = "openai/gpt-4o";
 
@@ -19,7 +20,7 @@ function getClient() {
     apiKey: process.env.OPENROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
     defaultHeaders: {
-      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+      "HTTP-Referer": getAuthBaseUrl(),
       "X-Title": "Bird Cage",
     },
   });
