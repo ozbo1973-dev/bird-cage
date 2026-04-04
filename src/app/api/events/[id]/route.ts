@@ -23,6 +23,7 @@ export async function PUT(
 ) {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session.user.emailVerified) return NextResponse.json({ error: "Email not verified" }, { status: 403 });
 
   const { id } = await params;
   const eventId = parseInt(id, 10);
