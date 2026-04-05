@@ -25,12 +25,10 @@ export default function ProfileForm({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setError("");
-    setSuccess(false);
     setSaving(true);
 
     startTransition(async () => {
@@ -45,11 +43,7 @@ export default function ProfileForm({
       if ("error" in result) {
         setError(result.error);
       } else {
-        setSuccess(true);
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        router.refresh();
+        router.push(returnTo);
       }
     });
   }
@@ -144,7 +138,7 @@ export default function ProfileForm({
       </section>
 
       {error && <p className={styles.error}>{error}</p>}
-      {success && <p className={styles.successMsg}>Profile updated successfully.</p>}
+
 
       <div className={styles.actions}>
         <button

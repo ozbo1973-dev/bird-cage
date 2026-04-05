@@ -32,23 +32,6 @@
   font-size: 0.9rem;
 }
 
-.profileBtn {
-  background: none;
-  border: 1px solid var(--color-border-light);
-  color: var(--color-text-medium);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.profileBtn:hover {
-  background: var(--color-bg-hover);
-}
 
 .newEventBtn {
   background: var(--color-success);
@@ -67,20 +50,6 @@
   background: var(--color-success-hover);
 }
 
-.exportBtn {
-  background: var(--color-bg-hover);
-  color: var(--color-text-label);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border: 1px solid var(--color-border-light);
-  transition: background 0.15s;
-}
-
-.exportBtn:hover {
-  background: #e4e4de;
-}
 
 .main {
   flex: 1;
