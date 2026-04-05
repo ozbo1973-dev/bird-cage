@@ -1,7 +1,5 @@
 import { requireVerifiedAuth } from "@/lib/session";
-import { db } from "@/db";
-import { user as userTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getUserById } from "@/lib/dal/users";
 import Link from "next/link";
 import ProfileForm from "@/components/ProfileForm";
 import styles from "./page.module.css";
@@ -15,12 +13,7 @@ export default async function ProfilePage({
   const { from } = await searchParams;
   const returnTo = from ?? "/dashboard";
 
-  const [dbUser] = await db
-    .select()
-    .from(userTable)
-    .where(eq(userTable.id, session.user.id))
-    .limit(1);
-
+  const dbUser = await getUserById(session.user.id);
   const role = dbUser?.role ?? "user";
 
   return (
