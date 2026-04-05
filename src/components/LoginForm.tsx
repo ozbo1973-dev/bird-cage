@@ -20,13 +20,11 @@ export default function LoginForm() {
 
     startTransition(async () => {
       try {
-        const { error } = await signInAction(email, password);
+        const { error, redirectTo } = await signInAction(email, password);
         if (error) {
-          if (error.includes("EMAIL_NOT_VERIFIED") || error.includes("email not verified")) {
-            router.push("/verify-email");
-          } else {
-            setError(error);
-          }
+          setError(error);
+        } else if (redirectTo) {
+          router.push(redirectTo);
         } else {
           router.push("/dashboard");
         }

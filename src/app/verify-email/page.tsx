@@ -22,12 +22,6 @@ export default async function VerifyEmailPage() {
           }
         </p>
         <VerifyEmailClient />
-        <p className={styles.hint}>
-          Wrong account?{" "}
-          <a href="/api/auth/sign-out?callbackURL=/login" className={styles.link}>
-            Sign out
-          </a>
-        </p>
       </div>
     </main>
   );
