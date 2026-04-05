@@ -22,7 +22,7 @@
 .message {
   margin: 0 0 1.25rem;
   font-size: 0.95rem;
-  color: #032147;
+  color: var(--color-primary-navy);
   line-height: 1.5;
 }
 
@@ -34,23 +34,23 @@
 
 .cancelBtn {
   padding: 0.5rem 1rem;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--color-border-cancel);
   border-radius: 6px;
   background: white;
-  color: #555;
+  color: var(--color-text-medium);
   font-size: 0.875rem;
   cursor: pointer;
 }
 
 .cancelBtn:hover {
-  background: #f5f5f5;
+  background: var(--color-bg-white-hover);
 }
 
 .confirmBtn {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
-  background: #753991;
+  background: var(--color-primary-purple);
   color: white;
   font-size: 0.875rem;
   font-weight: 500;
@@ -58,5 +58,5 @@
 }
 
 .confirmBtn:hover {
-  background: #5e2e74;
+  background: var(--color-purple-hover);
 }

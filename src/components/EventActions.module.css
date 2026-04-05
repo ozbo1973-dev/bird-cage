@@ -7,10 +7,10 @@
 
 .btn {
   padding: 0.35rem 0.75rem;
-  border: 1px solid #209dd7;
+  border: 1px solid var(--color-primary-blue);
   border-radius: 5px;
   background: white;
-  color: #209dd7;
+  color: var(--color-primary-blue);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
@@ -21,16 +21,16 @@
 }
 
 .btn:hover {
-  background: #209dd7;
+  background: var(--color-primary-blue);
   color: white;
 }
 
 .dangerBtn {
   padding: 0.35rem 0.75rem;
-  border: 1px solid #c0392b;
+  border: 1px solid var(--color-error);
   border-radius: 5px;
   background: white;
-  color: #c0392b;
+  color: var(--color-error);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
@@ -40,12 +40,12 @@
 }
 
 .dangerBtn:hover {
-  background: #c0392b;
+  background: var(--color-error);
   color: white;
 }
 
 .error {
   font-size: 0.8rem;
-  color: #c0392b;
+  color: var(--color-error);
   margin-top: 0.25rem;
 }

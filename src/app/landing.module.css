@@ -2,7 +2,7 @@
 
 .page {
   min-height: 100vh;
-  background: #f5f5f0;
+  background: var(--color-bg-light);
   display: flex;
   flex-direction: column;
 }
@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background: #032147;
+  background: var(--color-primary-navy);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -26,7 +26,7 @@
 }
 
 .navTitle {
-  color: #ecad0a;
+  color: var(--color-primary-yellow);
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -51,12 +51,12 @@
 }
 
 .loginBtn:hover {
-  border-color: #ecad0a;
-  color: #ecad0a;
+  border-color: var(--color-primary-yellow);
+  color: var(--color-primary-yellow);
 }
 
 .signupBtn {
-  background: #753991;
+  background: var(--color-primary-purple);
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 600;
@@ -71,7 +71,7 @@
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, #0e6fa8 0%, #1785c8 60%, #209dd7 100%);
+  background: linear-gradient(135deg, #0e6fa8 0%, #1785c8 60%, var(--color-primary-blue) 100%);
   padding: 4rem 2rem 5rem;
   position: relative;
   overflow: hidden;
@@ -113,7 +113,7 @@
 .heroBadge {
   display: inline-block;
   background: rgba(236, 173, 10, 0.15);
-  color: #ecad0a;
+  color: var(--color-primary-yellow);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -133,7 +133,7 @@
 }
 
 .heroAccent {
-  color: #ecad0a;
+  color: var(--color-primary-yellow);
 }
 
 .heroDescription {
@@ -152,7 +152,7 @@
 }
 
 .ctaPrimary {
-  background: #753991;
+  background: var(--color-primary-purple);
   color: #ffffff;
   font-size: 1rem;
   font-weight: 700;
@@ -177,7 +177,7 @@
 }
 
 .ctaSecondary:hover {
-  color: #ecad0a;
+  color: var(--color-primary-yellow);
 }
 
 .heroImageWrapper {
@@ -205,7 +205,7 @@
   gap: 0.5rem;
   margin-top: 1rem;
   background: rgba(32, 157, 215, 0.2);
-  color: #209dd7;
+  color: var(--color-primary-blue);
   font-size: 0.8rem;
   font-weight: 600;
   padding: 0.4rem 0.875rem;
@@ -216,7 +216,7 @@
 /* Features Section */
 .features {
   padding: 5rem 2rem;
-  background: #ffffff;
+  background: var(--color-bg-white);
 }
 
 .featuresInner {
@@ -228,12 +228,12 @@
 .featuresTitle {
   font-size: clamp(1.6rem, 3.5vw, 2.25rem);
   font-weight: 800;
-  color: #032147;
+  color: var(--color-primary-navy);
   margin-bottom: 0.75rem;
 }
 
 .featuresSubtitle {
-  color: #888888;
+  color: var(--color-text-gray);
   font-size: 1.05rem;
   margin-bottom: 3rem;
 }
@@ -246,8 +246,8 @@
 }
 
 .featureCard {
-  background: #f9f9f7;
-  border: 1px solid #eeeeea;
+  background: var(--color-bg-lightest);
+  border: 1px solid var(--color-border-light-gray);
   border-radius: 14px;
   padding: 1.75rem;
   transition:
@@ -273,20 +273,20 @@
 .featureCardTitle {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #032147;
+  color: var(--color-primary-navy);
   margin-bottom: 0.5rem;
 }
 
 .featureCardDesc {
   font-size: 0.9rem;
-  color: #888888;
+  color: var(--color-text-gray);
   line-height: 1.6;
 }
 
 /* AI Demo Section */
 .demo {
   padding: 5rem 2rem;
-  background: #f5f5f0;
+  background: var(--color-bg-light);
 }
 
 .demoInner {
@@ -306,17 +306,17 @@
 .demoTitle {
   font-size: clamp(1.5rem, 3vw, 2.1rem);
   font-weight: 800;
-  color: #032147;
+  color: var(--color-primary-navy);
   line-height: 1.25;
   margin-bottom: 1rem;
 }
 
 .demoAccent {
-  color: #209dd7;
+  color: var(--color-primary-blue);
 }
 
 .demoDesc {
-  color: #888888;
+  color: var(--color-text-gray);
   font-size: 1rem;
   line-height: 1.7;
   margin-bottom: 1.5rem;
@@ -333,14 +333,14 @@
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  color: #032147;
+  color: var(--color-primary-navy);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .demoFeatureList li::before {
   content: "✓";
-  color: #209dd7;
+  color: var(--color-primary-blue);
   font-weight: 700;
   font-size: 1rem;
   flex-shrink: 0;
@@ -350,7 +350,7 @@
 .demoChatCard {
   flex: 1;
   min-width: 0;
-  background: #ffffff;
+  background: var(--color-bg-white);
   border: 1px solid #e0e0da;
   border-radius: 16px;
   overflow: hidden;
@@ -361,7 +361,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #032147;
+  background: var(--color-primary-navy);
   color: #ffffff;
   padding: 0.875rem 1.25rem;
   font-size: 0.9rem;
@@ -381,8 +381,8 @@
 }
 
 .demoChatBubbleUser {
-  background: #e8f4fb;
-  color: #032147;
+  background: var(--color-bg-blue-light);
+  color: var(--color-primary-navy);
   font-size: 0.88rem;
   line-height: 1.55;
   padding: 0.875rem 1.125rem;
@@ -396,9 +396,9 @@
 }
 
 .demoChatBubbleAi {
-  background: #f9f9f7;
-  border: 1px solid #eeeeea;
-  color: #2c2c2c;
+  background: var(--color-bg-lightest);
+  border: 1px solid var(--color-border-light-gray);
+  color: var(--color-text-body);
   font-size: 0.88rem;
   line-height: 1.6;
   padding: 0.875rem 1.125rem;
@@ -412,11 +412,11 @@
 .demoAiSpecies {
   font-size: 1rem;
   font-weight: 700;
-  color: #032147;
+  color: var(--color-primary-navy);
 }
 
 .demoAiScientific {
-  color: #888888;
+  color: var(--color-text-gray);
   font-size: 0.8rem;
 }
 
@@ -425,7 +425,7 @@
   align-items: center;
   margin-top: 0.25rem;
   background: rgba(32, 157, 215, 0.1);
-  color: #209dd7;
+  color: var(--color-primary-blue);
   font-size: 0.78rem;
   font-weight: 600;
   padding: 0.25rem 0.625rem;
@@ -435,7 +435,7 @@
 
 /* CTA Section */
 .ctaSection {
-  background: linear-gradient(135deg, #032147 0%, #053a6e 100%);
+  background: linear-gradient(135deg, var(--color-primary-navy) 0%, #053a6e 100%);
   padding: 5rem 2rem;
   text-align: center;
 }
@@ -479,13 +479,13 @@
 }
 
 .ctaSecondaryDark:hover {
-  border-color: #ecad0a;
-  color: #ecad0a;
+  border-color: var(--color-primary-yellow);
+  color: var(--color-primary-yellow);
 }
 
 /* Footer */
 .footer {
-  background: #021836;
+  background: var(--color-footer-dark);
   padding: 1.5rem 2rem;
 }
 
@@ -503,7 +503,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #ecad0a;
+  color: var(--color-primary-yellow);
   font-weight: 600;
   font-size: 0.9rem;
 }

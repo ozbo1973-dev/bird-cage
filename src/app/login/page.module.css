@@ -29,18 +29,18 @@
 }
 
 .subtitle {
-  color: #666;
+  color: var(--color-text-light);
   margin-bottom: 2rem;
 }
 
 .hint {
   margin-top: 1.5rem;
   font-size: 0.85rem;
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 .link {
-  color: #209dd7;
+  color: var(--color-primary-blue);
   text-decoration: none;
 }
 
@@ -51,5 +51,5 @@
 .backLink {
   margin-top: 0.75rem;
   font-size: 0.85rem;
-  color: #999;
+  color: var(--color-text-muted);
 }

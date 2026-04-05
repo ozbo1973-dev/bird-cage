@@ -6,7 +6,7 @@
 
 .header {
   background: white;
-  border-bottom: 1px solid #e8e8e4;
+  border-bottom: 1px solid var(--color-border-medium);
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -28,12 +28,12 @@
 }
 
 .username {
-  color: #666;
+  color: var(--color-text-light);
   font-size: 0.9rem;
 }
 
 .newEventBtn {
-  background: #2c6e49;
+  background: var(--color-success);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -46,17 +46,17 @@
 }
 
 .newEventBtn:hover {
-  background: #245a3b;
+  background: var(--color-success-hover);
 }
 
 .exportBtn {
-  background: #f0f0ea;
-  color: #444;
+  background: var(--color-bg-hover);
+  color: var(--color-text-label);
   padding: 0.5rem 1rem;
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 500;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border-light);
   transition: background 0.15s;
 }
 

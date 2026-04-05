@@ -20,11 +20,11 @@
 }
 
 .success {
-  color: #2c6e49;
+  color: var(--color-success);
   font-size: 0.9rem;
 }
 
 .error {
-  color: #c0392b;
+  color: var(--color-error);
   font-size: 0.9rem;
 }
