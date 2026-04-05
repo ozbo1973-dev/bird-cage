@@ -71,8 +71,8 @@ export default async function Home() {
           </p>
           <div className={styles.featureGrid}>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "#e8f4fb" }}>
-                <Calendar size={28} color="#209dd7" />
+              <div className={styles.featureIcon} style={{ background: "var(--color-bg-blue-light)" }}>
+                <Calendar size={28} color="var(--color-primary-blue)" />
               </div>
               <h3 className={styles.featureCardTitle}>Create Birding Events</h3>
               <p className={styles.featureCardDesc}>
@@ -81,8 +81,8 @@ export default async function Home() {
               </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "#fef9e6" }}>
-                <Bird size={28} color="#ecad0a" />
+              <div className={styles.featureIcon} style={{ background: "var(--color-bg-yellow-light)" }}>
+                <Bird size={28} color="var(--color-primary-yellow)" />
               </div>
               <h3 className={styles.featureCardTitle}>Multiple Bird Sightings</h3>
               <p className={styles.featureCardDesc}>
@@ -91,8 +91,8 @@ export default async function Home() {
               </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "#f3eaf7" }}>
-                <Sparkles size={28} color="#753991" />
+              <div className={styles.featureIcon} style={{ background: "var(--color-bg-purple-light)" }}>
+                <Sparkles size={28} color="var(--color-primary-purple)" />
               </div>
               <h3 className={styles.featureCardTitle}>AI Identification by Description</h3>
               <p className={styles.featureCardDesc}>
@@ -101,8 +101,8 @@ export default async function Home() {
               </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "#e8f4fb" }}>
-                <Camera size={28} color="#209dd7" />
+              <div className={styles.featureIcon} style={{ background: "var(--color-bg-blue-light)" }}>
+                <Camera size={28} color="var(--color-primary-blue)" />
               </div>
               <h3 className={styles.featureCardTitle}>AI Identification by Photo</h3>
               <p className={styles.featureCardDesc}>
@@ -134,7 +134,7 @@ export default async function Home() {
           </div>
           <div className={styles.demoChatCard}>
             <div className={styles.demoChatHeader}>
-              <Bird size={16} color="#209dd7" />
+              <Bird size={16} color="var(--color-primary-blue)" />
               <span>Bird ID Assistant</span>
             </div>
             <div className={styles.demoChatMessages}>
