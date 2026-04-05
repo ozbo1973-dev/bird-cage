@@ -127,6 +127,10 @@ On email/password signup, user is now immediately logged in and redirected to `/
 
 Public landing page created at `/app/page.tsx` (Server Component). Unauthenticated users see a marketing page showcasing Bird Cage features (event creation, multiple bird sightings, AI identification by description/photo) with an outdoor/birding aesthetic. Authenticated users are redirected to `/dashboard`. Feature highlights section uses lucide-react icons and project color scheme. Plan in `docs/plan/jira/BRD-78.md`. Branch: `feature/brd-78-public-landing-page`.
 
+### BRD-115 - Clean up color theme to make the full app use a theme (complete)
+
+Centralized all hardcoded color values into CSS custom properties in `globals.css`. Replaced ~228 hardcoded hex values across 21 CSS module files with `--color-*` variables following the `--color-[category]-[shade]` naming convention. Inline styles in `src/app/page.tsx` updated to use CSS variables. Future theme changes require only updating the ~25 variables in `globals.css`. Plan in `docs/plan/jira/BRD-115.md`. Branch: `feature/brd-115-color-theme`.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
