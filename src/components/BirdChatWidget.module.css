@@ -46,7 +46,7 @@
 
 .assistantMsg {
   align-self: flex-start;
-  background: white;
+  background: var(--color-bg-white);
   border: 1px solid #e0e0e0;
   color: var(--color-text-chat);
   padding: 0.4rem 0.65rem;
@@ -75,7 +75,7 @@
   gap: 0.5rem;
   padding: 0.5rem;
   border-top: 1px solid var(--color-border-chat);
-  background: white;
+  background: var(--color-bg-white);
 }
 
 .input {
@@ -122,5 +122,5 @@
   padding: 0.4rem 0.75rem;
   border-top: 1px solid var(--color-border-chat);
   margin: 0;
-  background: white;
+  background: var(--color-bg-white);
 }
