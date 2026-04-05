@@ -123,6 +123,10 @@ Root cause: `POST /api/identify-photo` read the uploaded file from the filesyste
 
 On email/password signup, user is now immediately logged in and redirected to `/verify-email`. Unverified users are blocked from creating events or bird sightings via route guard, redirecting them back to `/verify-email`. Sign out available on the verify-email page. Sign-in flow unchanged.
 
+### BRD-78 - Create Public Landing Page (complete, PR pending)
+
+Public landing page created at `/app/page.tsx` (Server Component). Unauthenticated users see a marketing page showcasing Bird Cage features (event creation, multiple bird sightings, AI identification by description/photo) with an outdoor/birding aesthetic. Authenticated users are redirected to `/dashboard`. Feature highlights section uses lucide-react icons and project color scheme. Plan in `docs/plan/jira/BRD-78.md`. Branch: `feature/brd-78-public-landing-page`.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
