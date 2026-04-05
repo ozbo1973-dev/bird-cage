@@ -1,12 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "../../lib/auth-client";
 import styles from "./VerifyEmailClient.module.css";
 import authStyles from "../login/page.module.css";
 
 export default function VerifyEmailClient() {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  async function handleSignOut() {
+    await authClient.signOut({
+      fetchOptions: { onSuccess: () => router.push("/login") },
+    });
+  }
 
   async function handleResend() {
     setStatus("loading");
@@ -39,6 +48,12 @@ export default function VerifyEmailClient() {
       >
         {status === "loading" ? "Sending…" : "Resend verification email"}
       </button>
+      <p className={authStyles.hint}>
+        Wrong account?{" "}
+        <button onClick={handleSignOut} className={authStyles.link}>
+          Sign out
+        </button>
+      </p>
     </div>
   );
 }
