@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { UserCircle } from "lucide-react";
+import { Menu, UserCircle, Download, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
 import styles from "./NavDropdown.module.css";
@@ -42,7 +42,7 @@ export default function NavDropdown({ returnPath = "/dashboard" }: Props) {
         aria-expanded={open}
         title="User menu"
       >
-        <UserCircle size={24} />
+        <Menu size={24} />
       </button>
 
       {open && (
@@ -52,6 +52,7 @@ export default function NavDropdown({ returnPath = "/dashboard" }: Props) {
             className={styles.menuItem}
             onClick={() => setOpen(false)}
           >
+            <UserCircle size={16} />
             Profile
           </Link>
           <a
@@ -59,9 +60,11 @@ export default function NavDropdown({ returnPath = "/dashboard" }: Props) {
             className={styles.menuItem}
             onClick={() => setOpen(false)}
           >
+            <Download size={16} />
             Download CSV
           </a>
           <button className={`${styles.menuItem} ${styles.signOut}`} onClick={handleSignOut}>
+            <LogOut size={16} />
             Sign Out
           </button>
         </div>

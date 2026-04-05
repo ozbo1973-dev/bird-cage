@@ -34,7 +34,9 @@
 }
 
 .menuItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.65rem 1rem;
   font-size: 0.9rem;
   color: var(--color-text-medium);
