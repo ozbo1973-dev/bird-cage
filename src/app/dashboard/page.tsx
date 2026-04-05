@@ -2,7 +2,7 @@ import { requireVerifiedAuth } from "../../lib/session";
 import { getUserEvents } from "../../lib/dal/events";
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, UserCircle } from "lucide-react";
 import LogoutButton from "../../components/LogoutButton";
 import DashboardTabs from "../../components/DashboardTabs";
 import styles from "./page.module.css";
@@ -29,6 +29,10 @@ export default async function DashboardPage({
         />
         <div className={styles.headerActions}>
           <span className={styles.username}>Welcome, {session.user.name}</span>
+          <Link href="/dashboard/profile" className={styles.profileBtn}>
+            <UserCircle size={16} />
+            Profile
+          </Link>
           <Link href="/events/new" className={styles.newEventBtn}>
             <CalendarPlus size={16} />
             New Event
