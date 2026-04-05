@@ -25,6 +25,11 @@
   gap: 0.625rem;
 }
 
+.navLogo {
+  width: 65px;
+  height: 65px;
+}
+
 .navTitle {
   color: var(--color-primary-yellow);
   font-size: 1.25rem;
@@ -71,7 +76,12 @@
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, #0e6fa8 0%, #1785c8 60%, var(--color-primary-blue) 100%);
+  background: linear-gradient(
+    135deg,
+    #0e6fa8 0%,
+    #1785c8 60%,
+    var(--color-primary-blue) 100%
+  );
   padding: 4rem 2rem 5rem;
   position: relative;
   overflow: hidden;
@@ -435,7 +445,11 @@
 
 /* CTA Section */
 .ctaSection {
-  background: linear-gradient(135deg, var(--color-primary-navy) 0%, #053a6e 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-navy) 0%,
+    #053a6e 100%
+  );
   padding: 5rem 2rem;
   text-align: center;
 }

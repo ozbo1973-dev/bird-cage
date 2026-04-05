@@ -16,12 +16,17 @@ export default async function Home() {
       {/* Navigation */}
       <nav className={styles.nav}>
         <div className={styles.navBrand}>
-          <Image src="/logo.svg" alt="Bird Cage" width={48} height={32} />
+          <img src="/logo.svg" alt="Bird Cage" className={styles.navLogo} />
+
           <span className={styles.navTitle}>Bird Cage</span>
         </div>
         <div className={styles.navActions}>
-          <Link href="/login" className={styles.loginBtn}>Log In</Link>
-          <Link href="/signup" className={styles.signupBtn}>Sign Up Free</Link>
+          <Link href="/login" className={styles.loginBtn}>
+            Log In
+          </Link>
+          <Link href="/signup" className={styles.signupBtn}>
+            Sign Up Free
+          </Link>
         </div>
       </nav>
 
@@ -31,17 +36,23 @@ export default async function Home() {
           <div className={styles.heroText}>
             <p className={styles.heroBadge}>For serious birding enthusiasts</p>
             <h1 className={styles.heroHeadline}>
-              Track Every Bird.<br />
+              Track Every Bird.
+              <br />
               <span className={styles.heroAccent}>Remember Every Moment.</span>
             </h1>
             <p className={styles.heroDescription}>
-              Bird Cage is the ultimate companion for birding enthusiasts. Log your outings,
-              record every species you encounter, and let AI identify birds from your descriptions
-              or photos — all in one beautiful app.
+              Bird Cage is the ultimate companion for birding enthusiasts. Log
+              your outings, record every species you encounter, and let AI
+              identify birds from your descriptions or photos — all in one
+              beautiful app.
             </p>
             <div className={styles.heroCta}>
-              <Link href="/signup" className={styles.ctaPrimary}>Get Started Free</Link>
-              <Link href="/login" className={styles.ctaSecondary}>Already a member? Sign in</Link>
+              <Link href="/signup" className={styles.ctaPrimary}>
+                Get Started Free
+              </Link>
+              <Link href="/login" className={styles.ctaSecondary}>
+                Already a member? Sign in
+              </Link>
             </div>
           </div>
           <div className={styles.heroImageWrapper}>
@@ -67,47 +78,66 @@ export default async function Home() {
         <div className={styles.featuresInner}>
           <h2 className={styles.featuresTitle}>Everything a birder needs</h2>
           <p className={styles.featuresSubtitle}>
-            From casual outings to serious expeditions, Bird Cage has you covered.
+            From casual outings to serious expeditions, Bird Cage has you
+            covered.
           </p>
           <div className={styles.featureGrid}>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "var(--color-bg-blue-light)" }}>
+              <div
+                className={styles.featureIcon}
+                style={{ background: "var(--color-bg-blue-light)" }}
+              >
                 <Calendar size={28} color="var(--color-primary-blue)" />
               </div>
               <h3 className={styles.featureCardTitle}>Create Birding Events</h3>
               <p className={styles.featureCardDesc}>
-                Log each outing with date, location, and notes. Build a rich history of your
-                birding adventures over time.
+                Log each outing with date, location, and notes. Build a rich
+                history of your birding adventures over time.
               </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "var(--color-bg-yellow-light)" }}>
+              <div
+                className={styles.featureIcon}
+                style={{ background: "var(--color-bg-yellow-light)" }}
+              >
                 <Bird size={28} color="var(--color-primary-yellow)" />
               </div>
-              <h3 className={styles.featureCardTitle}>Multiple Bird Sightings</h3>
+              <h3 className={styles.featureCardTitle}>
+                Multiple Bird Sightings
+              </h3>
               <p className={styles.featureCardDesc}>
-                Record as many bird sightings as you spot per event. Capture species, behavior,
-                GPS coordinates, and more for each encounter.
+                Record as many bird sightings as you spot per event. Capture
+                species, behavior, GPS coordinates, and more for each encounter.
               </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "var(--color-bg-purple-light)" }}>
+              <div
+                className={styles.featureIcon}
+                style={{ background: "var(--color-bg-purple-light)" }}
+              >
                 <Sparkles size={28} color="var(--color-primary-purple)" />
               </div>
-              <h3 className={styles.featureCardTitle}>AI Identification by Description</h3>
+              <h3 className={styles.featureCardTitle}>
+                AI Identification by Description
+              </h3>
               <p className={styles.featureCardDesc}>
-                Describe what you see — plumage, size, behavior, call — and our AI instantly
-                identifies the species with detailed information.
+                Describe what you see — plumage, size, behavior, call — and our
+                AI instantly identifies the species with detailed information.
               </p>
             </div>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon} style={{ background: "var(--color-bg-blue-light)" }}>
+              <div
+                className={styles.featureIcon}
+                style={{ background: "var(--color-bg-blue-light)" }}
+              >
                 <Camera size={28} color="var(--color-primary-blue)" />
               </div>
-              <h3 className={styles.featureCardTitle}>AI Identification by Photo</h3>
+              <h3 className={styles.featureCardTitle}>
+                AI Identification by Photo
+              </h3>
               <p className={styles.featureCardDesc}>
-                Snap a photo and let AI do the rest. Upload your bird photo and get an instant
-                species identification with confidence rating.
+                Snap a photo and let AI do the rest. Upload your bird photo and
+                get an instant species identification with confidence rating.
               </p>
             </div>
           </div>
@@ -119,11 +149,12 @@ export default async function Home() {
         <div className={styles.demoInner}>
           <div className={styles.demoText}>
             <h2 className={styles.demoTitle}>
-              See AI identification <span className={styles.demoAccent}>in action</span>
+              See AI identification{" "}
+              <span className={styles.demoAccent}>in action</span>
             </h2>
             <p className={styles.demoDesc}>
-              Just describe what you see and Bird Cage's AI gives you a complete species
-              identification — instantly.
+              Just describe what you see and Bird Cage's AI gives you a complete
+              species identification — instantly.
             </p>
             <ul className={styles.demoFeatureList}>
               <li>Species name and family</li>
@@ -140,8 +171,9 @@ export default async function Home() {
             <div className={styles.demoChatMessages}>
               <div className={styles.demoChatUser}>
                 <div className={styles.demoChatBubbleUser}>
-                  I spotted a medium-sized bird with a bright red breast, dark gray back,
-                  orange beak, and a melodic song. It was hopping along the lawn.
+                  I spotted a medium-sized bird with a bright red breast, dark
+                  gray back, orange beak, and a melodic song. It was hopping
+                  along the lawn.
                 </div>
               </div>
               <div className={styles.demoChatAi}>
@@ -151,9 +183,10 @@ export default async function Home() {
                     <em>Turdus migratorius</em>
                   </p>
                   <p>
-                    The American Robin is one of North America's most familiar birds, known
-                    for its cheerful song and orange-red breast. It's a member of the thrush
-                    family and is commonly found in lawns, parks, and open woodlands.
+                    The American Robin is one of North America's most familiar
+                    birds, known for its cheerful song and orange-red breast.
+                    It's a member of the thrush family and is commonly found in
+                    lawns, parks, and open woodlands.
                   </p>
                   <div className={styles.demoAiTag}>Confidence: High ✓</div>
                 </div>
@@ -166,13 +199,20 @@ export default async function Home() {
       {/* CTA Section */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaInner}>
-          <h2 className={styles.ctaTitle}>Ready to start your birding journey?</h2>
+          <h2 className={styles.ctaTitle}>
+            Ready to start your birding journey?
+          </h2>
           <p className={styles.ctaDesc}>
-            Join thousands of birding enthusiasts logging their discoveries every day.
+            Join thousands of birding enthusiasts logging their discoveries
+            every day.
           </p>
           <div className={styles.ctaButtons}>
-            <Link href="/signup" className={styles.ctaPrimary}>Create Free Account</Link>
-            <Link href="/login" className={styles.ctaSecondaryDark}>Sign In</Link>
+            <Link href="/signup" className={styles.ctaPrimary}>
+              Create Free Account
+            </Link>
+            <Link href="/login" className={styles.ctaSecondaryDark}>
+              Sign In
+            </Link>
           </div>
         </div>
       </section>
@@ -185,7 +225,8 @@ export default async function Home() {
             <span>Bird Cage</span>
           </div>
           <p className={styles.footerCopy}>
-            &copy; {new Date().getFullYear()} Bird Cage. Made for birding enthusiasts.
+            &copy; {new Date().getFullYear()} Bird Cage. Made for birding
+            enthusiasts.
           </p>
         </div>
       </footer>
