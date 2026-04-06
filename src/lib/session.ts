@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 import { auth } from "./auth";
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema";
@@ -38,8 +39,10 @@ export async function requireAdminAuth() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
+  if (!session.user.emailVerified) redirect("/verify-email");
+
   const [dbUser] = await db
-    .select({ role: userTable.role })
+    .select()
     .from(userTable)
     .where(eq(userTable.id, session.user.id))
     .limit(1);

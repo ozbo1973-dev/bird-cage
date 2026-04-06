@@ -21,6 +21,14 @@ export default async function AdminUsersPage() {
       </header>
       <main className={styles.main}>
         <AdminUsersList users={users} />
+        <Link href="/dashboard/profile" className={styles.back}>
+          ← Back to Profile
+        </Link>
+        <h1 className={styles.title}>User Management</h1>
+        <span className={styles.count}>{users.length} users</span>
+      </header>
+      <main className={styles.main}>
+        <AdminUsersList users={users} currentUserId={dbUser.id} />
       </main>
     </div>
   );

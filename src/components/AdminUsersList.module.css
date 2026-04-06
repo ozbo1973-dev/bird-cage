@@ -16,6 +16,12 @@
   font-weight: 600;
   color: var(--color-primary-navy);
   margin-bottom: 1rem;
+  
+.tableWrapper {
+  background: var(--color-bg-white);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-medium);
+  overflow: hidden;
 }
 
 .table {
@@ -75,6 +81,139 @@
 }
 
 .form {
+.table th {
+  background: var(--color-bg-light);
+  color: var(--color-text-gray);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.table td {
+  padding: 0.85rem 1rem;
+  color: var(--color-text-body);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg-purple-light);
+  color: var(--color-primary-purple);
+  border: 1px solid var(--color-primary-purple);
+  border-radius: 20px;
+  padding: 0.15rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.roleBadge.user {
+  background: var(--color-bg-blue-light, #e8f4fb);
+  color: var(--color-primary-blue);
+  border-color: var(--color-primary-blue);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.editBtn {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-primary-blue);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-primary-blue);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.editBtn:hover {
+  background: var(--color-primary-blue);
+  color: white;
+}
+
+.deleteBtn {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-error);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-error);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.deleteBtn:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.deleteBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.emailBtn {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--color-primary-navy);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--color-primary-navy);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.emailBtn:hover {
+  background: var(--color-primary-navy);
+  color: white;
+}
+
+/* Email Compose Section */
+.emailSection {
+  background: var(--color-bg-white);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-medium);
+  overflow: hidden;
+}
+
+.emailHeader {
+  background: var(--color-bg-light);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-medium);
+}
+
+.emailTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary-navy);
+}
+
+.emailBody {
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -115,6 +254,52 @@
 .textarea:focus {
   outline: 2px solid var(--color-primary-blue);
   outline-offset: -1px;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-gray);
+}
+
+.select,
+.input {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+  max-width: 480px;
+  background: var(--color-bg-white);
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary-blue);
+}
+
+.textarea {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary-blue);
+}
+
+.emailActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .sendBtn {
@@ -127,6 +312,11 @@
   font-weight: 500;
   cursor: pointer;
   align-self: flex-start;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: background 0.15s;
 }
 
@@ -147,4 +337,21 @@
 .success {
   color: var(--color-success);
   font-size: 0.875rem;
+}
+.successMsg {
+  color: var(--color-success);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.errorMsg {
+  color: var(--color-error);
+  font-size: 0.875rem;
+}
+
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-gray);
+  font-size: 0.95rem;
 }
