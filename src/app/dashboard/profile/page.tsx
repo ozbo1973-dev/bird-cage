@@ -15,6 +15,7 @@ export default async function ProfilePage({
 
   const dbUser = await getUserById(session.user.id);
   const role = dbUser?.role ?? "user";
+  const isAdmin = role === "admin";
 
   return (
     <div className={styles.page}>
@@ -31,6 +32,17 @@ export default async function ProfilePage({
           role={role}
           returnTo={returnTo}
         />
+        {isAdmin && (
+          <div className={styles.adminSection}>
+            <h2 className={styles.adminTitle}>Administration</h2>
+            <p className={styles.adminHint}>
+              Manage users, send emails, and perform admin tasks.
+            </p>
+            <Link href="/dashboard/admin/users" className={styles.adminBtn}>
+              Admin Management
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );
