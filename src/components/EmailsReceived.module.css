@@ -1,0 +1,65 @@
+.section {
+  margin-top: 2rem;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary-navy);
+  margin-bottom: 0.75rem;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-medium);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.subject {
+  font-weight: 600;
+  color: var(--color-text-dark);
+  font-size: 0.95rem;
+}
+
+.date {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.from {
+  color: var(--color-text-gray);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.message {
+  color: var(--color-text-body);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}

@@ -121,11 +121,35 @@ export const birdEntries = sqliteTable("bird_entries", {
   photoData: text("photo_data"),
 });
 
+export const emailLogs = sqliteTable(
+  "email_logs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    senderId: text("sender_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    recipientId: text("recipient_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    subject: text("subject").notNull(),
+    message: text("message").notNull(),
+    sentAt: integer("sent_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("email_logs_recipientId_idx").on(table.recipientId),
+    index("email_logs_senderId_idx").on(table.senderId),
+  ],
+);
+
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   birdingEvents: many(birdingEvents),
+  sentEmails: many(emailLogs, { relationName: "sentEmails" }),
+  receivedEmails: many(emailLogs, { relationName: "receivedEmails" }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -141,8 +165,23 @@ export const birdingEventRelations = relations(birdingEvents, ({ one, many }) =>
   birds: many(birdEntries),
 }));
 
+export const emailLogRelations = relations(emailLogs, ({ one }) => ({
+  sender: one(user, {
+    fields: [emailLogs.senderId],
+    references: [user.id],
+    relationName: "sentEmails",
+  }),
+  recipient: one(user, {
+    fields: [emailLogs.recipientId],
+    references: [user.id],
+    relationName: "receivedEmails",
+  }),
+}));
+
 // Types
 export type BirdingEvent = typeof birdingEvents.$inferSelect;
 export type BirdEntry = typeof birdEntries.$inferSelect;
 export type NewBirdingEvent = typeof birdingEvents.$inferInsert;
 export type NewBirdEntry = typeof birdEntries.$inferInsert;
+export type EmailLog = typeof emailLogs.$inferSelect;
+export type NewEmailLog = typeof emailLogs.$inferInsert;

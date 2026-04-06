@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema";
 
@@ -13,4 +13,9 @@ export async function getUserById(userId: string): Promise<User | null> {
     .limit(1);
 
   return row ?? null;
+}
+
+/** Fetch all users ordered by name. */
+export async function getAllUsers(): Promise<User[]> {
+  return db.select().from(userTable).orderBy(asc(userTable.name));
 }

@@ -1,7 +1,9 @@
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserById } from "@/lib/dal/users";
+import { getEmailsForUser } from "@/lib/dal/emailLogs";
 import Link from "next/link";
 import ProfileForm from "@/components/ProfileForm";
+import EmailsReceived from "@/components/EmailsReceived";
 import styles from "./page.module.css";
 
 export default async function ProfilePage({
@@ -13,7 +15,10 @@ export default async function ProfilePage({
   const { from } = await searchParams;
   const returnTo = from ?? "/dashboard";
 
-  const dbUser = await getUserById(session.user.id);
+  const [dbUser, receivedEmails] = await Promise.all([
+    getUserById(session.user.id),
+    getEmailsForUser(session.user.id),
+  ]);
   const role = dbUser?.role ?? "user";
 
   return (
@@ -31,6 +36,7 @@ export default async function ProfilePage({
           role={role}
           returnTo={returnTo}
         />
+        <EmailsReceived logs={receivedEmails} />
       </main>
     </div>
   );

@@ -1,0 +1,62 @@
+.page {
+  min-height: 100vh;
+  background: var(--color-bg-light);
+}
+
+.header {
+  background: var(--color-bg-white);
+  border-bottom: 1px solid var(--color-border-medium);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.back {
+  color: var(--color-primary-blue);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary-navy);
+}
+
+.main {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.filterBanner {
+  background: var(--color-bg-yellow-light);
+  border: 1px solid var(--color-primary-yellow);
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-body);
+  margin-bottom: 1rem;
+}
+
+.showAll {
+  color: var(--color-primary-blue);
+  font-weight: 500;
+}
+
+.showAll:hover {
+  text-decoration: underline;
+}
+
+.card {
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-medium);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
