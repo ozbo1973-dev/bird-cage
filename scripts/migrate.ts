@@ -35,6 +35,17 @@ async function main() {
     console.log("photo_data column added successfully");
   }
 
+  // Idempotent schema safety check: ensure role column exists on user table.
+  const userTableInfo = await client.execute("PRAGMA table_info(user)");
+  const hasRole = userTableInfo.rows.some((row) => row[1] === "role");
+  if (!hasRole) {
+    console.log("role column missing from user table — applying schema fix");
+    await client.execute(
+      "ALTER TABLE `user` ADD COLUMN `role` text DEFAULT 'user' NOT NULL"
+    );
+    console.log("role column added successfully");
+  }
+
   await client.close();
 }
 
