@@ -29,6 +29,13 @@
       "when": 1742100000000,
       "tag": "0003_add_photo_data",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1743900000000,
+      "tag": "0004_add_user_role",
+      "breakpoints": true
     }
   ]
 }

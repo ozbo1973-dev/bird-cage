@@ -32,6 +32,7 @@
   font-size: 0.9rem;
 }
 
+
 .newEventBtn {
   background: var(--color-success);
   color: white;
@@ -49,20 +50,6 @@
   background: var(--color-success-hover);
 }
 
-.exportBtn {
-  background: var(--color-bg-hover);
-  color: var(--color-text-label);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  border: 1px solid var(--color-border-light);
-  transition: background 0.15s;
-}
-
-.exportBtn:hover {
-  background: #e4e4de;
-}
 
 .main {
   flex: 1;
