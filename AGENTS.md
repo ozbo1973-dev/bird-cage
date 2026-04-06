@@ -131,6 +131,10 @@ Public landing page created at `/app/page.tsx` (Server Component). Unauthenticat
 
 Centralized all hardcoded color values into CSS custom properties in `globals.css`. Replaced ~228 hardcoded hex values across 21 CSS module files with `--color-*` variables following the `--color-[category]-[shade]` naming convention. Inline styles in `src/app/page.tsx` updated to use CSS variables. Future theme changes require only updating the ~25 variables in `globals.css`. Plan in `docs/plan/jira/BRD-115.md`. Branch: `feature/brd-115-color-theme`.
 
+### BRD-94 - Create Profile Page for Users (complete, PR #47)
+
+Profile page added at `/app/dashboard/profile/page.tsx` with server-side auth. Users can update name and email, change password, and view their role (read-only; defaults to "user", can be "admin"). `role` column added to the users table via Drizzle migration. Profile server action in `app/dashboard/profile/actions.ts` calls Better Auth API for updates. Back navigation uses `?from=` query param, defaulting to `/dashboard`. Page styled with project CSS custom properties.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
