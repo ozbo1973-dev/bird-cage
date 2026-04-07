@@ -6,6 +6,7 @@
 import "dotenv/config";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -44,10 +45,30 @@ const auth = betterAuth({
 const SEED_PASSWORD = "password1234";
 
 const USERS = [
-  { name: "Alice Wren", email: "alice@example.com" },
-  { name: "Bob Finch", email: "bob@example.com" },
-  { name: "Carol Hawk", email: "carol@example.com" },
-  { name: "David Crane", email: "david@example.com" },
+  {
+    name: "Alice Wren",
+    email: "bbbove20.dev+Test1@gmail.com",
+    role: "admin",
+    email_verified: true,
+  },
+  {
+    name: "Bob Finch",
+    email: "bbbove20.dev+Test2@gmail.com",
+    role: "user",
+    email_verified: true,
+  },
+  {
+    name: "Carol Hawk",
+    email: "carol@example.com",
+    role: "user",
+    email_verified: true,
+  },
+  {
+    name: "David Crane",
+    email: "david@example.com",
+    role: "user",
+    email_verified: false,
+  },
 ];
 
 const EVENTS_BY_USER: Record<
@@ -67,7 +88,7 @@ const EVENTS_BY_USER: Record<
     }[];
   }[]
 > = {
-  "alice@example.com": [
+  "bbbove20.dev+Test1@gmail.com": [
     {
       title: "Morning Wetlands Walk",
       date: "2026-03-01",
@@ -119,7 +140,7 @@ const EVENTS_BY_USER: Record<
       ],
     },
   ],
-  "bob@example.com": [
+  "bbbove20.dev+Test2@gmail.com": [
     {
       title: "Forest Trail Hike",
       date: "2026-02-20",
@@ -291,13 +312,24 @@ async function clearData() {
   console.log("Cleared all data");
 }
 
-async function seedUser(name: string, email: string): Promise<string> {
+async function seedUser(
+  name: string,
+  email: string,
+  role: "user" | "admin",
+  email_verified: boolean,
+): Promise<string> {
   const response = await auth.api.signUpEmail({
     body: { name, email, password: SEED_PASSWORD },
   });
   if (!response?.user?.id) {
     throw new Error(`Failed to create user ${email}`);
   }
+
+  await db
+    .update(schema.user)
+    .set({ role, emailVerified: email_verified })
+    .where(eq(schema.user.id, response.user.id));
+
   return response.user.id;
 }
 
@@ -306,13 +338,18 @@ async function seedEvents(userId: string, email: string) {
   for (const event of events) {
     const [inserted] = await db
       .insert(schema.birdingEvents)
-      .values({ userId, title: event.title, date: event.date, notes: event.notes })
+      .values({
+        userId,
+        title: event.title,
+        date: event.date,
+        notes: event.notes,
+      })
       .returning({ id: schema.birdingEvents.id });
 
     if (event.birds.length > 0) {
-      await db.insert(schema.birdEntries).values(
-        event.birds.map((bird) => ({ ...bird, eventId: inserted.id }))
-      );
+      await db
+        .insert(schema.birdEntries)
+        .values(event.birds.map((bird) => ({ ...bird, eventId: inserted.id })));
     }
   }
 }
@@ -321,9 +358,15 @@ async function main() {
   console.log("Starting seed...");
   await clearData();
 
-  for (const { name, email } of USERS) {
-    const userId = await seedUser(name, email);
+  for (const { name, email, role, email_verified } of USERS) {
+    const userId = await seedUser(
+      name,
+      email,
+      role as "user" | "admin",
+      email_verified,
+    );
     await seedEvents(userId, email);
+
     console.log(`Seeded user: ${email}`);
   }
 
