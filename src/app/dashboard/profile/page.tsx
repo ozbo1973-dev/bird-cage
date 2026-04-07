@@ -24,6 +24,11 @@ export default async function ProfilePage({
           ← Back
         </Link>
         <h1 className={styles.title}>My Profile</h1>
+        {isAdmin && (
+          <Link href="/dashboard/admin/users" className={styles.adminBtn}>
+            Admin Management
+          </Link>
+        )}
       </header>
       <main className={styles.main}>
         <ProfileForm
@@ -32,17 +37,6 @@ export default async function ProfilePage({
           role={role}
           returnTo={returnTo}
         />
-        {isAdmin && (
-          <div className={styles.adminSection}>
-            <h2 className={styles.adminTitle}>Administration</h2>
-            <p className={styles.adminHint}>
-              Manage users, send emails, and perform admin tasks.
-            </p>
-            <Link href="/dashboard/admin/users" className={styles.adminBtn}>
-              Admin Management
-            </Link>
-          </div>
-        )}
       </main>
     </div>
   );

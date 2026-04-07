@@ -78,86 +78,6 @@ export default function AdminUsersList({ users, currentUserId }: Props) {
 
   return (
     <div className={styles.container}>
-      {/* Users Table */}
-      <div className={styles.tableWrapper}>
-        {users.length === 0 ? (
-          <p className={styles.emptyState}>No users found.</p>
-        ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => {
-                const isCurrentUser = u.id === currentUserId;
-                const isAdmin = u.role === "admin";
-                const canDelete = !isCurrentUser && !isAdmin;
-                const canEdit = !isAdmin || isCurrentUser;
-
-                return (
-                  <tr key={u.id}>
-                    <td>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span
-                        className={`${styles.roleBadge} ${u.role === "user" ? styles.user : ""}`}
-                      >
-                        {u.role}
-                      </span>
-                    </td>
-                    <td>
-                      {u.createdAt
-                        ? new Date(u.createdAt).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        {canEdit && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/admin/users/${u.id}/edit`,
-                              )
-                            }
-                            className={styles.editBtn}
-                          >
-                            Edit
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleEmailUser(u.email)}
-                          className={styles.emailBtn}
-                        >
-                          Email
-                        </button>
-                        {canDelete && (
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(u.id)}
-                            disabled={deleting}
-                            className={styles.deleteBtn}
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
       {/* Email Compose Section */}
       <section className={styles.emailSection} id="email-section">
         <div className={styles.emailHeader}>
@@ -238,6 +158,86 @@ export default function AdminUsersList({ users, currentUserId }: Props) {
           </div>
         </form>
       </section>
+
+      {/* Users Table */}
+      <div className={styles.tableWrapper}>
+        {users.length === 0 ? (
+          <p className={styles.emptyState}>No users found.</p>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => {
+                const isCurrentUser = u.id === currentUserId;
+                const isAdmin = u.role === "admin";
+                const canDelete = !isCurrentUser && !isAdmin;
+                const canEdit = !isAdmin || isCurrentUser;
+
+                return (
+                  <tr key={u.id}>
+                    <td>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>
+                      <span
+                        className={`${styles.roleBadge} ${u.role === "user" ? styles.user : ""}`}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+                    <td>
+                      {u.createdAt
+                        ? new Date(u.createdAt).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td>
+                      <div className={styles.actions}>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/admin/users/${u.id}/edit`,
+                              )
+                            }
+                            className={styles.editBtn}
+                          >
+                            Edit
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleEmailUser(u.email)}
+                          className={styles.emailBtn}
+                        >
+                          Email
+                        </button>
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(u.id)}
+                            disabled={deleting}
+                            className={styles.deleteBtn}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <ConfirmDialog
         open={deleteTarget !== null}
