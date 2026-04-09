@@ -2,11 +2,12 @@
 
 import { headers } from "next/headers";
 import { Resend } from "resend";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema";
 import { updateUserAdmin, deleteUserAndData } from "@/lib/dal/users";
+import { insertEmailLogs } from "@/lib/dal/emailLogs";
 
 export type AdminResult = { success: true } | { error: string };
 
@@ -90,22 +91,31 @@ export async function deleteUserAsAdminAction(
 }
 
 export async function sendEmailAction(
-  recipients: string[],
+  recipientIds: string[],
   subject: string,
   message: string,
 ): Promise<AdminResult> {
   const admin = await requireAdmin();
   if (!admin) return { error: "Unauthorized." };
 
-  if (!recipients.length) return { error: "At least one recipient is required." };
+  if (!recipientIds.length) return { error: "At least one recipient is required." };
   if (!subject.trim()) return { error: "Subject is required." };
   if (!message.trim()) return { error: "Message is required." };
 
   try {
+    // Resolve emails from IDs
+    const userRows = await db
+      .select({ id: userTable.id, email: userTable.email })
+      .from(userTable)
+      .where(inArray(userTable.id, recipientIds));
+
+    const emails = userRows.map((u) => u.email);
+    if (!emails.length) return { error: "No valid recipients found." };
+
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
-      to: recipients,
+      to: emails,
       subject,
       html: `
         <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
@@ -115,6 +125,8 @@ export async function sendEmailAction(
         </div>
       `,
     });
+
+    await insertEmailLogs(admin.id, recipientIds, subject, message);
     return { success: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to send email.";
