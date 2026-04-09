@@ -32,29 +32,4 @@
   max-width: 560px;
   margin: 2rem auto;
   padding: 0 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-
-.adminBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-primary-navy);
-  color: white;
-  border: none;
-  padding: 0.5rem 1.25rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  margin-left: auto;
-  transition: opacity 0.15s;
-}
-
-.adminBtn:hover {
-  opacity: 0.85;
 }

@@ -15,6 +15,7 @@ export default async function ProfilePage({
 
   const dbUser = await getUserById(session.user.id);
   const role = dbUser?.role ?? "user";
+  const isAdmin = role === "admin";
 
   return (
     <div className={styles.page}>
@@ -23,6 +24,11 @@ export default async function ProfilePage({
           ← Back
         </Link>
         <h1 className={styles.title}>My Profile</h1>
+        {isAdmin && (
+          <Link href="/dashboard/admin/users" className={styles.adminBtn}>
+            Admin Management
+          </Link>
+        )}
       </header>
       <main className={styles.main}>
         <ProfileForm
