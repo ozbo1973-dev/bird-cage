@@ -139,6 +139,10 @@ Profile page added at `/app/dashboard/profile/page.tsx` with server-side auth. U
 
 Admin users see an "Admin" section on the profile page with a user management panel. Admins can view all users, edit user fields (except password), delete users, and send bulk or individual emails via Resend. Admin info is read-only to other admins. Admin button moved to the profile navbar; email compose form appears above the user list. Email send history logged per send action.
 
+### BRD-95-2 - Email Audit Logs (complete, PR #55)
+
+Email audit log implemented for admin-sent emails. Each send action is recorded in the database with sender, recipients, subject, and timestamp. Audit log is visible to admins in the profile admin panel.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
