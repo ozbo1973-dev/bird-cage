@@ -2,6 +2,7 @@ import { requireAdminAuth } from "@/lib/session";
 import { getAllUsers } from "@/lib/dal/users";
 import Link from "next/link";
 import AdminUsersList from "@/components/AdminUsersList";
+import NavDropdown from "@/components/NavDropdown";
 import styles from "./page.module.css";
 
 export default async function AdminUsersPage() {
@@ -19,6 +20,7 @@ export default async function AdminUsersPage() {
           Email Audit Log →
         </Link>
         <span className={styles.count}>{users.length} users</span>
+        <NavDropdown isAdmin returnPath="/dashboard/admin/users" />
       </header>
       <main className={styles.main}>
         <AdminUsersList users={users} currentUserId={dbUser.id} />

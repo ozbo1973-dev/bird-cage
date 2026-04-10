@@ -28,6 +28,10 @@
   color: var(--color-primary-navy);
 }
 
+.navMenu {
+  margin-left: auto;
+}
+
 .main {
   max-width: 560px;
   margin: 2rem auto;

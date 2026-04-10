@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getEventWithBirds } from "@/lib/dal/events";
+import { getUserById } from "@/lib/dal/users";
 import AddBirdForm from "@/components/AddBirdForm";
+import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -16,8 +18,13 @@ export default async function AddBirdPage({
 
   if (isNaN(eventId)) notFound();
 
-  const data = await getEventWithBirds(eventId, session.user.id);
+  const [data, dbUser] = await Promise.all([
+    getEventWithBirds(eventId, session.user.id),
+    getUserById(session.user.id),
+  ]);
   if (!data) notFound();
+
+  const isAdmin = dbUser?.role === "admin";
 
   return (
     <div className={styles.page}>
@@ -26,6 +33,9 @@ export default async function AddBirdPage({
           ← Back to Dashboard
         </Link>
         <h1 className={styles.title}>Add Bird to: {data.title}</h1>
+        <div className={styles.navMenu}>
+          <NavDropdown isAdmin={isAdmin} returnPath="/dashboard" />
+        </div>
       </header>
       <main className={styles.main}>
         <AddBirdForm eventId={eventId} />
