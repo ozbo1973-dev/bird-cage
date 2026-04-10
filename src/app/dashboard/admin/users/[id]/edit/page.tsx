@@ -3,6 +3,7 @@ import { getUserById } from "@/lib/dal/users";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import AdminUserEditForm from "@/components/AdminUserEditForm";
+import NavDropdown from "@/components/NavDropdown";
 import styles from "./page.module.css";
 
 export default async function AdminUserEditPage({
@@ -27,6 +28,9 @@ export default async function AdminUserEditPage({
           ← Back
         </Link>
         <h1 className={styles.title}>Edit User</h1>
+        <div className={styles.navMenu}>
+          <NavDropdown isAdmin returnPath={returnTo} />
+        </div>
       </header>
       <main className={styles.main}>
         <AdminUserEditForm

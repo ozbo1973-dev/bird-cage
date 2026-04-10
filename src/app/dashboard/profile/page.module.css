@@ -38,6 +38,13 @@
 }
 
 
+.headerRight {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .adminBtn {
   display: inline-flex;
   align-items: center;
@@ -51,7 +58,6 @@
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  margin-left: auto;
   transition: opacity 0.15s;
 }
 
