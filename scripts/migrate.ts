@@ -46,6 +46,33 @@ async function main() {
     console.log("role column added successfully");
   }
 
+  // Idempotent schema safety check: ensure email_logs table exists.
+  const emailLogsCheck = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='email_logs'"
+  );
+  if (emailLogsCheck.rows.length === 0) {
+    console.log("email_logs table missing — applying schema fix");
+    await client.execute(
+      `CREATE TABLE \`email_logs\` (
+        \`id\` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        \`sender_id\` text NOT NULL,
+        \`recipient_id\` text NOT NULL,
+        \`subject\` text NOT NULL,
+        \`message\` text NOT NULL,
+        \`sent_at\` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+        FOREIGN KEY (\`sender_id\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+        FOREIGN KEY (\`recipient_id\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE cascade
+      )`
+    );
+    await client.execute(
+      "CREATE INDEX `email_logs_recipient_idx` ON `email_logs` (`recipient_id`)"
+    );
+    await client.execute(
+      "CREATE INDEX `email_logs_sender_idx` ON `email_logs` (`sender_id`)"
+    );
+    console.log("email_logs table created successfully");
+  }
+
   await client.close();
 }
 
