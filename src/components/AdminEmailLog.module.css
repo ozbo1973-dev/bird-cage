@@ -1,0 +1,73 @@
+.tableWrapper {
+  background: var(--color-bg-white);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-medium);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table th {
+  background: var(--color-bg-light);
+  color: var(--color-text-gray);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-medium);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.85rem 1rem;
+  color: var(--color-text-body);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.dateCell {
+  white-space: nowrap;
+  color: var(--color-text-gray) !important;
+  font-size: 0.85rem !important;
+}
+
+.recipientName {
+  display: block;
+  font-weight: 500;
+}
+
+.recipientEmail {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-text-gray);
+}
+
+.messageCell {
+  max-width: 320px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  white-space: pre-wrap;
+}
+
+.empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-gray);
+  font-size: 0.95rem;
+}

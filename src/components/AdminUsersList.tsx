@@ -49,8 +49,8 @@ export default function AdminUsersList({ users, currentUserId }: Props) {
     });
   }
 
-  function handleEmailUser(email: string) {
-    setEmailRecipient(email);
+  function handleEmailUser(userId: string) {
+    setEmailRecipient(userId);
     setEmailResult(null);
     document.getElementById("email-section")?.scrollIntoView({ behavior: "smooth" });
   }
@@ -62,7 +62,7 @@ export default function AdminUsersList({ users, currentUserId }: Props) {
 
     const recipients =
       emailRecipient === "all"
-        ? users.map((u) => u.email)
+        ? users.map((u) => u.id)
         : [emailRecipient];
 
     startTransition(async () => {
@@ -99,7 +99,7 @@ export default function AdminUsersList({ users, currentUserId }: Props) {
             >
               <option value="all">All Users ({users.length})</option>
               {users.map((u) => (
-                <option key={u.id} value={u.email}>
+                <option key={u.id} value={u.id}>
                   {u.name} &lt;{u.email}&gt;
                 </option>
               ))}
@@ -214,10 +214,21 @@ export default function AdminUsersList({ users, currentUserId }: Props) {
                         )}
                         <button
                           type="button"
-                          onClick={() => handleEmailUser(u.email)}
+                          onClick={() => handleEmailUser(u.id)}
                           className={styles.emailBtn}
                         >
                           Email
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/admin/emails?userId=${u.id}`,
+                            )
+                          }
+                          className={styles.viewEmailsBtn}
+                        >
+                          View Emails
                         </button>
                         {canDelete && (
                           <button
