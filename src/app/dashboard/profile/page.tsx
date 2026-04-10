@@ -4,6 +4,7 @@ import { getEmailsForUser } from "@/lib/dal/emailLogs";
 import Link from "next/link";
 import ProfileForm from "@/components/ProfileForm";
 import EmailsReceived from "@/components/EmailsReceived";
+import NavDropdown from "@/components/NavDropdown";
 import styles from "./page.module.css";
 
 export default async function ProfilePage({
@@ -27,11 +28,14 @@ export default async function ProfilePage({
           ← Back
         </Link>
         <h1 className={styles.title}>My Profile</h1>
-        {isAdmin && (
-          <Link href="/dashboard/admin/users" className={styles.adminBtn}>
-            Admin Management
-          </Link>
-        )}
+        <div className={styles.headerRight}>
+          {isAdmin && (
+            <Link href="/dashboard/admin/users" className={styles.adminBtn}>
+              Admin Management
+            </Link>
+          )}
+          <NavDropdown isAdmin={isAdmin} returnPath={returnTo} />
+        </div>
       </header>
       <main className={styles.main}>
         <ProfileForm

@@ -2,6 +2,7 @@ import { requireAdminAuth } from "@/lib/session";
 import { getAllEmailLogs } from "@/lib/dal/emailLogs";
 import Link from "next/link";
 import AdminEmailLog from "@/components/AdminEmailLog";
+import NavDropdown from "@/components/NavDropdown";
 import styles from "./page.module.css";
 
 export default async function AdminEmailsPage({
@@ -21,6 +22,7 @@ export default async function AdminEmailsPage({
         </Link>
         <h1 className={styles.title}>Email Audit Log</h1>
         <span className={styles.count}>{logs.length} emails</span>
+        <NavDropdown isAdmin returnPath="/dashboard/admin/users" />
       </header>
 
       <main className={styles.main}>
