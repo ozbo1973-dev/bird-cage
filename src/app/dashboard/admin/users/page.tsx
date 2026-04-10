@@ -15,6 +15,9 @@ export default async function AdminUsersPage() {
           ← Back to Profile
         </Link>
         <h1 className={styles.title}>User Management</h1>
+        <Link href="/dashboard/admin/emails" className={styles.auditLink}>
+          Email Audit Log →
+        </Link>
         <span className={styles.count}>{users.length} users</span>
       </header>
       <main className={styles.main}>

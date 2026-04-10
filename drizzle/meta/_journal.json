@@ -36,6 +36,13 @@
       "when": 1743900000000,
       "tag": "0004_add_user_role",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1744000000000,
+      "tag": "0005_add_email_logs",
+      "breakpoints": true
     }
   ]
 }
