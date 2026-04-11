@@ -143,6 +143,10 @@ Admin users see an "Admin" section on the profile page with a user management pa
 
 Email audit log implemented for admin-sent emails. Each send action is recorded in the database with sender, recipients, subject, and timestamp. Audit log is visible to admins in the profile admin panel.
 
+### BRD-132 - Add Menu to All Pages and a Home Dashboard Option to the Menu (complete, PR pending)
+
+`NavDropdown` updated to include a "Home" menu item (links to `/dashboard`) and a conditional "Admin Management" item visible only to admin users (links to `/dashboard/admin/users`). `NavDropdown` added to all 8 authenticated pages that previously lacked it: bird edit, event edit, add-bird, new event, profile, admin users list, admin user edit, and admin emails. Unit tests added for `NavDropdown` covering all menu items for both admin and non-admin roles. Plan in `docs/plan/jira/BRD-132.md`. Branch: `feature/brd-132-global-nav-menu`.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
