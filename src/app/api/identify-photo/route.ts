@@ -58,9 +58,14 @@ export async function POST(req: NextRequest) {
   }
 
   const result = parseIdentification(responseText);
-  if (!result) {
-    return NextResponse.json({ error: "Could not identify bird from photo" }, { status: 422 });
+  if (!result.ok) {
+    const status = result.reason === "parse_error" ? 422 : 200;
+    const error =
+      result.reason === "parse_error"
+        ? "Could not parse bird identification from AI response"
+        : "AI could not identify a bird in this photo";
+    return NextResponse.json({ error }, { status });
   }
 
-  return NextResponse.json(result);
+  return NextResponse.json(result.value);
 }

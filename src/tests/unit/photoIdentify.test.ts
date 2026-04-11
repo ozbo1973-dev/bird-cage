@@ -7,10 +7,12 @@ describe("parseIdentification - photo AI response shapes", () => {
       "The Robin is a small passerine bird with an orange-red breast. " +
       'It is common in gardens and woodland edges.\n{"identified": true, "type": "Songbird", "species": "European Robin"}';
     const result = parseIdentification(text);
-    expect(result).not.toBeNull();
-    expect(result?.type).toBe("Songbird");
-    expect(result?.species).toBe("European Robin");
-    expect(result?.summary).toContain("Robin");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.type).toBe("Songbird");
+      expect(result.value.species).toBe("European Robin");
+      expect(result.value.summary).toContain("Robin");
+    }
   });
 
   it("parses JSON wrapped in markdown fences", () => {
@@ -18,31 +20,39 @@ describe("parseIdentification - photo AI response shapes", () => {
       "A large bird of prey commonly seen soaring over open countryside.\n" +
       '```json\n{"identified": true, "type": "Raptor", "species": "Red Kite"}\n```';
     const result = parseIdentification(text);
-    expect(result).not.toBeNull();
-    expect(result?.type).toBe("Raptor");
-    expect(result?.species).toBe("Red Kite");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.type).toBe("Raptor");
+      expect(result.value.species).toBe("Red Kite");
+    }
   });
 
-  it("returns null when identified is false", () => {
+  it("returns not_identified when identified is false", () => {
     const text = 'I need more information. {"identified": false}';
-    expect(parseIdentification(text)).toBeNull();
+    const result = parseIdentification(text);
+    expect(result).toEqual({ ok: false, reason: "not_identified" });
   });
 
-  it("returns null when JSON block is missing", () => {
+  it("returns parse_error when JSON block is missing", () => {
     const text = "This looks like a sparrow but I cannot be certain.";
-    expect(parseIdentification(text)).toBeNull();
+    const result = parseIdentification(text);
+    expect(result).toEqual({ ok: false, reason: "parse_error" });
   });
 
-  it("returns null when type or species is missing from JSON", () => {
+  it("returns parse_error when type or species is missing from JSON", () => {
     const text = 'A bird.\n{"identified": true, "type": "Songbird"}';
-    expect(parseIdentification(text)).toBeNull();
+    const result = parseIdentification(text);
+    expect(result).toEqual({ ok: false, reason: "parse_error" });
   });
 
   it("extracts summary as text before the JSON block", () => {
     const summary = "The Barn Owl is a nocturnal hunter with a heart-shaped face.";
     const text = `${summary}\n{"identified": true, "type": "Owl", "species": "Barn Owl"}`;
     const result = parseIdentification(text);
-    expect(result?.summary).toContain("Barn Owl");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.summary).toContain("Barn Owl");
+    }
   });
 
   it("handles multiple JSON-like objects and picks the correct one", () => {
@@ -50,6 +60,9 @@ describe("parseIdentification - photo AI response shapes", () => {
       'The user mentioned {"color": "brown"}. Based on this: the bird is a Thrush.\n' +
       '{"identified": true, "type": "Songbird", "species": "Song Thrush"}';
     const result = parseIdentification(text);
-    expect(result?.species).toBe("Song Thrush");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.species).toBe("Song Thrush");
+    }
   });
 });
