@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { birdingEvents, birdEntries } from "@/db/schema";
+import { toBirdInsert, BirdFormInput } from "@/lib/birds";
 
 export async function POST(
   req: NextRequest,
@@ -23,22 +24,11 @@ export async function POST(
 
   if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { type, species, locationName, lat, lng, dateStamp, notes, photoPath, photoData } = await req.json();
+  const body: BirdFormInput = await req.json();
 
   const [bird] = await db
     .insert(birdEntries)
-    .values({
-      eventId,
-      type,
-      species,
-      locationName,
-      lat: lat ?? null,
-      lng: lng ?? null,
-      dateStamp,
-      notes: notes ?? null,
-      photoPath: photoData ? null : (photoPath ?? null),
-      photoData: photoData ?? null,
-    })
+    .values(toBirdInsert(body, eventId))
     .returning();
 
   return NextResponse.json({ ok: true, birdId: bird.id });
