@@ -85,3 +85,93 @@ export async function getEventWithBirds(
 
   return { ...event, birds };
 }
+
+/**
+ * Creates a new event with optional bird entries atomically.
+ * Returns { eventId } for the created event.
+ */
+export async function createOwnedEvent(
+  userId: string,
+  data: { title: string; date: string; notes?: string | null },
+  birds: BirdFormInput[],
+): Promise<{ eventId: number }> {
+  const [event] = await db
+    .insert(birdingEvents)
+    .values({ userId, title: data.title, date: data.date, notes: data.notes ?? null })
+    .returning({ eventId: birdingEvents.id });
+
+  if (birds.length > 0) {
+    await db
+      .insert(birdEntries)
+      .values(birds.map((b) => toBirdInsert(b, event.eventId)));
+  }
+
+  return { eventId: event.eventId };
+}
+
+/**
+ * Updates an event and atomically replaces all its bird entries.
+ * Collects old bird photo paths before deletion so the caller can clean up files.
+ * Returns { photoPaths } of the removed birds, or null if not found/not owned.
+ */
+export async function replaceOwnedEvent(
+  eventId: number,
+  userId: string,
+  data: { title: string; date: string; notes?: string | null },
+  birds: BirdFormInput[],
+): Promise<{ photoPaths: Array<string | null> } | null> {
+  const [event] = await db
+    .select({ id: birdingEvents.id })
+    .from(birdingEvents)
+    .where(and(eq(birdingEvents.id, eventId), eq(birdingEvents.userId, userId)));
+
+  if (!event) return null;
+
+  const existingBirds = await db
+    .select({ photoPath: birdEntries.photoPath })
+    .from(birdEntries)
+    .where(eq(birdEntries.eventId, eventId));
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(birdingEvents)
+      .set({ title: data.title, date: data.date, notes: data.notes ?? null })
+      .where(eq(birdingEvents.id, eventId));
+
+    await tx.delete(birdEntries).where(eq(birdEntries.eventId, eventId));
+
+    if (birds.length > 0) {
+      await tx
+        .insert(birdEntries)
+        .values(birds.map((b) => toBirdInsert(b, eventId)));
+    }
+  });
+
+  return { photoPaths: existingBirds.map((b) => b.photoPath ?? null) };
+}
+
+/**
+ * Deletes an event (cascade-deletes its birds), enforcing user ownership.
+ * Collects bird photo paths before deletion so the caller can clean up files.
+ * Returns { photoPaths } of the deleted birds, or null if not found/not owned.
+ */
+export async function deleteOwnedEvent(
+  eventId: number,
+  userId: string,
+): Promise<{ photoPaths: Array<string | null> } | null> {
+  const [event] = await db
+    .select({ id: birdingEvents.id })
+    .from(birdingEvents)
+    .where(and(eq(birdingEvents.id, eventId), eq(birdingEvents.userId, userId)));
+
+  if (!event) return null;
+
+  const birds = await db
+    .select({ photoPath: birdEntries.photoPath })
+    .from(birdEntries)
+    .where(eq(birdEntries.eventId, eventId));
+
+  await db.delete(birdingEvents).where(eq(birdingEvents.id, eventId));
+
+  return { photoPaths: birds.map((b) => b.photoPath ?? null) };
+}

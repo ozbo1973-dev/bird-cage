@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/db";
-import { birdingEvents, birdEntries } from "@/db/schema";
 import { deleteUploadedFile } from "@/lib/uploads";
-import { toBirdInsert, BirdFormInput } from "@/lib/birds";
+import { replaceOwnedEvent, deleteOwnedEvent } from "@/lib/dal/events";
+import type { BirdFormInput } from "@/lib/birds";
 
 export async function PUT(
   req: NextRequest,
@@ -18,36 +16,18 @@ export async function PUT(
   const eventId = parseInt(id, 10);
   if (isNaN(eventId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-  const [event] = await db
-    .select()
-    .from(birdingEvents)
-    .where(and(eq(birdingEvents.id, eventId), eq(birdingEvents.userId, session.user.id)));
-
-  if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
   const { title, date, notes, birds } = await req.json();
 
-  const existingBirds = await db
-    .select({ photoPath: birdEntries.photoPath })
-    .from(birdEntries)
-    .where(eq(birdEntries.eventId, eventId));
+  const result = await replaceOwnedEvent(
+    eventId,
+    session.user.id,
+    { title, date, notes },
+    (birds ?? []) as BirdFormInput[],
+  );
 
-  await db.transaction(async (tx) => {
-    await tx
-      .update(birdingEvents)
-      .set({ title, date, notes: notes ?? null })
-      .where(eq(birdingEvents.id, eventId));
+  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    await tx.delete(birdEntries).where(eq(birdEntries.eventId, eventId));
-
-    if (birds && birds.length > 0) {
-      await tx.insert(birdEntries).values(
-        birds.map((b: BirdFormInput) => toBirdInsert(b, eventId)),
-      );
-    }
-  });
-
-  await Promise.all(existingBirds.map((bird) => deleteUploadedFile(bird.photoPath)));
+  await Promise.all(result.photoPaths.map(deleteUploadedFile));
 
   return NextResponse.json({ ok: true });
 }
@@ -63,21 +43,10 @@ export async function DELETE(
   const eventId = parseInt(id, 10);
   if (isNaN(eventId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-  const [event] = await db
-    .select()
-    .from(birdingEvents)
-    .where(and(eq(birdingEvents.id, eventId), eq(birdingEvents.userId, session.user.id)));
+  const result = await deleteOwnedEvent(eventId, session.user.id);
+  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!event) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const birds = await db
-    .select({ photoPath: birdEntries.photoPath })
-    .from(birdEntries)
-    .where(eq(birdEntries.eventId, eventId));
-
-  await db.delete(birdingEvents).where(eq(birdingEvents.id, eventId));
-
-  await Promise.all(birds.map((bird) => deleteUploadedFile(bird.photoPath)));
+  await Promise.all(result.photoPaths.map(deleteUploadedFile));
 
   return NextResponse.json({ ok: true });
 }
