@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/db";
-import { birdingEvents, birdEntries } from "@/db/schema";
 import { isSafeFilename, deleteUploadedFile } from "@/lib/uploads";
+import { updateOwnedBird, deleteOwnedBird } from "@/lib/dal/birds";
 
 export async function PUT(
   req: NextRequest,
@@ -17,15 +15,6 @@ export async function PUT(
   const birdId = parseInt(id, 10);
   if (isNaN(birdId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-  // Verify ownership
-  const [row] = await db
-    .select({ birdId: birdEntries.id })
-    .from(birdEntries)
-    .innerJoin(birdingEvents, eq(birdEntries.eventId, birdingEvents.id))
-    .where(and(eq(birdEntries.id, birdId), eq(birdingEvents.userId, session.user.id)));
-
-  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
   const body = await req.json();
   const { type, species, locationName, lat, lng, dateStamp, notes, photoPath, photoData } = body;
 
@@ -37,10 +26,11 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid photo path" }, { status: 400 });
   }
 
-  await db
-    .update(birdEntries)
-    .set({ type, species, locationName, lat: lat ?? null, lng: lng ?? null, dateStamp, notes: notes ?? null, photoPath: photoData ? null : (photoPath ?? null), photoData: photoData ?? null })
-    .where(eq(birdEntries.id, birdId));
+  const result = await updateOwnedBird(birdId, session.user.id, {
+    type, species, locationName, lat, lng, dateStamp, notes, photoPath, photoData,
+  });
+
+  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json({ ok: true });
 }
@@ -56,17 +46,10 @@ export async function DELETE(
   const birdId = parseInt(id, 10);
   if (isNaN(birdId)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
-  // Single query: verify the bird exists and belongs to the session user
-  const [row] = await db
-    .select({ birdId: birdEntries.id, photoPath: birdEntries.photoPath })
-    .from(birdEntries)
-    .innerJoin(birdingEvents, eq(birdEntries.eventId, birdingEvents.id))
-    .where(and(eq(birdEntries.id, birdId), eq(birdingEvents.userId, session.user.id)));
+  const result = await deleteOwnedBird(birdId, session.user.id);
+  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  await db.delete(birdEntries).where(eq(birdEntries.id, birdId));
-  await deleteUploadedFile(row.photoPath);
+  await deleteUploadedFile(result.photoPath);
 
   return NextResponse.json({ ok: true });
 }

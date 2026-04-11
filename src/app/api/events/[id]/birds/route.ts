@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { addBirdToEvent } from "@/lib/dal/events";
+import { addBirdToOwnedEvent } from "@/lib/dal/birds";
 import type { BirdFormInput } from "@/lib/birds";
 
 export async function POST(
@@ -17,8 +17,8 @@ export async function POST(
 
   const body: BirdFormInput = await req.json();
 
-  const bird = await addBirdToEvent(eventId, session.user.id, body);
-  if (!bird) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const result = await addBirdToOwnedEvent(eventId, session.user.id, body);
+  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json({ ok: true, birdId: bird.id });
+  return NextResponse.json({ ok: true, birdId: result.birdId });
 }

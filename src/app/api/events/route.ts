@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../lib/auth";
-import { db } from "../../../db";
-import { birdingEvents, birdEntries } from "../../../db/schema";
-import { toBirdInsert, BirdFormInput } from "@/lib/birds";
+import { createOwnedEvent } from "@/lib/dal/events";
+import type { BirdFormInput } from "@/lib/birds";
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
@@ -11,19 +10,13 @@ export async function POST(req: NextRequest) {
   if (!session.user.emailVerified)
     return NextResponse.json({ error: "Email not verified" }, { status: 403 });
 
-  const body = await req.json();
-  const { title, date, notes, birds } = body;
+  const { title, date, notes, birds } = await req.json();
 
-  const [event] = await db
-    .insert(birdingEvents)
-    .values({ userId: session.user.id, title, date, notes })
-    .returning();
+  const { eventId } = await createOwnedEvent(
+    session.user.id,
+    { title, date, notes },
+    (birds ?? []) as BirdFormInput[],
+  );
 
-  if (birds && birds.length > 0) {
-    await db.insert(birdEntries).values(
-      birds.map((b: BirdFormInput) => toBirdInsert(b, event.id)),
-    );
-  }
-
-  return NextResponse.json({ ok: true, eventId: event.id });
+  return NextResponse.json({ ok: true, eventId });
 }
