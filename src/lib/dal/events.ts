@@ -2,6 +2,7 @@ import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { birdingEvents, birdEntries } from "@/db/schema";
 import type { BirdingEvent, BirdEntry } from "@/db/schema";
+import { toBirdInsert, BirdFormInput } from "@/lib/birds";
 
 export type EventWithBirds = BirdingEvent & { birds: BirdEntry[] };
 
@@ -39,6 +40,30 @@ export async function getBirdEntry(
     .where(and(eq(birdEntries.id, birdId), eq(birdingEvents.userId, userId)));
 
   return row?.bird ?? null;
+}
+
+/**
+ * Insert a bird entry for a given event, enforcing user ownership.
+ * Returns the inserted bird, or null if the event does not exist or is not owned by the user.
+ */
+export async function addBirdToEvent(
+  eventId: number,
+  userId: string,
+  bird: BirdFormInput,
+): Promise<BirdEntry | null> {
+  const [event] = await db
+    .select()
+    .from(birdingEvents)
+    .where(and(eq(birdingEvents.id, eventId), eq(birdingEvents.userId, userId)));
+
+  if (!event) return null;
+
+  const [inserted] = await db
+    .insert(birdEntries)
+    .values(toBirdInsert(bird, eventId))
+    .returning();
+
+  return inserted ?? null;
 }
 
 /** Fetch a single event with its birds, enforcing user ownership. Returns null if not found or not owned. */
