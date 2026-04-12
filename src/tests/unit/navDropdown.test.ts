@@ -1,13 +1,14 @@
 import { describe, it, expect } from "vitest";
 
 /**
- * Mirrors the menu item list built by NavDropdown based on the isAdmin prop.
- * Home, Profile, [Admin Management if admin], Download CSV, Sign Out
+ * Mirrors the menu item list built by NavDropdown based on the isAdmin and hasEvents props.
+ * Home, Profile, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
  */
-function getNavMenuItems(isAdmin: boolean): string[] {
+function getNavMenuItems(isAdmin: boolean, hasEvents = true): string[] {
   const items = ["Home", "Profile"];
   if (isAdmin) items.push("Admin Management");
-  items.push("Download CSV", "Sign Out");
+  if (hasEvents) items.push("Download CSV");
+  items.push("Sign Out");
   return items;
 }
 
@@ -86,5 +87,23 @@ describe("shouldShowAdminMenuItem", () => {
 describe("NavDropdown Home link href", () => {
   it("Home link points to /dashboard", () => {
     expect(HOME_HREF).toBe("/dashboard");
+  });
+});
+
+describe("NavDropdown Download CSV visibility based on hasEvents", () => {
+  it("shows Download CSV when hasEvents is true", () => {
+    expect(getNavMenuItems(false, true)).toContain("Download CSV");
+  });
+
+  it("hides Download CSV when hasEvents is false", () => {
+    expect(getNavMenuItems(false, false)).not.toContain("Download CSV");
+  });
+
+  it("hides Download CSV for admin when hasEvents is false", () => {
+    expect(getNavMenuItems(true, false)).not.toContain("Download CSV");
+  });
+
+  it("shows Download CSV by default (hasEvents defaults to true)", () => {
+    expect(getNavMenuItems(false)).toContain("Download CSV");
   });
 });

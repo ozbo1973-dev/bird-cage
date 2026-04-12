@@ -10,9 +10,10 @@ import styles from "./NavDropdown.module.css";
 interface Props {
   returnPath?: string;
   isAdmin?: boolean;
+  hasEvents?: boolean;
 }
 
-export default function NavDropdown({ returnPath = "/dashboard", isAdmin = false }: Props) {
+export default function NavDropdown({ returnPath = "/dashboard", isAdmin = false, hasEvents = true }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -74,14 +75,16 @@ export default function NavDropdown({ returnPath = "/dashboard", isAdmin = false
               Admin Management
             </Link>
           )}
-          <a
-            href="/api/export"
-            className={styles.menuItem}
-            onClick={() => setOpen(false)}
-          >
-            <Download size={16} />
-            Download CSV
-          </a>
+          {hasEvents && (
+            <a
+              href="/api/export"
+              className={styles.menuItem}
+              onClick={() => setOpen(false)}
+            >
+              <Download size={16} />
+              Download CSV
+            </a>
+          )}
           <button className={`${styles.menuItem} ${styles.signOut}`} onClick={handleSignOut}>
             <LogOut size={16} />
             Sign Out

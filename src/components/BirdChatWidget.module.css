@@ -124,3 +124,15 @@
   margin: 0;
   background: var(--color-bg-white);
 }
+
+@media (max-width: 640px) {
+  .messages {
+    max-height: 320px;
+    min-height: 120px;
+  }
+
+  .input {
+    resize: vertical;
+    min-height: 72px;
+  }
+}

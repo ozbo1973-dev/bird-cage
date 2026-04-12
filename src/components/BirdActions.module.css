@@ -1,3 +1,19 @@
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .viewBtn {
   padding: 0.2rem 0.5rem;
   border: 1px solid var(--color-primary-blue);

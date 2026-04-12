@@ -76,3 +76,37 @@
   width: 100%;
   margin: 0 auto;
 }
+
+/* Mobile-only New Event button shown in main content */
+.mobileNewEventWrap {
+  display: none;
+}
+
+/* Hide in header on mobile; show in main instead */
+@media (max-width: 640px) {
+  .header {
+    padding: 0.6rem 1rem;
+  }
+
+  .logo {
+    width: 130px !important;
+  }
+
+  .username {
+    display: none;
+  }
+
+  .headerNewEventBtn {
+    display: none;
+  }
+
+  .main {
+    padding: 1rem;
+  }
+
+  .mobileNewEventWrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+  }
+}

@@ -20,6 +20,10 @@
   .grid {
     grid-template-columns: 1fr;
   }
+
+  .textarea {
+    min-height: 100px;
+  }
 }
 
 .field {
