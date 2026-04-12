@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../lib/auth";
 import { db } from "../../../db";
 import { birdingEvents, birdEntries } from "../../../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { generateCsv } from "../../../lib/csv";
 
 export async function GET(req: NextRequest) {
@@ -16,7 +16,14 @@ export async function GET(req: NextRequest) {
     .where(eq(birdingEvents.userId, session.user.id))
     .orderBy(birdingEvents.date);
 
-  const birds = await db.select().from(birdEntries);
+  const eventIds = events.map((e) => e.id);
+  const birds =
+    eventIds.length > 0
+      ? await db
+          .select()
+          .from(birdEntries)
+          .where(inArray(birdEntries.eventId, eventIds))
+      : [];
 
   const eventsWithBirds = events.map((event) => ({
     ...event,

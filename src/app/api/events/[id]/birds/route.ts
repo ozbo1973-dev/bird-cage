@@ -17,6 +17,10 @@ export async function POST(
 
   const body: BirdFormInput = await req.json();
 
+  if (!body.type?.trim() || !body.species?.trim() || !body.locationName?.trim() || !body.dateStamp?.trim()) {
+    return NextResponse.json({ error: "type, species, locationName, and dateStamp are required" }, { status: 400 });
+  }
+
   const result = await addBirdToOwnedEvent(eventId, session.user.id, body);
   if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
 

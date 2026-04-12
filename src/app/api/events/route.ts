@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
 
   const { title, date, notes, birds } = await req.json();
 
+  if (!title?.trim() || !date?.trim()) {
+    return NextResponse.json({ error: "title and date are required" }, { status: 400 });
+  }
+
   const { eventId } = await createOwnedEvent(
     session.user.id,
     { title, date, notes },
