@@ -58,9 +58,17 @@ export async function POST(req: NextRequest) {
   }
 
   const result = parseIdentification(responseText);
-  if (!result) {
-    return NextResponse.json({ error: "Could not identify bird from photo" }, { status: 422 });
+  if (result.ok) {
+    return NextResponse.json(result.value);
   }
 
-  return NextResponse.json(result);
+  // strict:false disables strictNullChecks, which prevents TS from narrowing
+  // the discriminated union via control-flow alone — cast explicitly.
+  const { reason } = result as { ok: false; reason: "not_identified" | "parse_error" };
+  const status = reason === "parse_error" ? 422 : 200;
+  const error =
+    reason === "parse_error"
+      ? "Could not parse bird identification from AI response"
+      : "AI could not identify a bird in this photo";
+  return NextResponse.json({ error }, { status });
 }

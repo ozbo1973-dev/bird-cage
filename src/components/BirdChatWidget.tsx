@@ -65,9 +65,9 @@ export default function BirdChatWidget({ onIdentified }: Props) {
       }
 
       const result = parseIdentification(accumulated);
-      if (result && !identified) {
+      if (result.ok && !identified) {
         setIdentified(true);
-        onIdentified(result);
+        onIdentified(result.value);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
