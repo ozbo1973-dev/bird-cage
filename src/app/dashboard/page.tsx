@@ -29,15 +29,21 @@ export default async function DashboardPage({
         />
         <div className={styles.headerActions}>
           <span className={styles.username}>Welcome, {session.user.name}</span>
-          <Link href="/events/new" className={styles.newEventBtn}>
+          <Link href="/events/new" className={`${styles.newEventBtn} ${styles.headerNewEventBtn}`}>
             <CalendarPlus size={16} />
             New Event
           </Link>
-          <NavDropdown returnPath="/dashboard" />
+          <NavDropdown returnPath="/dashboard" hasEvents={eventsWithBirds.length > 0} />
         </div>
       </header>
 
       <main className={styles.main}>
+        <div className={styles.mobileNewEventWrap}>
+          <Link href="/events/new" className={styles.newEventBtn}>
+            <CalendarPlus size={16} />
+            New Event
+          </Link>
+        </div>
         <DashboardTabs view={view} events={eventsWithBirds} />
       </main>
     </div>

@@ -29,7 +29,7 @@ export default function BirdActions({ birdId, birdSpecies }: Props) {
   }
 
   return (
-    <>
+    <div className={styles.actions}>
       <Link href={`/birds/${birdId}/edit`} className={styles.viewBtn}>
         <Bird size={14} />
         View
@@ -49,6 +49,6 @@ export default function BirdActions({ birdId, birdSpecies }: Props) {
         onConfirm={handleDelete}
         onCancel={() => setConfirming(false)}
       />
-    </>
+    </div>
   );
 }
