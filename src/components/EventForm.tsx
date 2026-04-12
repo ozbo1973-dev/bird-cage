@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./EventForm.module.css";
 import BirdCard from "./BirdCard";
-import type { BirdFormEntry, BirdPhotoState } from "./BirdCard";
-import type { BirdingEvent, BirdEntry } from "@/db/schema";
+import { useEventForm } from "@/hooks/useEventForm";
+import type { BirdEntry, BirdingEvent } from "@/db/schema";
 
 interface InitialData {
   event: BirdingEvent;
@@ -16,125 +15,28 @@ interface Props {
   initialData?: InitialData;
 }
 
-function emptyBird(): BirdFormEntry {
-  return {
-    type: "",
-    species: "",
-    locationName: "",
-    lat: "",
-    lng: "",
-    dateStamp: new Date().toISOString().slice(0, 10),
-    notes: "",
-    photoPath: "",
-    photoData: "",
-  };
-}
-
-function emptyPhoto(): BirdPhotoState {
-  return { preview: "", error: "" };
-}
-
-function toBirdFormEntry(b: BirdEntry): BirdFormEntry {
-  return {
-    type: b.type,
-    species: b.species,
-    locationName: b.locationName,
-    lat: b.lat != null ? String(b.lat) : "",
-    lng: b.lng != null ? String(b.lng) : "",
-    dateStamp: b.dateStamp,
-    notes: b.notes ?? "",
-    photoPath: b.photoPath ?? "",
-    photoData: b.photoData ?? "",
-  };
-}
-
 export default function EventForm({ initialData }: Props) {
   const router = useRouter();
-  const isEdit = !!initialData;
-
-  const [title, setTitle] = useState(initialData?.event.title ?? "");
-  const [date, setDate] = useState(
-    initialData?.event.date ?? new Date().toISOString().slice(0, 10),
-  );
-  const [notes, setNotes] = useState(initialData?.event.notes ?? "");
-  const [birds, setBirds] = useState<BirdFormEntry[]>(
-    initialData ? initialData.birds.map(toBirdFormEntry) : [],
-  );
-  const [birdPhotos, setBirdPhotos] = useState<BirdPhotoState[]>(
-    initialData ? initialData.birds.map(() => emptyPhoto()) : [],
-  );
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  function updateBird(
-    index: number,
-    field: keyof BirdFormEntry,
-    value: string,
-  ) {
-    setBirds((prev) =>
-      prev.map((b, i) => (i === index ? { ...b, [field]: value } : b)),
-    );
-  }
-
-  function addBird() {
-    setBirds((prev) => [...prev, emptyBird()]);
-    setBirdPhotos((prev) => [...prev, emptyPhoto()]);
-  }
-
-  function removeBird(index: number) {
-    setBirds((prev) => prev.filter((_, i) => i !== index));
-    setBirdPhotos((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updatePhoto(index: number, patch: Partial<BirdPhotoState>) {
-    setBirdPhotos((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, ...patch } : p)),
-    );
-  }
-
-  function handleSubmit(e: React.SubmitEvent) {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
-
-    const payload = {
-      title,
-      date,
-      notes,
-      birds: birds
-        .filter((b) => b.species.trim() !== "")
-        .map((b) => ({
-          ...b,
-          lat: b.lat !== "" ? parseFloat(b.lat) : null,
-          lng: b.lng !== "" ? parseFloat(b.lng) : null,
-          photoPath: b.photoData ? null : (b.photoPath || null),
-          photoData: b.photoData || null,
-        })),
-    };
-
-    const url = isEdit ? `/api/events/${initialData!.event.id}` : "/api/events";
-    const method = isEdit ? "PUT" : "POST";
-
-    startTransition(async () => {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      setSaving(false);
-
-      if (res.ok) {
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        setError("Failed to save event. Please try again.");
-      }
-    });
-  }
+  const form = useEventForm({
+    initialData: initialData
+      ? {
+          event: {
+            id: initialData.event.id,
+            title: initialData.event.title,
+            date: initialData.event.date,
+            notes: initialData.event.notes ?? "",
+          },
+          birds: initialData.birds,
+        }
+      : undefined,
+    onSuccess: () => {
+      router.push("/dashboard");
+      router.refresh();
+    },
+  });
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <form onSubmit={form.handleSubmit} className={styles.form}>
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Event Details</h2>
         <div className={styles.field}>
@@ -144,8 +46,8 @@ export default function EventForm({ initialData }: Props) {
           <input
             id="title"
             type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={form.title}
+            onChange={(e) => form.setTitle(e.target.value)}
             className={styles.input}
             placeholder="e.g. Morning walk at the park"
             required
@@ -158,8 +60,8 @@ export default function EventForm({ initialData }: Props) {
           <input
             id="date"
             type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={form.date}
+            onChange={(e) => form.setDate(e.target.value)}
             className={styles.input}
             required
           />
@@ -170,8 +72,8 @@ export default function EventForm({ initialData }: Props) {
           </label>
           <textarea
             id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={form.notes}
+            onChange={(e) => form.setNotes(e.target.value)}
             className={styles.textarea}
             rows={3}
             placeholder="Optional notes about the event"
@@ -181,27 +83,31 @@ export default function EventForm({ initialData }: Props) {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Bird Sightings</h2>
-        {birds.map((bird, index) => (
+        {form.birdRecords.map((record, index) => (
           <BirdCard
-            key={index}
-            bird={bird}
-            photo={birdPhotos[index] ?? emptyPhoto()}
-            index={index}
-            isEdit={isEdit}
-            editBirdId={initialData?.birds[index]?.id}
-            editEventId={initialData?.event.id}
-            updateBird={updateBird}
-            updatePhoto={updatePhoto}
-            removeBird={removeBird}
+            key={record.id}
+            record={record}
+            displayIndex={index}
+            isEdit={form.isEdit}
+            existingBirdId={initialData?.birds[index]?.id}
+            eventId={initialData?.event.id}
+            onFieldChange={(field, value) =>
+              form.updateBirdField(record.id, field, value)
+            }
+            onRemove={() => form.removeBird(record.id)}
+            onPhotoFile={(file) => form.handlePhotoFile(record.id, file)}
+            onPhotoError={(msg) => form.handlePhotoError(record.id, msg)}
+            onUseLocation={() => form.handleUseLocation(record.id)}
+            onIdentified={(result) => form.handleIdentified(record.id, result)}
           />
         ))}
 
-        <button type="button" onClick={addBird} className={styles.addBirdBtn}>
+        <button type="button" onClick={form.addBird} className={styles.addBirdBtn}>
           + Add Bird
         </button>
       </section>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {form.error && <p className={styles.error}>{form.error}</p>}
 
       <div className={styles.actions}>
         <button
@@ -211,8 +117,12 @@ export default function EventForm({ initialData }: Props) {
         >
           Cancel
         </button>
-        <button type="submit" disabled={saving} className={styles.saveBtn}>
-          {saving ? "Saving…" : isEdit ? "Save Changes" : "Save Event"}
+        <button
+          type="submit"
+          disabled={form.saving}
+          className={styles.saveBtn}
+        >
+          {form.saving ? "Saving…" : form.isEdit ? "Save Changes" : "Save Event"}
         </button>
       </div>
     </form>

@@ -4,106 +4,86 @@ import Link from "next/link";
 import BirdChatWidget from "./BirdChatWidget";
 import DragDropZone from "./DragDropZone";
 import styles from "./EventForm.module.css";
-import { useGeoLocation, defaultShouldFill } from "@/hooks/useGeoLocation";
-import { usePhotoReader } from "@/hooks/usePhotoReader";
-import { usePhotoIdentify } from "@/hooks/usePhotoIdentify";
+import {
+  shouldShowEditLink,
+  shouldShowPhotoSection,
+  shouldShowGeoButton,
+  shouldShowChatWidget,
+} from "@/hooks/useEventForm";
+import type { BirdRecord, BirdFormEntry } from "@/hooks/useEventForm";
 
-export interface BirdFormEntry {
-  type: string;
-  species: string;
-  locationName: string;
-  lat: string;
-  lng: string;
-  dateStamp: string;
-  notes: string;
-  photoPath: string;
-  photoData: string;
-}
-
-export interface BirdPhotoState {
-  preview: string;
-  error: string;
-}
+// Re-export types that EventForm and other callers import from this module
+export type { BirdRecord, BirdFormEntry };
 
 interface Props {
-  bird: BirdFormEntry;
-  photo: BirdPhotoState;
-  index: number;
+  record: BirdRecord;
+  displayIndex: number;
   isEdit: boolean;
-  editBirdId?: number;
-  editEventId?: number;
-  updateBird: (index: number, field: keyof BirdFormEntry, value: string) => void;
-  updatePhoto: (index: number, patch: Partial<BirdPhotoState>) => void;
-  removeBird: (index: number) => void;
+  existingBirdId?: number;
+  eventId?: number;
+  onFieldChange: (field: keyof BirdFormEntry, value: string) => void;
+  onRemove: () => void;
+  onPhotoFile: (file: File) => void;
+  onPhotoError: (msg: string) => void;
+  onUseLocation: () => void;
+  onIdentified: (result: {
+    type: string;
+    species: string;
+    summary: string;
+  }) => void;
 }
 
+/**
+ * Pure presentational component — NO hooks, NO internal state.
+ * All state lives in the parent's BirdRecord and is passed via props.
+ */
 export default function BirdCard({
-  bird,
-  photo,
-  index,
+  record,
+  displayIndex,
   isEdit,
-  editBirdId,
-  editEventId,
-  updateBird,
-  updatePhoto,
-  removeBird,
+  existingBirdId,
+  eventId,
+  onFieldChange,
+  onRemove,
+  onPhotoFile,
+  onPhotoError,
+  onUseLocation,
+  onIdentified,
 }: Props) {
-  const geo = useGeoLocation({
-    onFill: (newLat, newLng) => {
-      updateBird(index, "lat", defaultShouldFill(bird.lat, "") ? newLat : bird.lat);
-      updateBird(index, "lng", defaultShouldFill("", bird.lng) ? newLng : bird.lng);
-    },
-  });
+  const { formData, photo, geo } = record;
 
-  const identify = usePhotoIdentify({
-    onIdentified: ({ type, species, summary }) => {
-      updateBird(index, "type", type);
-      updateBird(index, "species", species);
-      if (summary) updateBird(index, "notes", summary);
-    },
-  });
+  const showEditLink = shouldShowEditLink(isEdit, existingBirdId, eventId);
+  const showPhotoSection = shouldShowPhotoSection(isEdit);
+  const showGeoButton = shouldShowGeoButton(isEdit);
+  const showChatWidget = shouldShowChatWidget(isEdit, photo.identified);
 
-  const reader = usePhotoReader({
-    onBase64Ready: async (base64) => {
-      updateBird(index, "photoData", base64);
-      updateBird(index, "photoPath", "");
-      await identify.identify(base64);
-    },
-    onPreviewReady: (url) => updatePhoto(index, { preview: url }),
-    onError: (msg) => updatePhoto(index, { error: msg }),
-  });
-
-  const photoUploading = reader.reading || identify.identifying;
-  const photoStatus = reader.reading ? "Reading photo..." : identify.status;
+  const photoUploading = photo.uploading;
+  const photoStatus = photo.status;
 
   return (
     <div className={styles.birdCard}>
       <div className={styles.birdCardHeader}>
-        <span className={styles.birdIndex}>Bird #{index + 1}</span>
+        <span className={styles.birdIndex}>Bird #{displayIndex + 1}</span>
         <div className={styles.birdCardActions}>
-          {isEdit && editBirdId != null && editEventId != null && (
+          {showEditLink && (
             <Link
-              href={`/birds/${editBirdId}/edit?from=/events/${editEventId}/edit`}
+              href={`/birds/${existingBirdId}/edit?from=/events/${eventId}/edit`}
               className={styles.editBirdBtn}
             >
               Edit
             </Link>
           )}
-          <button
-            type="button"
-            onClick={() => removeBird(index)}
-            className={styles.removeBtn}
-          >
+          <button type="button" onClick={onRemove} className={styles.removeBtn}>
             Remove
           </button>
         </div>
       </div>
 
-      {!isEdit && (
+      {showPhotoSection && (
         <>
           <DragDropZone
-            onFile={(file) => reader.readFile(file)}
-            onError={(msg) => updatePhoto(index, { error: msg })}
+            onFile={onPhotoFile}
+            onError={onPhotoError}
             disabled={photoUploading}
           >
             <div className={styles.photoSection}>
@@ -113,13 +93,17 @@ export default function BirdCard({
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) reader.readFile(file);
+                  if (file) onPhotoFile(file);
                 }}
                 disabled={photoUploading}
                 className={styles.photoInput}
               />
               {photo.preview && (
-                <img src={photo.preview} alt="Preview" className={styles.photoThumb} />
+                <img
+                  src={photo.preview}
+                  alt="Preview"
+                  className={styles.photoThumb}
+                />
               )}
               {photoStatus && (
                 <span className={styles.photoStatus}>{photoStatus}</span>
@@ -129,109 +113,119 @@ export default function BirdCard({
               )}
             </div>
           </DragDropZone>
-          {!identify.identified && (
-            <BirdChatWidget
-              onIdentified={({ type, species, summary }) => {
-                updateBird(index, "type", type);
-                updateBird(index, "species", species);
-                if (summary) updateBird(index, "notes", summary);
-              }}
-            />
-          )}
+          {showChatWidget && <BirdChatWidget onIdentified={onIdentified} />}
         </>
       )}
 
       <div className={styles.birdGrid}>
         <div className={styles.field}>
-          <label htmlFor={`bird-type-${index}`} className={styles.label}>
+          <label
+            htmlFor={`bird-type-${displayIndex}`}
+            className={styles.label}
+          >
             Type
           </label>
           <input
-            id={`bird-type-${index}`}
+            id={`bird-type-${displayIndex}`}
             type="text"
-            value={bird.type}
-            onChange={(e) => updateBird(index, "type", e.target.value)}
+            value={formData.type}
+            onChange={(e) => onFieldChange("type", e.target.value)}
             className={styles.input}
             placeholder="e.g. Raptor"
             required
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor={`bird-species-${index}`} className={styles.label}>
+          <label
+            htmlFor={`bird-species-${displayIndex}`}
+            className={styles.label}
+          >
             Species
           </label>
           <input
-            id={`bird-species-${index}`}
+            id={`bird-species-${displayIndex}`}
             type="text"
-            value={bird.species}
-            onChange={(e) => updateBird(index, "species", e.target.value)}
+            value={formData.species}
+            onChange={(e) => onFieldChange("species", e.target.value)}
             className={styles.input}
             placeholder="e.g. Red-tailed Hawk"
             required
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor={`bird-location-${index}`} className={styles.label}>
+          <label
+            htmlFor={`bird-location-${displayIndex}`}
+            className={styles.label}
+          >
             Location Name
           </label>
           <input
-            id={`bird-location-${index}`}
+            id={`bird-location-${displayIndex}`}
             type="text"
-            value={bird.locationName}
-            onChange={(e) => updateBird(index, "locationName", e.target.value)}
+            value={formData.locationName}
+            onChange={(e) => onFieldChange("locationName", e.target.value)}
             className={styles.input}
             placeholder="e.g. Central Park, NY"
             required
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor={`bird-date-${index}`} className={styles.label}>
+          <label
+            htmlFor={`bird-date-${displayIndex}`}
+            className={styles.label}
+          >
             Date Observed
           </label>
           <input
-            id={`bird-date-${index}`}
+            id={`bird-date-${displayIndex}`}
             type="date"
-            value={bird.dateStamp}
-            onChange={(e) => updateBird(index, "dateStamp", e.target.value)}
+            value={formData.dateStamp}
+            onChange={(e) => onFieldChange("dateStamp", e.target.value)}
             className={styles.input}
             required
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor={`bird-lat-${index}`} className={styles.label}>
+          <label
+            htmlFor={`bird-lat-${displayIndex}`}
+            className={styles.label}
+          >
             Latitude (optional)
           </label>
           <input
-            id={`bird-lat-${index}`}
+            id={`bird-lat-${displayIndex}`}
             type="number"
             step="any"
-            value={bird.lat}
-            onChange={(e) => updateBird(index, "lat", e.target.value)}
+            value={formData.lat}
+            onChange={(e) => onFieldChange("lat", e.target.value)}
             className={styles.input}
             placeholder="e.g. 40.7851"
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor={`bird-lng-${index}`} className={styles.label}>
+          <label
+            htmlFor={`bird-lng-${displayIndex}`}
+            className={styles.label}
+          >
             Longitude (optional)
           </label>
           <input
-            id={`bird-lng-${index}`}
+            id={`bird-lng-${displayIndex}`}
             type="number"
             step="any"
-            value={bird.lng}
-            onChange={(e) => updateBird(index, "lng", e.target.value)}
+            value={formData.lng}
+            onChange={(e) => onFieldChange("lng", e.target.value)}
             className={styles.input}
             placeholder="e.g. -73.9683"
           />
         </div>
       </div>
 
-      {!isEdit && (
+      {showGeoButton && (
         <div className={styles.geoRow}>
           <button
             type="button"
-            onClick={geo.requestLocation}
+            onClick={onUseLocation}
             disabled={geo.loading}
             className={styles.geoBtn}
           >
@@ -244,13 +238,16 @@ export default function BirdCard({
       )}
 
       <div className={styles.field}>
-        <label htmlFor={`bird-notes-${index}`} className={styles.label}>
+        <label
+          htmlFor={`bird-notes-${displayIndex}`}
+          className={styles.label}
+        >
           Notes
         </label>
         <textarea
-          id={`bird-notes-${index}`}
-          value={bird.notes}
-          onChange={(e) => updateBird(index, "notes", e.target.value)}
+          id={`bird-notes-${displayIndex}`}
+          value={formData.notes}
+          onChange={(e) => onFieldChange("notes", e.target.value)}
           className={styles.textarea}
           rows={2}
           placeholder="Optional notes about this sighting"
