@@ -1,4 +1,4 @@
-CREATE TABLE `email_logs` (
+CREATE TABLE IF NOT EXISTS `email_logs` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`sender_id` text NOT NULL,
 	`recipient_id` text NOT NULL,
@@ -9,8 +9,5 @@ CREATE TABLE `email_logs` (
 	FOREIGN KEY (`recipient_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `email_logs_recipient_idx` ON `email_logs` (`recipient_id`);--> statement-breakpoint
-CREATE INDEX `email_logs_sender_idx` ON `email_logs` (`sender_id`);--> statement-breakpoint
-ALTER TABLE `bird_entries` ADD `photo_path` text;--> statement-breakpoint
-ALTER TABLE `bird_entries` ADD `photo_data` text;--> statement-breakpoint
-ALTER TABLE `user` ADD `role` text DEFAULT 'user' NOT NULL;
+CREATE INDEX IF NOT EXISTS `email_logs_recipient_idx` ON `email_logs` (`recipient_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `email_logs_sender_idx` ON `email_logs` (`sender_id`);
