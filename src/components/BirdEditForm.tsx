@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import type { BirdEntry } from "@/db/schema";
 import DragDropZone from "./DragDropZone";
 import styles from "./BirdEditForm.module.css";
+import { useGeoLocation, defaultShouldFill } from "@/hooks/useGeoLocation";
+import { usePhotoReader } from "@/hooks/usePhotoReader";
 
 interface Props {
   bird: BirdEntry;
@@ -22,8 +24,6 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   const [notes, setNotes] = useState(bird.notes ?? "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [geoLoading, setGeoLoading] = useState(false);
-  const [geoError, setGeoError] = useState("");
   const [photoPath, setPhotoPath] = useState(bird.photoPath ?? "");
   const [photoData, setPhotoData] = useState(bird.photoData ?? "");
   const [photoPreview, setPhotoPreview] = useState(
@@ -35,55 +35,28 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   );
   const [photoStatus, setPhotoStatus] = useState("");
   const [photoError, setPhotoError] = useState("");
-  const [photoUploading, setPhotoUploading] = useState(false);
 
-  function useMyLocation() {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocation is not supported by your browser.");
-      return;
-    }
-    setGeoLoading(true);
-    setGeoError("");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (lat === "") setLat(String(position.coords.latitude));
-        if (lng === "") setLng(String(position.coords.longitude));
-        setGeoLoading(false);
-      },
-      () => {
-        setGeoError("Unable to retrieve your location.");
-        setGeoLoading(false);
-      },
-    );
-  }
+  const geo = useGeoLocation({
+    onFill: (newLat, newLng) => {
+      setLat((cur) => (defaultShouldFill(cur, "") ? newLat : cur));
+      setLng((cur) => (defaultShouldFill("", cur) ? newLng : cur));
+    },
+  });
 
-  async function handlePhotoFile(file: File) {
-    setPhotoError("");
-    setPhotoStatus("Reading photo...");
-    setPhotoUploading(true);
-    setPhotoPreview(URL.createObjectURL(file));
-
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+  // BirdEditForm: photo reading only — no AI identification
+  const reader = usePhotoReader({
+    onBase64Ready: (base64) => {
       setPhotoData(base64);
       setPhotoPath("");
       setPhotoStatus("Photo ready.");
-    } catch {
-      setPhotoError("Something went wrong. Please try again.");
-      setPhotoStatus("");
-    } finally {
-      setPhotoUploading(false);
-    }
-  }
+    },
+    onPreviewReady: setPhotoPreview,
+    onError: setPhotoError,
+  });
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) handlePhotoFile(file);
+    if (file) reader.readFile(file);
   }
 
   function handleSubmit(e: React.SubmitEvent) {
@@ -122,9 +95,9 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <DragDropZone
-        onFile={handlePhotoFile}
+        onFile={(file) => reader.readFile(file)}
         onError={setPhotoError}
-        disabled={photoUploading}
+        disabled={reader.reading}
       >
         <div className={styles.photoSection}>
           <label className={styles.photoLabel}>Photo (optional)</label>
@@ -135,7 +108,7 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
             type="file"
             accept="image/*"
             onChange={handlePhotoChange}
-            disabled={photoUploading}
+            disabled={reader.reading}
             className={styles.photoInput}
           />
           {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
@@ -233,13 +206,13 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
         <div className={styles.geoRow}>
           <button
             type="button"
-            onClick={useMyLocation}
-            disabled={geoLoading}
+            onClick={geo.requestLocation}
+            disabled={geo.loading}
             className={styles.geoBtn}
           >
-            {geoLoading ? "Detecting location..." : "Use my location"}
+            {geo.loading ? "Detecting location..." : "Use my location"}
           </button>
-          {geoError && <span className={styles.geoError}>{geoError}</span>}
+          {geo.error && <span className={styles.geoError}>{geo.error}</span>}
         </div>
       )}
 

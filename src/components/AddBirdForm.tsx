@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import BirdChatWidget from "./BirdChatWidget";
 import DragDropZone from "./DragDropZone";
 import styles from "./AddBirdForm.module.css";
+import { useGeoLocation, defaultShouldFill } from "@/hooks/useGeoLocation";
+import { usePhotoReader } from "@/hooks/usePhotoReader";
+import { usePhotoIdentify } from "@/hooks/usePhotoIdentify";
 
 interface Props {
   eventId: number;
@@ -23,79 +26,38 @@ export default function AddBirdForm({ eventId }: Props) {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [geoLoading, setGeoLoading] = useState(false);
-  const [geoError, setGeoError] = useState("");
   const [photoData, setPhotoData] = useState("");
   const [photoPreview, setPhotoPreview] = useState("");
-  const [photoStatus, setPhotoStatus] = useState("");
   const [photoError, setPhotoError] = useState("");
-  const [photoIdentified, setPhotoIdentified] = useState(false);
-  const [photoUploading, setPhotoUploading] = useState(false);
 
-  function useMyLocation() {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocation is not supported by your browser.");
-      return;
-    }
-    setGeoLoading(true);
-    setGeoError("");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (lat === "") setLat(String(position.coords.latitude));
-        if (lng === "") setLng(String(position.coords.longitude));
-        setGeoLoading(false);
-      },
-      () => {
-        setGeoError("Unable to retrieve your location.");
-        setGeoLoading(false);
-      },
-    );
-  }
+  const geo = useGeoLocation({
+    onFill: (newLat, newLng) => {
+      setLat((cur) => (defaultShouldFill(cur, "") ? newLat : cur));
+      setLng((cur) => (defaultShouldFill("", cur) ? newLng : cur));
+    },
+  });
 
-  async function handlePhotoFile(file: File) {
-    setPhotoError("");
-    setPhotoStatus("Reading photo...");
-    setPhotoUploading(true);
-    setPhotoPreview(URL.createObjectURL(file));
+  const identify = usePhotoIdentify({
+    onIdentified: ({ type: t, species: s, summary }) => {
+      setType(t);
+      setSpecies(s);
+      if (summary) setNotes(summary);
+    },
+    onError: setPhotoError,
+  });
 
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+  const reader = usePhotoReader({
+    onBase64Ready: async (base64) => {
       setPhotoData(base64);
-      setPhotoStatus("Identifying bird from photo...");
-
-      const identRes = await fetch("/api/identify-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoBase64: base64 }),
-      });
-
-      if (!identRes.ok) {
-        setPhotoStatus("Photo ready. Could not identify bird — please use the chat below.");
-        return;
-      }
-
-      const result = (await identRes.json()) as { type: string; species: string; summary: string };
-      setType(result.type);
-      setSpecies(result.species);
-      if (result.summary) setNotes(result.summary);
-      setPhotoIdentified(true);
-      setPhotoStatus("Bird identified from photo — fields populated.");
-    } catch {
-      setPhotoError("Something went wrong. Please try again.");
-      setPhotoStatus("");
-    } finally {
-      setPhotoUploading(false);
-    }
-  }
+      await identify.identify(base64);
+    },
+    onPreviewReady: setPhotoPreview,
+    onError: setPhotoError,
+  });
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) handlePhotoFile(file);
+    if (file) reader.readFile(file);
   }
 
   function handleSubmit(e: React.SubmitEvent) {
@@ -130,10 +92,13 @@ export default function AddBirdForm({ eventId }: Props) {
     });
   }
 
+  const photoUploading = reader.reading || identify.identifying;
+  const photoStatus = reader.reading ? "Reading photo..." : identify.status;
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <DragDropZone
-        onFile={handlePhotoFile}
+        onFile={(file) => reader.readFile(file)}
         onError={setPhotoError}
         disabled={photoUploading}
       >
@@ -154,7 +119,7 @@ export default function AddBirdForm({ eventId }: Props) {
         </div>
       </DragDropZone>
 
-      {!photoIdentified && (
+      {!identify.identified && (
         <BirdChatWidget
           onIdentified={({ type: t, species: s, summary }) => {
             setType(t);
@@ -253,13 +218,13 @@ export default function AddBirdForm({ eventId }: Props) {
       <div className={styles.geoRow}>
         <button
           type="button"
-          onClick={useMyLocation}
-          disabled={geoLoading}
+          onClick={geo.requestLocation}
+          disabled={geo.loading}
           className={styles.geoBtn}
         >
-          {geoLoading ? "Detecting location..." : "Use my location"}
+          {geo.loading ? "Detecting location..." : "Use my location"}
         </button>
-        {geoError && <span className={styles.geoError}>{geoError}</span>}
+        {geo.error && <span className={styles.geoError}>{geo.error}</span>}
       </div>
 
       <div className={styles.field}>
