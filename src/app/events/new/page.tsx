@@ -1,5 +1,6 @@
 import { requireVerifiedAuth } from "../../../lib/session";
 import { getUserById } from "../../../lib/dal/users";
+import { canAccessPaidFeatures } from "../../../lib/billing";
 import EventForm from "../../../components/EventForm";
 import NavDropdown from "../../../components/NavDropdown";
 import Link from "next/link";
@@ -9,6 +10,10 @@ export default async function NewEventPage() {
   const session = await requireVerifiedAuth();
   const dbUser = await getUserById(session.user.id);
   const isAdmin = dbUser?.role === "admin";
+  const isPaidUser = canAccessPaidFeatures(
+    dbUser?.role ?? "user",
+    (dbUser?.billingPlan as "free" | "paid") ?? "free",
+  );
 
   return (
     <div className={styles.page}>
@@ -22,7 +27,7 @@ export default async function NewEventPage() {
         </div>
       </header>
       <main className={styles.main}>
-        <EventForm />
+        <EventForm isPaidUser={isPaidUser} />
       </main>
     </div>
   );

@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { parseIdentification } from "@/lib/chat";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
+import { getUserBillingInfo, canAccessPaidFeatures } from "@/lib/billing";
 
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
 
@@ -29,6 +30,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!session.user.emailVerified)
     return NextResponse.json({ error: "Email not verified" }, { status: 403 });
+
+  const billingInfo = await getUserBillingInfo(session.user.id);
+  if (
+    !billingInfo ||
+    !canAccessPaidFeatures(billingInfo.role, billingInfo.billingPlan)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Photo identification is a paid feature. Please upgrade your plan to use it.",
+      },
+      { status: 403 },
+    );
+  }
 
   const body = (await req.json()) as { photoBase64?: string };
   const { photoBase64 } = body;
