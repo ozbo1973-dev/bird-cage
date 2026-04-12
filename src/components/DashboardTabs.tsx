@@ -41,8 +41,21 @@ export default function DashboardTabs({ view, events }: Props) {
       <div className={styles.content}>
         {events.length === 0 ? (
           <div className={styles.empty}>
-            <p>No birding events yet.</p>
-            <p>Click <strong>+ New Event</strong> to get started!</p>
+            <svg className={styles.emptyBird} viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <ellipse cx="55" cy="48" rx="22" ry="16" fill="#e8f4fb" stroke="#209dd7" strokeWidth="1.5"/>
+              <circle cx="72" cy="36" r="11" fill="#e8f4fb" stroke="#209dd7" strokeWidth="1.5"/>
+              <polygon points="83,35 92,37 83,39" fill="#ecad0a" stroke="#c8920a" strokeWidth="0.8"/>
+              <circle cx="75" cy="33" r="2" fill="#032147"/>
+              <circle cx="75.7" cy="32.3" r="0.7" fill="white"/>
+              <path d="M33 48 C28 42 20 44 16 50" stroke="#209dd7" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              <path d="M38 52 C32 50 24 54 22 60" stroke="#209dd7" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+              <path d="M48 62 C46 68 50 72 55 70" stroke="#032147" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+              <path d="M62 62 C64 68 60 72 55 70" stroke="#032147" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+              <path d="M10 65 Q30 60 50 63 Q70 66 90 62 Q105 59 110 62" stroke="#c8d8e4" strokeWidth="1" fill="none" strokeDasharray="3 3"/>
+            </svg>
+            <h3 className={styles.emptyTitle}>No birding events yet</h3>
+            <p className={styles.emptySubtitle}>Start logging your outings and let AI identify the birds you encounter.</p>
+            <p className={styles.emptyHint}>Click <strong>New Event</strong> in the header to get started.</p>
           </div>
         ) : (
           <>
