@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { parseIdentification } from "@/lib/chat";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 
-const VISION_MODEL = "openai/gpt-4o";
+const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
 
 const IDENTIFY_PROMPT =
   "You are an expert ornithologist. Identify the bird in this photo. " +
@@ -25,14 +25,19 @@ function getClient() {
 
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!session.user.emailVerified) return NextResponse.json({ error: "Email not verified" }, { status: 403 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session.user.emailVerified)
+    return NextResponse.json({ error: "Email not verified" }, { status: 403 });
 
   const body = (await req.json()) as { photoBase64?: string };
   const { photoBase64 } = body;
 
   if (!photoBase64 || !photoBase64.startsWith("data:image/")) {
-    return NextResponse.json({ error: "Invalid or missing photo data" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid or missing photo data" },
+      { status: 400 },
+    );
   }
 
   const client = getClient();
@@ -54,7 +59,8 @@ export async function POST(req: NextRequest) {
     });
     responseText = completion.choices[0]?.message?.content ?? "";
   } catch (err) {
-    const message = (err as { message?: string }).message ?? "AI request failed";
+    const message =
+      (err as { message?: string }).message ?? "AI request failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
@@ -65,7 +71,10 @@ export async function POST(req: NextRequest) {
 
   // strict:false disables strictNullChecks, which prevents TS from narrowing
   // the discriminated union via control-flow alone — cast explicitly.
-  const { reason } = result as { ok: false; reason: "not_identified" | "parse_error" };
+  const { reason } = result as {
+    ok: false;
+    reason: "not_identified" | "parse_error";
+  };
   const status = reason === "parse_error" ? 422 : 200;
   const error =
     reason === "parse_error"
