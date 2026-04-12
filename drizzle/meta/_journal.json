@@ -43,6 +43,13 @@
       "when": 1744000000000,
       "tag": "0005_add_email_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1776012156860,
+      "tag": "0006_optimal_pyro",
+      "breakpoints": true
     }
   ]
 }

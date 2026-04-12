@@ -32,6 +32,7 @@ function getClient() {
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return new Response("Unauthorized", { status: 401 });
+  if (!session.user.emailVerified) return new Response("Email not verified", { status: 403 });
 
   const { messages } = (await req.json()) as {
     messages: { role: "user" | "assistant"; content: string }[];

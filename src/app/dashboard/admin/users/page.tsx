@@ -7,7 +7,7 @@ import styles from "./page.module.css";
 
 export default async function AdminUsersPage() {
   const { dbUser } = await requireAdminAuth();
-  const users = await getAllUsers();
+  const users = await getAllUsers(dbUser.role);
 
   return (
     <div className={styles.page}>

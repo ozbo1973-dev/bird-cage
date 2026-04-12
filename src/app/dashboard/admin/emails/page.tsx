@@ -10,9 +10,9 @@ export default async function AdminEmailsPage({
 }: {
   searchParams: Promise<{ userId?: string }>;
 }) {
-  await requireAdminAuth();
+  const { dbUser } = await requireAdminAuth();
   const { userId } = await searchParams;
-  const logs = await getAllEmailLogs(userId);
+  const logs = await getAllEmailLogs(dbUser.role, userId);
 
   return (
     <div className={styles.page}>
