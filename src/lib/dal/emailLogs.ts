@@ -11,13 +11,20 @@ export type EmailLogWithRecipient = EmailLog & {
   recipientEmail: string;
 };
 
-/** Batch-insert one log row per recipient ID. */
+/** Throws if the caller is not an admin. */
+function assertAdmin(callerRole: string): void {
+  if (callerRole !== "admin") throw new Error("Forbidden: admin role required.");
+}
+
+/** Batch-insert one log row per recipient ID (admin only). */
 export async function insertEmailLogs(
   senderId: string,
   recipientIds: string[],
   subject: string,
   message: string,
+  callerRole: string,
 ): Promise<void> {
+  assertAdmin(callerRole);
   if (!recipientIds.length) return;
   await db.insert(emailLogs).values(
     recipientIds.map((recipientId) => ({
@@ -53,8 +60,10 @@ export async function getEmailsForUser(userId: string): Promise<EmailLogWithSend
 
 /** All email logs (admin view), optionally filtered by recipientId. */
 export async function getAllEmailLogs(
+  callerRole: string,
   recipientId?: string,
 ): Promise<EmailLogWithRecipient[]> {
+  assertAdmin(callerRole);
   const senderUser = aliasedTable(userTable, "sender_user");
   const recipientUser = aliasedTable(userTable, "recipient_user");
 

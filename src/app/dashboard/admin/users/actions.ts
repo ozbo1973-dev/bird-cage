@@ -52,7 +52,7 @@ export async function updateUserAsAdminAction(
   }
 
   try {
-    await updateUserAdmin(targetUserId, { name, email, role });
+    await updateUserAdmin(targetUserId, { name, email, role }, "admin");
     return { success: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to update user.";
@@ -82,7 +82,7 @@ export async function deleteUserAsAdminAction(
   }
 
   try {
-    await deleteUserAndData(targetUserId);
+    await deleteUserAndData(targetUserId, "admin");
     return { success: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to delete user.";
@@ -112,6 +112,12 @@ export async function sendEmailAction(
     const emails = userRows.map((u) => u.email);
     if (!emails.length) return { error: "No valid recipients found." };
 
+    const safeMessage = message
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
@@ -120,13 +126,13 @@ export async function sendEmailAction(
       html: `
         <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
           <h2 style="color: #032147;">Message from Bird Cage Admin</h2>
-          <div style="white-space: pre-wrap; font-size: 0.95rem; color: #333; line-height: 1.6;">${message}</div>
+          <div style="white-space: pre-wrap; font-size: 0.95rem; color: #333; line-height: 1.6;">${safeMessage}</div>
           <p style="color: #888888; font-size: 0.8rem; margin-top: 2rem;">This message was sent by an administrator of Bird Cage.</p>
         </div>
       `,
     });
 
-    await insertEmailLogs(admin.id, recipientIds, subject, message);
+    await insertEmailLogs(admin.id, recipientIds, subject, message, "admin");
     return { success: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to send email.";
