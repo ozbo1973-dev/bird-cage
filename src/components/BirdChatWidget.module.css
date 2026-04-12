@@ -131,8 +131,17 @@
     min-height: 120px;
   }
 
+  .inputRow {
+    flex-direction: column;
+  }
+
   .input {
     resize: vertical;
     min-height: 72px;
+  }
+
+  .sendBtn {
+    align-self: stretch;
+    padding: 0.6rem 0.9rem;
   }
 }
