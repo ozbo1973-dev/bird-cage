@@ -16,7 +16,7 @@ When a user describes a bird they have seen, identify it and respond with:
 
 If you are still gathering information, do NOT include the JSON block yet.`;
 
-const DEFAULT_MODEL = "openai/gpt-oss-120b:free";
+const DEFAULT_MODEL = "openrouter/free";
 
 function getClient() {
   return new OpenAI({
@@ -32,7 +32,8 @@ function getClient() {
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return new Response("Unauthorized", { status: 401 });
-  if (!session.user.emailVerified) return new Response("Email not verified", { status: 403 });
+  if (!session.user.emailVerified)
+    return new Response("Email not verified", { status: 403 });
 
   const { messages } = (await req.json()) as {
     messages: { role: "user" | "assistant"; content: string }[];
