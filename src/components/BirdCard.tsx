@@ -21,6 +21,7 @@ interface Props {
   isEdit: boolean;
   existingBirdId?: number;
   eventId?: number;
+  isPaidUser?: boolean;
   onFieldChange: (field: keyof BirdFormEntry, value: string) => void;
   onRemove: () => void;
   onPhotoFile: (file: File) => void;
@@ -43,6 +44,7 @@ export default function BirdCard({
   isEdit,
   existingBirdId,
   eventId,
+  isPaidUser = false,
   onFieldChange,
   onRemove,
   onPhotoFile,
@@ -53,7 +55,7 @@ export default function BirdCard({
   const { formData, photo, geo } = record;
 
   const showEditLink = shouldShowEditLink(isEdit, existingBirdId, eventId);
-  const showPhotoSection = shouldShowPhotoSection(isEdit);
+  const showPhotoSection = shouldShowPhotoSection(isEdit) && isPaidUser;
   const showGeoButton = shouldShowGeoButton(isEdit);
   const showChatWidget = shouldShowChatWidget(isEdit, photo.identified);
 

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import { auth } from "../../../lib/auth";
 import { getAuthBaseUrl } from "../../../lib/get-auth-base-url";
+import { getUserBillingInfo, selectChatModel } from "../../../lib/billing";
 
 const SYSTEM_PROMPT = `You are an expert ornithologist helping birding enthusiasts identify birds.
 
@@ -15,8 +16,6 @@ When a user describes a bird they have seen, identify it and respond with:
      {"identified": true, "type": "...", "species": "..."}
 
 If you are still gathering information, do NOT include the JSON block yet.`;
-
-const DEFAULT_MODEL = "openrouter/free";
 
 function getClient() {
   return new OpenAI({
@@ -39,7 +38,10 @@ export async function POST(req: NextRequest) {
     messages: { role: "user" | "assistant"; content: string }[];
   };
 
-  const model = process.env.OPENROUTER_MODEL ?? DEFAULT_MODEL;
+  const billing = await getUserBillingInfo(session.user.id);
+  const model = billing
+    ? selectChatModel(billing.role, billing.billingPlan)
+    : (process.env.OPENROUTER_FREE_MODEL ?? "openrouter/auto");
   const client = getClient();
 
   // Create the stream first — allows errors (auth, quota, bad model) to surface as HTTP errors

@@ -13,9 +13,10 @@ interface InitialData {
 
 interface Props {
   initialData?: InitialData;
+  isPaidUser?: boolean;
 }
 
-export default function EventForm({ initialData }: Props) {
+export default function EventForm({ initialData, isPaidUser = false }: Props) {
   const router = useRouter();
   const form = useEventForm({
     initialData: initialData
@@ -91,6 +92,7 @@ export default function EventForm({ initialData }: Props) {
             isEdit={form.isEdit}
             existingBirdId={initialData?.birds[index]?.id}
             eventId={initialData?.event.id}
+            isPaidUser={isPaidUser}
             onFieldChange={(field, value) =>
               form.updateBirdField(record.id, field, value)
             }

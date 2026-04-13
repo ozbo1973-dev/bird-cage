@@ -46,6 +46,16 @@ async function main() {
     console.log("role column added successfully");
   }
 
+  // Idempotent schema safety check: ensure billing_plan column exists on user table.
+  const hasBillingPlan = userTableInfo.rows.some((row) => row[1] === "billing_plan");
+  if (!hasBillingPlan) {
+    console.log("billing_plan column missing from user table — applying schema fix");
+    await client.execute(
+      "ALTER TABLE `user` ADD COLUMN `billing_plan` text DEFAULT 'free' NOT NULL"
+    );
+    console.log("billing_plan column added successfully");
+  }
+
   // Idempotent schema safety check: ensure email_logs table exists.
   const emailLogsCheck = await client.execute(
     "SELECT name FROM sqlite_master WHERE type='table' AND name='email_logs'"

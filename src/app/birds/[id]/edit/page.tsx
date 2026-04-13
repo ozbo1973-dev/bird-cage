@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getBirdEntry } from "@/lib/dal/events";
 import { getUserById } from "@/lib/dal/users";
+import { getUserBillingInfo, canAccessPaidFeatures } from "@/lib/billing";
 import BirdEditForm from "@/components/BirdEditForm";
 import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
@@ -21,14 +22,16 @@ export default async function BirdEditPage({
 
   if (isNaN(birdId)) notFound();
 
-  const [bird, dbUser] = await Promise.all([
+  const [bird, dbUser, billing] = await Promise.all([
     getBirdEntry(birdId, session.user.id),
     getUserById(session.user.id),
+    getUserBillingInfo(session.user.id),
   ]);
   if (!bird) notFound();
 
   const backHref = from ?? "/dashboard";
   const isAdmin = dbUser?.role === "admin";
+  const isPaidUser = billing ? canAccessPaidFeatures(billing.role, billing.billingPlan) : false;
 
   return (
     <div className={styles.page}>
@@ -42,7 +45,7 @@ export default async function BirdEditPage({
         </div>
       </header>
       <main className={styles.main}>
-        <BirdEditForm bird={bird} returnTo={backHref} />
+        <BirdEditForm bird={bird} returnTo={backHref} isPaidUser={isPaidUser} />
       </main>
     </div>
   );
