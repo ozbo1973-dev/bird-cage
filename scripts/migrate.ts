@@ -73,6 +73,17 @@ async function main() {
     console.log("email_logs table created successfully");
   }
 
+  // Idempotent schema safety check: ensure billing_plan column exists on user table.
+  const userTableInfo2 = await client.execute("PRAGMA table_info(user)");
+  const hasBillingPlan = userTableInfo2.rows.some((row) => row[1] === "billing_plan");
+  if (!hasBillingPlan) {
+    console.log("billing_plan column missing from user table — applying schema fix");
+    await client.execute(
+      "ALTER TABLE `user` ADD COLUMN `billing_plan` text NOT NULL DEFAULT 'free'"
+    );
+    console.log("billing_plan column added successfully");
+  }
+
   await client.close();
 }
 
