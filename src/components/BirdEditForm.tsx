@@ -11,9 +11,10 @@ import { usePhotoReader } from "@/hooks/usePhotoReader";
 interface Props {
   bird: BirdEntry;
   returnTo?: string;
+  isPaidUser?: boolean;
 }
 
-export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
+export default function BirdEditForm({ bird, returnTo = "/dashboard", isPaidUser = false }: Props) {
   const router = useRouter();
   const [type, setType] = useState(bird.type);
   const [species, setSpecies] = useState(bird.species);
@@ -94,27 +95,29 @@ export default function BirdEditForm({ bird, returnTo = "/dashboard" }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <DragDropZone
-        onFile={(file) => reader.readFile(file)}
-        onError={setPhotoError}
-        disabled={reader.reading}
-      >
-        <div className={styles.photoSection}>
-          <label className={styles.photoLabel}>Photo (optional)</label>
-          {photoPreview && (
-            <img src={photoPreview} alt="Bird photo" className={styles.photoThumb} />
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            disabled={reader.reading}
-            className={styles.photoInput}
-          />
-          {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
-          {photoError && <span className={styles.photoError}>{photoError}</span>}
-        </div>
-      </DragDropZone>
+      {isPaidUser && (
+        <DragDropZone
+          onFile={(file) => reader.readFile(file)}
+          onError={setPhotoError}
+          disabled={reader.reading}
+        >
+          <div className={styles.photoSection}>
+            <label className={styles.photoLabel}>Photo (optional)</label>
+            {photoPreview && (
+              <img src={photoPreview} alt="Bird photo" className={styles.photoThumb} />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              disabled={reader.reading}
+              className={styles.photoInput}
+            />
+            {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
+            {photoError && <span className={styles.photoError}>{photoError}</span>}
+          </div>
+        </DragDropZone>
+      )}
 
       <div className={styles.grid}>
         <div className={styles.field}>

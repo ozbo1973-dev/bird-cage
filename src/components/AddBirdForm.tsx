@@ -11,9 +11,10 @@ import { usePhotoIdentify } from "@/hooks/usePhotoIdentify";
 
 interface Props {
   eventId: number;
+  isPaidUser?: boolean;
 }
 
-export default function AddBirdForm({ eventId }: Props) {
+export default function AddBirdForm({ eventId, isPaidUser = false }: Props) {
   const router = useRouter();
   const [type, setType] = useState("");
   const [species, setSpecies] = useState("");
@@ -97,27 +98,29 @@ export default function AddBirdForm({ eventId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <DragDropZone
-        onFile={(file) => reader.readFile(file)}
-        onError={setPhotoError}
-        disabled={photoUploading}
-      >
-        <div className={styles.photoSection}>
-          <label className={styles.photoLabel}>Photo (optional)</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handlePhotoChange}
-            disabled={photoUploading}
-            className={styles.photoInput}
-          />
-          {photoPreview && (
-            <img src={photoPreview} alt="Preview" className={styles.photoThumb} />
-          )}
-          {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
-          {photoError && <span className={styles.photoError}>{photoError}</span>}
-        </div>
-      </DragDropZone>
+      {isPaidUser && (
+        <DragDropZone
+          onFile={(file) => reader.readFile(file)}
+          onError={setPhotoError}
+          disabled={photoUploading}
+        >
+          <div className={styles.photoSection}>
+            <label className={styles.photoLabel}>Photo (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              disabled={photoUploading}
+              className={styles.photoInput}
+            />
+            {photoPreview && (
+              <img src={photoPreview} alt="Preview" className={styles.photoThumb} />
+            )}
+            {photoStatus && <span className={styles.photoStatus}>{photoStatus}</span>}
+            {photoError && <span className={styles.photoError}>{photoError}</span>}
+          </div>
+        </DragDropZone>
+      )}
 
       {!identify.identified && (
         <BirdChatWidget
