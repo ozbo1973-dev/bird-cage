@@ -27,6 +27,7 @@ The database should use SQLLite with Drizzle ORM and be created from scratch eac
 The authentication currently has a mock auth system but will use Better Auth in future.
 Always use server side authentication. Do not implement client side authentication unless told specifically to do so.
 All server pages, actions, routes and data access layers should be implemented with server authentication.
+When adding a call to the database in functions, ALWAYS create the database call in the /src/lib/dal folder for Data Access Layer consistency.
 React.FormEvent is deprecated, if using in a Form to handle event, use React.SubmitEvent.
 -example:
 
