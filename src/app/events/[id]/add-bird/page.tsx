@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getEventWithBirds } from "@/lib/dal/events";
 import { getUserById } from "@/lib/dal/users";
+import { canAccessPaidFeatures } from "@/lib/billing";
 import AddBirdForm from "@/components/AddBirdForm";
 import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
@@ -25,6 +26,10 @@ export default async function AddBirdPage({
   if (!data) notFound();
 
   const isAdmin = dbUser?.role === "admin";
+  const isPaidUser = canAccessPaidFeatures(
+    dbUser?.role ?? "user",
+    (dbUser?.billingPlan as "free" | "paid") ?? "free",
+  );
 
   return (
     <div className={styles.page}>
@@ -38,7 +43,7 @@ export default async function AddBirdPage({
         </div>
       </header>
       <main className={styles.main}>
-        <AddBirdForm eventId={eventId} />
+        <AddBirdForm eventId={eventId} isPaidUser={isPaidUser} />
       </main>
     </div>
   );

@@ -49,7 +49,7 @@ export const auth = betterAuth({
     },
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    afterVerificationUrl: "/dashboard",
+    afterVerificationUrl: "/billing",
   },
   socialProviders: {
     google: {

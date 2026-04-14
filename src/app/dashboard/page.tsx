@@ -1,8 +1,9 @@
 import { requireVerifiedAuth } from "../../lib/session";
 import { getUserEvents } from "../../lib/dal/events";
+import { getUserById } from "../../lib/dal/users";
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, Zap } from "lucide-react";
 import NavDropdown from "../../components/NavDropdown";
 import DashboardTabs from "../../components/DashboardTabs";
 import styles from "./page.module.css";
@@ -15,7 +16,14 @@ export default async function DashboardPage({
   const session = await requireVerifiedAuth();
   const { view = "timeline" } = await searchParams;
 
-  const eventsWithBirds = await getUserEvents(session.user.id);
+  const [eventsWithBirds, dbUser] = await Promise.all([
+    getUserEvents(session.user.id),
+    getUserById(session.user.id),
+  ]);
+
+  const billingPlan = dbUser?.billingPlan ?? "free";
+  const isAdmin = dbUser?.role === "admin";
+  const isFree = billingPlan === "free" && !isAdmin;
 
   return (
     <div className={styles.page}>
@@ -33,7 +41,7 @@ export default async function DashboardPage({
             <CalendarPlus size={16} />
             New Event
           </Link>
-          <NavDropdown returnPath="/dashboard" hasEvents={eventsWithBirds.length > 0} />
+          <NavDropdown returnPath="/dashboard" isAdmin={isAdmin} hasEvents={eventsWithBirds.length > 0} />
         </div>
       </header>
 
@@ -44,6 +52,19 @@ export default async function DashboardPage({
             New Event
           </Link>
         </div>
+        {isFree && (
+          <div className={styles.upgradeBanner}>
+            <div className={styles.upgradeBannerContent}>
+              <Zap size={18} />
+              <span>
+                You&apos;re on the <strong>Free plan</strong>. Upgrade to unlock AI photo identification and premium models.
+              </span>
+            </div>
+            <Link href="/billing" className={styles.upgradeBtn}>
+              Upgrade to Pro
+            </Link>
+          </div>
+        )}
         <DashboardTabs view={view} events={eventsWithBirds} />
       </main>
     </div>

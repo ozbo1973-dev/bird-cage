@@ -50,6 +50,13 @@
       "when": 1776012156860,
       "tag": "0006_optimal_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1744500000000,
+      "tag": "0007_add_billing_plan",
+      "breakpoints": true
     }
   ]
 }

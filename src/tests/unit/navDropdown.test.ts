@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 
 /**
  * Mirrors the menu item list built by NavDropdown based on the isAdmin and hasEvents props.
- * Home, Profile, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
+ * Home, Profile, Billing, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
  */
 function getNavMenuItems(isAdmin: boolean, hasEvents = true): string[] {
-  const items = ["Home", "Profile"];
+  const items = ["Home", "Profile", "Billing"];
   if (isAdmin) items.push("Admin Management");
   if (hasEvents) items.push("Download CSV");
   items.push("Sign Out");
@@ -29,6 +29,10 @@ describe("NavDropdown menu items for non-admin users", () => {
     expect(getNavMenuItems(false)).toContain("Profile");
   });
 
+  it("renders Billing menu item", () => {
+    expect(getNavMenuItems(false)).toContain("Billing");
+  });
+
   it("renders Download CSV menu item", () => {
     expect(getNavMenuItems(false)).toContain("Download CSV");
   });
@@ -44,6 +48,13 @@ describe("NavDropdown menu items for non-admin users", () => {
   it("Home is the first menu item", () => {
     expect(getNavMenuItems(false)[0]).toBe("Home");
   });
+
+  it("Billing appears after Profile", () => {
+    const items = getNavMenuItems(false);
+    const profileIndex = items.indexOf("Profile");
+    const billingIndex = items.indexOf("Billing");
+    expect(billingIndex).toBeGreaterThan(profileIndex);
+  });
 });
 
 describe("NavDropdown menu items for admin users", () => {
@@ -51,11 +62,15 @@ describe("NavDropdown menu items for admin users", () => {
     expect(getNavMenuItems(true)).toContain("Admin Management");
   });
 
-  it("Admin Management appears after Profile", () => {
+  it("renders Billing menu item for admin users", () => {
+    expect(getNavMenuItems(true)).toContain("Billing");
+  });
+
+  it("Admin Management appears after Billing", () => {
     const items = getNavMenuItems(true);
-    const profileIndex = items.indexOf("Profile");
+    const billingIndex = items.indexOf("Billing");
     const adminIndex = items.indexOf("Admin Management");
-    expect(adminIndex).toBeGreaterThan(profileIndex);
+    expect(adminIndex).toBeGreaterThan(billingIndex);
   });
 
   it("Admin Management appears before Download CSV", () => {
@@ -69,6 +84,7 @@ describe("NavDropdown menu items for admin users", () => {
     const items = getNavMenuItems(true);
     expect(items).toContain("Home");
     expect(items).toContain("Profile");
+    expect(items).toContain("Billing");
     expect(items).toContain("Download CSV");
     expect(items).toContain("Sign Out");
   });

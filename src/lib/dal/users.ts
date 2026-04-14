@@ -1,12 +1,21 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { user as userTable, birdingEvents, birdEntries } from "@/db/schema";
+import type { BillingPlan } from "@/lib/billing";
 
 export type User = typeof userTable.$inferSelect;
 
 /** Throws if the caller is not an admin. Use at the start of admin-only DAL functions. */
 function assertAdmin(callerRole: string): void {
   if (callerRole !== "admin") throw new Error("Forbidden: admin role required.");
+}
+
+/** Update the billing plan for a user. */
+export async function updateUserBillingPlan(userId: string, plan: BillingPlan): Promise<void> {
+  await db
+    .update(userTable)
+    .set({ billingPlan: plan })
+    .where(eq(userTable.id, userId));
 }
 
 /** Fetch a user by ID. Returns null if not found. */
