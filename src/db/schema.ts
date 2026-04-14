@@ -11,7 +11,9 @@ export const user = sqliteTable("user", {
     .notNull(),
   image: text("image"),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
-  billingPlan: text("billing_plan", { enum: ["free", "paid"] }).default("free").notNull(),
+  billingPlan: text("billing_plan", { enum: ["free", "paid"] })
+    .default("free")
+    .notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

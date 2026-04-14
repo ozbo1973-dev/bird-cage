@@ -19,6 +19,7 @@ interface Props {
   record: BirdRecord;
   displayIndex: number;
   isEdit: boolean;
+  isPaidUser?: boolean;
   existingBirdId?: number;
   eventId?: number;
   onFieldChange: (field: keyof BirdFormEntry, value: string) => void;
@@ -41,6 +42,7 @@ export default function BirdCard({
   record,
   displayIndex,
   isEdit,
+  isPaidUser = false,
   existingBirdId,
   eventId,
   onFieldChange,
@@ -53,7 +55,7 @@ export default function BirdCard({
   const { formData, photo, geo } = record;
 
   const showEditLink = shouldShowEditLink(isEdit, existingBirdId, eventId);
-  const showPhotoSection = shouldShowPhotoSection(isEdit);
+  const showPhotoSection = shouldShowPhotoSection(isEdit) && isPaidUser;
   const showGeoButton = shouldShowGeoButton(isEdit);
   const showChatWidget = shouldShowChatWidget(isEdit, photo.identified);
 

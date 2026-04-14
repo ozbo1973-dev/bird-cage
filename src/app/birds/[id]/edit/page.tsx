@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getBirdEntry } from "@/lib/dal/events";
 import { getUserById } from "@/lib/dal/users";
+import { canAccessPaidFeatures } from "@/lib/billing";
 import BirdEditForm from "@/components/BirdEditForm";
 import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
@@ -29,6 +30,10 @@ export default async function BirdEditPage({
 
   const backHref = from ?? "/dashboard";
   const isAdmin = dbUser?.role === "admin";
+  const isPaidUser = canAccessPaidFeatures(
+    dbUser?.role ?? "user",
+    (dbUser?.billingPlan as "free" | "paid") ?? "free",
+  );
 
   return (
     <div className={styles.page}>
@@ -42,7 +47,7 @@ export default async function BirdEditPage({
         </div>
       </header>
       <main className={styles.main}>
-        <BirdEditForm bird={bird} returnTo={backHref} />
+        <BirdEditForm bird={bird} returnTo={backHref} isPaidUser={isPaidUser} />
       </main>
     </div>
   );

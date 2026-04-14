@@ -1,0 +1,216 @@
+.page {
+  min-height: 100vh;
+  background: var(--color-bg-light);
+}
+
+.header {
+  background: var(--color-bg-white);
+  border-bottom: 1px solid var(--color-border-medium);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.back {
+  color: var(--color-primary-blue);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.headerTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary-navy);
+  flex: 1;
+}
+
+.main {
+  max-width: 860px;
+  margin: 2.5rem auto;
+  padding: 0 1.5rem;
+}
+
+.intro {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  color: var(--color-primary-navy);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--color-text-gray);
+  font-size: 1rem;
+}
+
+.currentPlan {
+  display: inline-block;
+  background: var(--color-bg-yellow-light);
+  color: var(--color-primary-navy);
+  border: 1px solid var(--color-primary-yellow);
+  border-radius: 20px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--color-bg-white);
+  border: 2px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cardActive {
+  border-color: var(--color-primary-blue);
+  background: var(--color-bg-blue-light);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.planBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.planBadgeFree {
+  background: var(--color-bg-light);
+  color: var(--color-text-gray);
+  border: 1px solid var(--color-border-light);
+}
+
+.planBadgePaid {
+  background: var(--color-primary-yellow);
+  color: var(--color-primary-navy);
+}
+
+.planName {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+}
+
+.planPrice {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-primary-blue);
+  margin: 0;
+}
+
+.planPrice span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text-gray);
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-medium);
+}
+
+.featureCheck {
+  color: var(--color-success);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.featureX {
+  color: var(--color-error);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.selectBtn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.selectBtnFree {
+  background: var(--color-bg-light);
+  color: var(--color-text-medium);
+  border: 1px solid var(--color-border-cancel);
+}
+
+.selectBtnFree:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+}
+
+.selectBtnPaid {
+  background: var(--color-primary-purple);
+  color: white;
+}
+
+.selectBtnPaid:hover:not(:disabled) {
+  background: var(--color-purple-hover);
+}
+
+.activeBadge {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--color-primary-blue);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.note {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
