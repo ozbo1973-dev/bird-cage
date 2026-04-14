@@ -147,6 +147,10 @@ Email audit log implemented for admin-sent emails. Each send action is recorded 
 
 `NavDropdown` updated to include a "Home" menu item (links to `/dashboard`) and a conditional "Admin Management" item visible only to admin users (links to `/dashboard/admin/users`). `NavDropdown` added to all 8 authenticated pages that previously lacked it: bird edit, event edit, add-bird, new event, profile, admin users list, admin user edit, and admin emails. Unit tests added for `NavDropdown` covering all menu items for both admin and non-admin roles. Plan in `docs/plan/jira/BRD-132.md`. Branch: `feature/brd-132-global-nav-menu`.
 
+### BRD-79 - Create Billing Feature Page (complete, PR #80)
+
+Billing options page added at `/billing` shown as the first page after email verification. Users choose between free (AI chat only, `openrouter/free` model) and paid (photo identification + paid OpenRouter models) plans. Free is the default on signup. Admins bypass the billing requirement and always have paid-tier access. Photo identify feature and paid model selection are gated by the user's billing plan. `billing_plan` column added to the users table via Drizzle migration.
+
 ### BRD-3 - Better Auth (complete, PR #4)
 
 Replaced mock auth with Better Auth. Email/password + Google OAuth. New /signup page. DB schema updated with Better Auth tables. Startup migration via scripts/migrate.ts.
