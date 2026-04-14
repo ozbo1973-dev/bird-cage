@@ -90,8 +90,12 @@ async function main() {
 
   if (!colNames.includes("stripe_customer_id")) {
     console.log("stripe_customer_id column missing — applying schema fix");
-    await client.execute("ALTER TABLE `user` ADD COLUMN `stripe_customer_id` text UNIQUE");
-    console.log("stripe_customer_id column added");
+    // SQLite/LibSQL does not allow UNIQUE on ALTER TABLE ADD COLUMN; add the index separately
+    await client.execute("ALTER TABLE `user` ADD COLUMN `stripe_customer_id` text");
+    await client.execute(
+      "CREATE UNIQUE INDEX IF NOT EXISTS `user_stripe_customer_id_unique` ON `user` (`stripe_customer_id`)"
+    );
+    console.log("stripe_customer_id column and unique index added");
   }
   if (!colNames.includes("stripe_subscription_id")) {
     console.log("stripe_subscription_id column missing — applying schema fix");
