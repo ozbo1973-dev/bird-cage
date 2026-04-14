@@ -214,3 +214,130 @@
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
+
+.manageRow {
+  margin-top: 0.75rem;
+}
+
+.successBanner {
+  background: #e8f5e9;
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.cancelBanner {
+  background: var(--color-bg-light);
+  color: var(--color-text-medium);
+  border: 1px solid var(--color-border-medium);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.spendingSection {
+  margin-top: 2.5rem;
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-medium);
+  border-radius: 12px;
+  padding: 1.75rem 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  margin-bottom: 0.5rem;
+}
+
+.sectionDesc {
+  font-size: 0.9rem;
+  color: var(--color-text-gray);
+  margin-bottom: 1.25rem;
+}
+
+.usageRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.usageLabel {
+  font-size: 0.9rem;
+  color: var(--color-text-gray);
+}
+
+.usageValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary-navy);
+}
+
+.progressBar {
+  height: 10px;
+  background: var(--color-bg-light);
+  border-radius: 5px;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary-blue);
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.limitForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.limitLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-primary-navy);
+}
+
+.limitRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.limitInput {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border-medium);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--color-primary-navy);
+  background: var(--color-bg-white);
+}
+
+.limitInput:focus {
+  outline: none;
+  border-color: var(--color-primary-blue);
+}
+
+.limitBtn {
+  padding: 0.6rem 1.25rem;
+  background: var(--color-primary-purple);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.limitBtn:hover {
+  background: var(--color-purple-hover);
+}

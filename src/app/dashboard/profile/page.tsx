@@ -1,10 +1,12 @@
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserById } from "@/lib/dal/users";
 import { getEmailsForUser } from "@/lib/dal/emailLogs";
+import { getBillingInfo } from "@/lib/dal/billing";
 import Link from "next/link";
 import ProfileForm from "@/components/ProfileForm";
 import EmailsReceived from "@/components/EmailsReceived";
 import NavDropdown from "@/components/NavDropdown";
+import ProfileBillingSection from "@/components/ProfileBillingSection";
 import styles from "./page.module.css";
 
 export default async function ProfilePage({
@@ -16,10 +18,14 @@ export default async function ProfilePage({
   const { from } = await searchParams;
   const returnTo = from ?? "/dashboard";
 
-  const dbUser = await getUserById(session.user.id);
+  const [dbUser, receivedEmails, billingDetails] = await Promise.all([
+    getUserById(session.user.id),
+    getEmailsForUser(session.user.id),
+    getBillingInfo(session.user.id),
+  ]);
+
   const role = dbUser?.role ?? "user";
   const isAdmin = role === "admin";
-  const receivedEmails = await getEmailsForUser(session.user.id);
 
   return (
     <div className={styles.page}>
@@ -43,6 +49,14 @@ export default async function ProfilePage({
           email={session.user.email}
           role={role}
           returnTo={returnTo}
+        />
+        <ProfileBillingSection
+          billingPlan={billingDetails?.billingPlan ?? "free"}
+          subscriptionStatus={billingDetails?.subscriptionStatus ?? null}
+          stripeCustomerId={billingDetails?.stripeCustomerId ?? null}
+          spendingLimitCents={billingDetails?.spendingLimitCents ?? null}
+          currentMonthUsageCents={billingDetails?.currentMonthUsageCents ?? 0}
+          isAdmin={isAdmin}
         />
         <EmailsReceived logs={receivedEmails} />
       </main>

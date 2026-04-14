@@ -4,8 +4,12 @@ import { auth } from "@/lib/auth";
 import { parseIdentification } from "@/lib/chat";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 import { getUserBillingInfo, canAccessPaidFeatures } from "@/lib/billing";
+import { isLimitReached, logUsage } from "@/lib/dal/billing";
 
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
+
+// Estimated cost for a photo identification request (in cents)
+const PHOTO_IDENTIFY_COST_CENTS = 3;
 
 const IDENTIFY_PROMPT =
   "You are an expert ornithologist. Identify the bird in this photo. " +
@@ -32,17 +36,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email not verified" }, { status: 403 });
 
   const billingInfo = await getUserBillingInfo(session.user.id);
-  if (
-    !billingInfo ||
-    !canAccessPaidFeatures(billingInfo.role, billingInfo.billingPlan)
-  ) {
-    return NextResponse.json(
-      {
-        error:
-          "Photo identification is a paid feature. Please upgrade your plan to use it.",
-      },
-      { status: 403 },
-    );
+  const role = billingInfo?.role ?? "user";
+  const billingPlan = billingInfo?.billingPlan ?? "free";
+
+  // Check spending limit (admins bypass)
+  const limitReached = role !== "admin" && (await isLimitReached(session.user.id));
+
+  if (!canAccessPaidFeatures(role, billingPlan, limitReached)) {
+    const reason = billingPlan !== "paid"
+      ? "Photo identification is a paid feature. Please upgrade your plan to use it."
+      : "You have reached your monthly spending limit. Photo identification is disabled until your limit resets or is increased.";
+    return NextResponse.json({ error: reason, limitReached }, { status: 403 });
   }
 
   const body = (await req.json()) as { photoBase64?: string };
@@ -79,13 +83,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
+  // Log usage after successful AI call
+  await logUsage(session.user.id, VISION_MODEL, PHOTO_IDENTIFY_COST_CENTS).catch((err) => {
+    console.error("Failed to log photo identify usage:", err);
+  });
+
   const result = parseIdentification(responseText);
   if (result.ok) {
     return NextResponse.json(result.value);
   }
 
-  // strict:false disables strictNullChecks, which prevents TS from narrowing
-  // the discriminated union via control-flow alone — cast explicitly.
   const { reason } = result as {
     ok: false;
     reason: "not_identified" | "parse_error";

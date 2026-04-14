@@ -1,0 +1,116 @@
+import { NextRequest, NextResponse } from "next/server";
+import type Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
+import {
+  activateSubscription,
+  cancelSubscriptionByCustomerId,
+  pauseSubscriptionByCustomerId,
+  getUserIdByStripeCustomerId,
+  setStripeSubscriptionId,
+  resetMonthlyUsage,
+} from "@/lib/dal/billing";
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const sig = req.headers.get("stripe-signature");
+
+  if (!sig) {
+    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not configured");
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+  }
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+  } catch (err) {
+    const message = (err as Error).message ?? "Invalid webhook signature";
+    console.error("Webhook signature verification failed:", message);
+    return NextResponse.json({ error: `Webhook error: ${message}` }, { status: 400 });
+  }
+
+  try {
+    await handleStripeEvent(event);
+  } catch (err) {
+    console.error("Error handling Stripe event:", event.type, err);
+    return NextResponse.json({ error: "Event handling failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+async function handleStripeEvent(event: Stripe.Event): Promise<void> {
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const userId = session.metadata?.userId;
+      if (!userId) {
+        console.warn("checkout.session.completed: no userId in metadata");
+        break;
+      }
+
+      const stripeCustomerId = session.customer as string;
+      const stripeSubscriptionId = session.subscription as string;
+
+      if (stripeCustomerId && stripeSubscriptionId) {
+        await activateSubscription(userId, stripeCustomerId, stripeSubscriptionId);
+      }
+      break;
+    }
+
+    case "customer.subscription.created": {
+      const sub = event.data.object as Stripe.Subscription;
+      const customerId = sub.customer as string;
+
+      // Find the user by Stripe customer ID
+      const userId = await getUserIdByStripeCustomerId(customerId);
+      if (!userId) {
+        console.warn("customer.subscription.created: user not found for customer", customerId);
+        break;
+      }
+
+      if (sub.status === "active" || sub.status === "trialing") {
+        await setStripeSubscriptionId(userId, sub.id);
+        await activateSubscription(userId, customerId, sub.id);
+      }
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const sub = event.data.object as Stripe.Subscription;
+      const customerId = sub.customer as string;
+      await cancelSubscriptionByCustomerId(customerId);
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = invoice.customer as string;
+      if (customerId) {
+        await pauseSubscriptionByCustomerId(customerId);
+      }
+      break;
+    }
+
+    case "invoice.paid": {
+      // Renewal: reset monthly usage for the user
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = invoice.customer as string;
+      if (customerId) {
+        const userId = await getUserIdByStripeCustomerId(customerId);
+        if (userId) {
+          await resetMonthlyUsage(userId);
+        }
+      }
+      break;
+    }
+
+    default:
+      // Unhandled event type — not an error
+      break;
+  }
+}

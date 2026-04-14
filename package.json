@@ -17,6 +17,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@libsql/client": "^0.14.0",
+    "@stripe/stripe-js": "^9.2.0",
     "@vercel/blob": "^2.3.1",
     "better-auth": "^1.5.4",
     "better-sqlite3": "^12.6.2",
@@ -27,6 +28,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.9.4",
+    "stripe": "^22.0.1",
     "tsx": "^4.21.0"
   },
   "pnpm": {

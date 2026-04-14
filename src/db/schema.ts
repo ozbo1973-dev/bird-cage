@@ -14,6 +14,17 @@ export const user = sqliteTable("user", {
   billingPlan: text("billing_plan", { enum: ["free", "paid"] })
     .default("free")
     .notNull(),
+  // Stripe billing fields
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status", {
+    enum: ["active", "canceled", "paused"],
+  }),
+  // Spending limit fields (in cents)
+  spendingLimitCents: integer("spending_limit_cents"),
+  currentMonthUsageCents: integer("current_month_usage_cents")
+    .default(0)
+    .notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),
@@ -124,6 +135,24 @@ export const birdEntries = sqliteTable("bird_entries", {
   photoData: text("photo_data"),
 });
 
+export const usageLogs = sqliteTable(
+  "usage_logs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    modelUsed: text("model_used").notNull(),
+    costCents: integer("cost_cents").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index("usage_logs_userId_createdAt_idx").on(table.userId, table.createdAt),
+  ],
+);
+
 export const emailLogs = sqliteTable(
   "email_logs",
   {
@@ -148,6 +177,8 @@ export const emailLogs = sqliteTable(
 
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type NewEmailLog = typeof emailLogs.$inferInsert;
+export type UsageLog = typeof usageLogs.$inferSelect;
+export type NewUsageLog = typeof usageLogs.$inferInsert;
 
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
@@ -156,6 +187,7 @@ export const userRelations = relations(user, ({ many }) => ({
   birdingEvents: many(birdingEvents),
   sentEmails: many(emailLogs, { relationName: "sentEmails" }),
   receivedEmails: many(emailLogs, { relationName: "receivedEmails" }),
+  usageLogs: many(usageLogs),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -182,6 +214,10 @@ export const emailLogRelations = relations(emailLogs, ({ one }) => ({
     references: [user.id],
     relationName: "receivedEmails",
   }),
+}));
+
+export const usageLogRelations = relations(usageLogs, ({ one }) => ({
+  user: one(user, { fields: [usageLogs.userId], references: [user.id] }),
 }));
 
 // Types
