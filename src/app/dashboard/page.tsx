@@ -70,7 +70,7 @@ export default async function DashboardPage({
         )}
         <UsageSummary
           currentMonthUsageCents={billingDetails?.currentMonthUsageCents ?? 0}
-          spendingLimitCents={billingDetails?.spendingLimitCents ?? null}
+          extraUsageCents={billingDetails?.extraUsageCents ?? 0}
           billingPlan={billingPlan}
           isAdmin={isAdmin}
         />

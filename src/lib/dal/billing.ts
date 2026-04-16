@@ -1,22 +1,11 @@
-import { eq, and, gte, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user as userTable, usageLogs } from "@/db/schema";
 
 export type SubscriptionStatus = "active" | "canceled" | "paused";
 
-/**
- * Update the spending limit (in cents) for a user.
- * Pass null to remove the limit (unlimited spending).
- */
-export async function updateSpendingLimit(
-  userId: string,
-  limitCents: number | null,
-): Promise<void> {
-  await db
-    .update(userTable)
-    .set({ spendingLimitCents: limitCents })
-    .where(eq(userTable.id, userId));
-}
+/** Fixed monthly AI usage allowance for Pro plan users (in cents). */
+export const PRO_LIMIT_CENTS = 400; // $4.00
 
 /**
  * Log a usage entry and increment the user's current month usage.
@@ -51,24 +40,59 @@ export async function getCurrentMonthUsage(userId: string): Promise<number> {
 }
 
 /**
- * Returns true if the user's spending limit is set and has been reached.
- * Returns false if no limit is set (unlimited) or usage is below limit.
+ * Returns true if the user has exhausted their total AI usage budget for the month.
+ *
+ * For paid users: budget = PRO_LIMIT_CENTS ($4) + extraUsageCents (purchased top-ups).
+ * Returns false for free users and admins (no fixed limit applies).
  */
 export async function isLimitReached(userId: string): Promise<boolean> {
   const [row] = await db
     .select({
-      spendingLimitCents: userTable.spendingLimitCents,
+      billingPlan: userTable.billingPlan,
+      currentMonthUsageCents: userTable.currentMonthUsageCents,
+      extraUsageCents: userTable.extraUsageCents,
+    })
+    .from(userTable)
+    .where(eq(userTable.id, userId))
+    .limit(1);
+
+  if (!row || row.billingPlan !== "paid") return false;
+
+  const totalLimit = PRO_LIMIT_CENTS + (row.extraUsageCents ?? 0);
+  return row.currentMonthUsageCents >= totalLimit;
+}
+
+/**
+ * Returns true if the user has reached the base $4 Pro allowance (before extra usage).
+ * Used to decide whether to show the "Add Extra Usage" section.
+ */
+export async function isProAllowanceReached(userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({
+      billingPlan: userTable.billingPlan,
       currentMonthUsageCents: userTable.currentMonthUsageCents,
     })
     .from(userTable)
     .where(eq(userTable.id, userId))
     .limit(1);
 
-  if (!row || row.spendingLimitCents === null || row.spendingLimitCents === undefined) {
-    return false;
-  }
+  if (!row || row.billingPlan !== "paid") return false;
+  return row.currentMonthUsageCents >= PRO_LIMIT_CENTS;
+}
 
-  return row.currentMonthUsageCents >= row.spendingLimitCents;
+/**
+ * Adds extra usage cents to the user's balance (from a one-time Stripe purchase).
+ */
+export async function addExtraUsage(
+  userId: string,
+  cents: number,
+): Promise<void> {
+  await db
+    .update(userTable)
+    .set({
+      extraUsageCents: sql`${userTable.extraUsageCents} + ${cents}`,
+    })
+    .where(eq(userTable.id, userId));
 }
 
 /**
@@ -191,13 +215,13 @@ export async function pauseSubscriptionByCustomerId(
 }
 
 /**
- * Reset the current month usage to 0 for a specific user.
- * Called on subscription renewal.
+ * Reset the current month usage and extra usage to 0 for a specific user.
+ * Called on subscription renewal — extra usage does not carry over.
  */
 export async function resetMonthlyUsage(userId: string): Promise<void> {
   await db
     .update(userTable)
-    .set({ currentMonthUsageCents: 0 })
+    .set({ currentMonthUsageCents: 0, extraUsageCents: 0 })
     .where(eq(userTable.id, userId));
 }
 
@@ -209,8 +233,8 @@ export async function getBillingInfo(userId: string): Promise<{
   subscriptionStatus: string | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
-  spendingLimitCents: number | null;
   currentMonthUsageCents: number;
+  extraUsageCents: number;
 } | null> {
   const [row] = await db
     .select({
@@ -218,8 +242,8 @@ export async function getBillingInfo(userId: string): Promise<{
       subscriptionStatus: userTable.subscriptionStatus,
       stripeCustomerId: userTable.stripeCustomerId,
       stripeSubscriptionId: userTable.stripeSubscriptionId,
-      spendingLimitCents: userTable.spendingLimitCents,
       currentMonthUsageCents: userTable.currentMonthUsageCents,
+      extraUsageCents: userTable.extraUsageCents,
     })
     .from(userTable)
     .where(eq(userTable.id, userId))

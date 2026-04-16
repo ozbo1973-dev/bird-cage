@@ -118,6 +118,15 @@ async function main() {
     console.log("current_month_usage_cents column added");
   }
 
+  // Idempotent schema safety check: ensure extra_usage_cents column exists on user table.
+  const userTableInfo4 = await client.execute("PRAGMA table_info(user)");
+  const colNames4 = userTableInfo4.rows.map((row) => row[1] as string);
+  if (!colNames4.includes("extra_usage_cents")) {
+    console.log("extra_usage_cents column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `extra_usage_cents` integer NOT NULL DEFAULT 0");
+    console.log("extra_usage_cents column added");
+  }
+
   // Idempotent schema safety check: ensure usage_logs table exists.
   const usageLogsCheck = await client.execute(
     "SELECT name FROM sqlite_master WHERE type='table' AND name='usage_logs'"

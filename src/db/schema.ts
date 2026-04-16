@@ -20,11 +20,12 @@ export const user = sqliteTable("user", {
   subscriptionStatus: text("subscription_status", {
     enum: ["active", "canceled", "paused"],
   }),
-  // Spending limit fields (in cents)
+  // Spending fields (in cents)
   spendingLimitCents: integer("spending_limit_cents"),
   currentMonthUsageCents: integer("current_month_usage_cents")
     .default(0)
     .notNull(),
+  extraUsageCents: integer("extra_usage_cents").default(0).notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

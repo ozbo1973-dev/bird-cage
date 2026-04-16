@@ -1,7 +1,5 @@
 /**
  * TDD tests for billing DAL functions.
- * Tests are written first and the implementation will follow.
- *
  * Uses a real SQLite file DB (not :memory:) to avoid libSQL pool isolation issues.
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
@@ -25,15 +23,17 @@ vi.mock("@/db", async () => {
 });
 
 import {
-  updateSpendingLimit,
   logUsage,
   getCurrentMonthUsage,
   isLimitReached,
+  isProAllowanceReached,
+  addExtraUsage,
   updateSubscriptionStatus,
   getStripeCustomerId,
   setStripeCustomerId,
   setStripeSubscriptionId,
   resetMonthlyUsage,
+  PRO_LIMIT_CENTS,
 } from "@/lib/dal/billing";
 
 const USER_ID = "billing-test-user-001";
@@ -59,6 +59,7 @@ beforeAll(async () => {
       subscription_status         text,
       spending_limit_cents        integer,
       current_month_usage_cents   integer NOT NULL DEFAULT 0,
+      extra_usage_cents           integer NOT NULL DEFAULT 0,
       created_at                  integer NOT NULL DEFAULT 0,
       updated_at                  integer NOT NULL DEFAULT 0
     )
@@ -79,15 +80,15 @@ beforeAll(async () => {
     ON usage_logs (user_id, created_at)
   `);
 
-  // Seed test users
+  // Seed test users (paid plan so isLimitReached/isProAllowanceReached apply)
   await c.execute({
-    sql: `INSERT INTO "user" (id, name, email, email_verified, created_at, updated_at)
-          VALUES (?, 'Billing User', 'billing@example.com', 1, 0, 0)`,
+    sql: `INSERT INTO "user" (id, name, email, email_verified, billing_plan, created_at, updated_at)
+          VALUES (?, 'Billing User', 'billing@example.com', 1, 'paid', 0, 0)`,
     args: [USER_ID],
   });
   await c.execute({
-    sql: `INSERT INTO "user" (id, name, email, email_verified, created_at, updated_at)
-          VALUES (?, 'Billing User 2', 'billing2@example.com', 1, 0, 0)`,
+    sql: `INSERT INTO "user" (id, name, email, email_verified, billing_plan, created_at, updated_at)
+          VALUES (?, 'Billing User 2', 'billing2@example.com', 1, 'paid', 0, 0)`,
     args: [USER_ID_2],
   });
 });
@@ -108,8 +109,8 @@ beforeEach(async () => {
   await c.execute("DELETE FROM usage_logs");
   await c.execute({
     sql: `UPDATE "user" SET
-            spending_limit_cents = NULL,
             current_month_usage_cents = 0,
+            extra_usage_cents = 0,
             stripe_customer_id = NULL,
             stripe_subscription_id = NULL,
             subscription_status = NULL
@@ -118,37 +119,10 @@ beforeEach(async () => {
   });
 });
 
-// ── updateSpendingLimit ───────────────────────────────────────────────────────
-describe("updateSpendingLimit", () => {
-  it("sets the spending limit for a user", async () => {
-    await updateSpendingLimit(USER_ID, 1000);
-
-    const rows = await testState.client!.execute({
-      sql: `SELECT spending_limit_cents FROM "user" WHERE id = ?`,
-      args: [USER_ID],
-    });
-    expect(rows.rows[0][0]).toBe(1000);
-  });
-
-  it("allows setting spending limit to null (no limit)", async () => {
-    await updateSpendingLimit(USER_ID, 1000);
-    await updateSpendingLimit(USER_ID, null);
-
-    const rows = await testState.client!.execute({
-      sql: `SELECT spending_limit_cents FROM "user" WHERE id = ?`,
-      args: [USER_ID],
-    });
-    expect(rows.rows[0][0]).toBeNull();
-  });
-
-  it("does not affect other users", async () => {
-    await updateSpendingLimit(USER_ID, 500);
-
-    const rows = await testState.client!.execute({
-      sql: `SELECT spending_limit_cents FROM "user" WHERE id = ?`,
-      args: [USER_ID_2],
-    });
-    expect(rows.rows[0][0]).toBeNull();
+// ── PRO_LIMIT_CENTS constant ──────────────────────────────────────────────────
+describe("PRO_LIMIT_CENTS", () => {
+  it("is 400 (representing $4.00)", () => {
+    expect(PRO_LIMIT_CENTS).toBe(400);
   });
 });
 
@@ -221,38 +195,106 @@ describe("getCurrentMonthUsage", () => {
 
 // ── isLimitReached ────────────────────────────────────────────────────────────
 describe("isLimitReached", () => {
-  it("returns false when no spending limit is set (null)", async () => {
-    const reached = await isLimitReached(USER_ID);
-    expect(reached).toBe(false);
-  });
-
-  it("returns false when usage is below the limit", async () => {
-    await updateSpendingLimit(USER_ID, 1000);
-    await logUsage(USER_ID, "openrouter/auto", 500);
+  it("returns false when usage is below the $4 Pro limit (no extra usage)", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 399);
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(false);
   });
 
-  it("returns true when usage equals the limit", async () => {
-    await updateSpendingLimit(USER_ID, 500);
-    await logUsage(USER_ID, "openrouter/auto", 500);
+  it("returns true when usage equals the $4 Pro limit (no extra usage)", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 400);
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(true);
   });
 
-  it("returns true when usage exceeds the limit", async () => {
-    await updateSpendingLimit(USER_ID, 500);
-    await logUsage(USER_ID, "openrouter/auto", 600);
+  it("returns true when usage exceeds the $4 Pro limit (no extra usage)", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 450);
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(true);
   });
 
-  it("returns false for unknown user (no limit)", async () => {
+  it("returns false when usage exceeds $4 but extra usage covers it", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 450);
+    await addExtraUsage(USER_ID, 200); // $2 extra
+
+    const reached = await isLimitReached(USER_ID);
+    expect(reached).toBe(false);
+  });
+
+  it("returns true when usage exhausts both $4 Pro limit and extra usage", async () => {
+    await addExtraUsage(USER_ID, 200); // $2 extra
+    await logUsage(USER_ID, "openrouter/auto", 600); // usage >= 400 + 200
+
+    const reached = await isLimitReached(USER_ID);
+    expect(reached).toBe(true);
+  });
+
+  it("returns false when usage equals exactly $4 + extra usage (still within limit)", async () => {
+    await addExtraUsage(USER_ID, 200); // $2 extra = total $6 budget
+    await logUsage(USER_ID, "openrouter/auto", 599); // just under $6
+
+    const reached = await isLimitReached(USER_ID);
+    expect(reached).toBe(false);
+  });
+
+  it("returns false for unknown user", async () => {
     const reached = await isLimitReached("non-existent-user");
     expect(reached).toBe(false);
+  });
+});
+
+// ── isProAllowanceReached ─────────────────────────────────────────────────────
+describe("isProAllowanceReached", () => {
+  it("returns false when usage is below $4", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 399);
+    expect(await isProAllowanceReached(USER_ID)).toBe(false);
+  });
+
+  it("returns true when usage reaches $4 even with extra usage remaining", async () => {
+    await addExtraUsage(USER_ID, 1000);
+    await logUsage(USER_ID, "openrouter/auto", 400);
+    expect(await isProAllowanceReached(USER_ID)).toBe(true);
+  });
+
+  it("returns false for unknown user", async () => {
+    expect(await isProAllowanceReached("non-existent-user")).toBe(false);
+  });
+});
+
+// ── addExtraUsage ─────────────────────────────────────────────────────────────
+describe("addExtraUsage", () => {
+  it("adds extra_usage_cents to a user", async () => {
+    await addExtraUsage(USER_ID, 200);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT extra_usage_cents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(200);
+  });
+
+  it("accumulates multiple purchases", async () => {
+    await addExtraUsage(USER_ID, 200);
+    await addExtraUsage(USER_ID, 1000);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT extra_usage_cents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(1200);
+  });
+
+  it("does not affect other users", async () => {
+    await addExtraUsage(USER_ID, 500);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT extra_usage_cents FROM "user" WHERE id = ?`,
+      args: [USER_ID_2],
+    });
+    expect(rows.rows[0][0]).toBe(0);
   });
 });
 
@@ -324,12 +366,23 @@ describe("setStripeSubscriptionId", () => {
 
 // ── resetMonthlyUsage ─────────────────────────────────────────────────────────
 describe("resetMonthlyUsage", () => {
-  it("resets current_month_usage_cents to 0 for a user", async () => {
+  it("resets current_month_usage_cents to 0", async () => {
     await logUsage(USER_ID, "openrouter/auto", 200);
     await resetMonthlyUsage(USER_ID);
 
     const rows = await testState.client!.execute({
       sql: `SELECT current_month_usage_cents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(0);
+  });
+
+  it("also resets extra_usage_cents to 0 (extra usage does not carry over)", async () => {
+    await addExtraUsage(USER_ID, 1000);
+    await resetMonthlyUsage(USER_ID);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT extra_usage_cents FROM "user" WHERE id = ?`,
       args: [USER_ID],
     });
     expect(rows.rows[0][0]).toBe(0);

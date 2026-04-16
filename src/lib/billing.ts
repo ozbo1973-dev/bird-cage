@@ -78,10 +78,3 @@ export function selectChatModel(
   return process.env.OPENROUTER_FREE_MODEL ?? FREE_MODEL_DEFAULT;
 }
 
-/**
- * Returns whether a spending limit is actively restricting the user.
- * A convenience function for clarity in components.
- */
-export function isSpendingLimitAware(limitReached: boolean): boolean {
-  return limitReached;
-}

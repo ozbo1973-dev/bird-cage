@@ -109,3 +109,42 @@
 .manageLink:hover {
   background: var(--color-purple-hover);
 }
+
+.extraBadge {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  background: #e8f5e9;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.extraSection {
+  background: #fff8e1;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.extraTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary-navy);
+  margin: 0;
+}
+
+.extraDesc {
+  font-size: 0.85rem;
+  color: var(--color-text-gray);
+  margin: 0;
+}
+
+.extraButtons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}

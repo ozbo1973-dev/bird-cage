@@ -348,3 +348,9 @@
 .limitBtn:hover {
   background: var(--color-purple-hover);
 }
+
+.extraNote {
+  font-size: 0.85rem;
+  color: var(--color-success, #2e7d32);
+  font-weight: 500;
+}

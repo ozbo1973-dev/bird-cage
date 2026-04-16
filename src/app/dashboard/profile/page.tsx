@@ -54,8 +54,8 @@ export default async function ProfilePage({
           billingPlan={billingDetails?.billingPlan ?? "free"}
           subscriptionStatus={billingDetails?.subscriptionStatus ?? null}
           stripeCustomerId={billingDetails?.stripeCustomerId ?? null}
-          spendingLimitCents={billingDetails?.spendingLimitCents ?? null}
           currentMonthUsageCents={billingDetails?.currentMonthUsageCents ?? 0}
+          extraUsageCents={billingDetails?.extraUsageCents ?? 0}
           isAdmin={isAdmin}
         />
         <EmailsReceived logs={receivedEmails} />

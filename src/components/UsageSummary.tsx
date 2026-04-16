@@ -1,16 +1,19 @@
 import Link from "next/link";
 import styles from "./UsageSummary.module.css";
 
+/** Fixed monthly Pro AI usage allowance in cents ($4.00). */
+const PRO_LIMIT_CENTS = 400;
+
 interface Props {
   currentMonthUsageCents: number;
-  spendingLimitCents: number | null;
+  extraUsageCents: number;
   billingPlan: string;
   isAdmin: boolean;
 }
 
 export default function UsageSummary({
   currentMonthUsageCents,
-  spendingLimitCents,
+  extraUsageCents,
   billingPlan,
   isAdmin,
 }: Props) {
@@ -18,15 +21,13 @@ export default function UsageSummary({
   if (billingPlan !== "paid") return null;
 
   const usageDollars = currentMonthUsageCents / 100;
-  const limitDollars = spendingLimitCents != null ? spendingLimitCents / 100 : null;
-  const pct =
-    limitDollars != null
-      ? Math.min(100, (usageDollars / limitDollars) * 100)
-      : 0;
-  const limitReached = limitDollars != null && usageDollars >= limitDollars;
+  const limitDollars = PRO_LIMIT_CENTS / 100;
+  const pct = Math.min(100, (usageDollars / limitDollars) * 100);
+  const proLimitReached = currentMonthUsageCents >= PRO_LIMIT_CENTS;
+  const allUsageExhausted = currentMonthUsageCents >= PRO_LIMIT_CENTS + extraUsageCents;
 
   return (
-    <div className={`${styles.widget} ${limitReached ? styles.widgetWarning : ""}`}>
+    <div className={`${styles.widget} ${allUsageExhausted ? styles.widgetWarning : ""}`}>
       <div className={styles.header}>
         <span className={styles.title}>AI Usage This Month</span>
         <Link href="/billing" className={styles.link}>
@@ -36,26 +37,35 @@ export default function UsageSummary({
 
       <div className={styles.amounts}>
         <span className={styles.usage}>${usageDollars.toFixed(2)}</span>
-        {limitDollars != null && (
-          <span className={styles.limit}>/ ${limitDollars.toFixed(2)} limit</span>
-        )}
-        {limitDollars == null && (
-          <span className={styles.limit}>no limit set</span>
+        <span className={styles.limit}>/ ${limitDollars.toFixed(2)} Pro allowance</span>
+        {proLimitReached && !allUsageExhausted && extraUsageCents > 0 && (
+          <span className={styles.extra}>
+            +${(extraUsageCents / 100).toFixed(2)} extra
+          </span>
         )}
       </div>
 
-      {limitDollars != null && (
-        <div className={styles.bar}>
-          <div
-            className={`${styles.fill} ${limitReached ? styles.fillWarning : ""}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      )}
+      <div className={styles.bar}>
+        <div
+          className={`${styles.fill} ${proLimitReached ? styles.fillWarning : ""}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
 
-      {limitReached && (
+      {allUsageExhausted && (
         <p className={styles.warning}>
-          Spending limit reached — using free model &amp; photo ID disabled.
+          All AI usage exhausted — using free model &amp; photo ID disabled.{" "}
+          <Link href="/dashboard/profile" className={styles.warningLink}>
+            Add extra usage →
+          </Link>
+        </p>
+      )}
+      {proLimitReached && !allUsageExhausted && (
+        <p className={styles.notice}>
+          Pro allowance used.{" "}
+          {extraUsageCents > 0
+            ? `Drawing from $${(extraUsageCents / 100).toFixed(2)} extra usage.`
+            : ""}
         </p>
       )}
     </div>

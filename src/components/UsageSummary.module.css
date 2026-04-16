@@ -79,3 +79,22 @@
   font-weight: 500;
   margin: 0;
 }
+
+.warningLink {
+  color: var(--color-error);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.notice {
+  font-size: 0.8rem;
+  color: #b45309;
+  font-weight: 500;
+  margin: 0;
+}
+
+.extra {
+  font-size: 0.85rem;
+  color: var(--color-success, #2e7d32);
+  font-weight: 600;
+}

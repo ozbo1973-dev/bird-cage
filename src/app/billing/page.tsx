@@ -1,7 +1,6 @@
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserBillingInfo } from "@/lib/billing";
 import { getBillingInfo } from "@/lib/dal/billing";
-import { updateSpendingLimitAction } from "./actions";
 import BillingCheckoutButton from "@/components/BillingCheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import NavDropdown from "@/components/NavDropdown";
@@ -21,10 +20,8 @@ export default async function BillingPage({
   const isAdmin = info?.role === "admin";
   const subscriptionStatus = billingDetails?.subscriptionStatus ?? null;
   const hasStripeSubscription = !!billingDetails?.stripeCustomerId;
-  const spendingLimitDollars = billingDetails?.spendingLimitCents != null
-    ? billingDetails.spendingLimitCents / 100
-    : null;
   const currentUsageDollars = (billingDetails?.currentMonthUsageCents ?? 0) / 100;
+  const extraUsageDollars = (billingDetails?.extraUsageCents ?? 0) / 100;
 
   return (
     <div className={styles.page}>
@@ -137,11 +134,11 @@ export default async function BillingPage({
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                Set monthly spending limits
+                $4/month AI usage included
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                Priority AI response speed
+                Add extra AI usage ($2 or $10) when needed
               </li>
             </ul>
 
@@ -166,65 +163,37 @@ export default async function BillingPage({
           </div>
         </div>
 
-        {/* Spending Limit Section — visible for paid users and admins */}
-        {(currentPlan === "paid" || isAdmin) && (
+        {/* Usage summary — visible for paid users */}
+        {currentPlan === "paid" && !isAdmin && (
           <div className={styles.spendingSection}>
-            <h3 className={styles.sectionTitle}>Monthly Spending Limit</h3>
+            <h3 className={styles.sectionTitle}>AI Usage This Month</h3>
             <p className={styles.sectionDesc}>
-              Set a monthly cap on AI usage costs. When reached, photo
-              identification is disabled and the free AI model is used.
-              Admins bypass this limit.
+              Your Pro plan includes $4.00 of AI usage per month. When the
+              allowance is reached, you can purchase extra usage ($2 or $10)
+              from your profile page. Unused extra usage does not carry over to
+              the next month.
             </p>
 
             <div className={styles.usageRow}>
               <span className={styles.usageLabel}>This month&apos;s usage:</span>
               <span className={styles.usageValue}>
-                ${currentUsageDollars.toFixed(2)}
-                {spendingLimitDollars != null
-                  ? ` / $${spendingLimitDollars.toFixed(2)} limit`
-                  : " (no limit)"}
+                ${currentUsageDollars.toFixed(2)} / $4.00 Pro allowance
+                {extraUsageDollars > 0 && (
+                  <span className={styles.extraNote}>
+                    {" "}+${extraUsageDollars.toFixed(2)} extra purchased
+                  </span>
+                )}
               </span>
             </div>
 
-            {spendingLimitDollars != null && (
-              <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{
-                    width: `${Math.min(100, (currentUsageDollars / spendingLimitDollars) * 100)}%`,
-                  }}
-                />
-              </div>
-            )}
-
-            <form
-              action={async (formData: FormData) => {
-                "use server";
-                const val = formData.get("limit") as string;
-                const limit = val && parseFloat(val) > 0 ? parseFloat(val) : null;
-                await updateSpendingLimitAction(limit);
-              }}
-              className={styles.limitForm}
-            >
-              <label htmlFor="limit" className={styles.limitLabel}>
-                Monthly limit ($)
-              </label>
-              <div className={styles.limitRow}>
-                <input
-                  id="limit"
-                  name="limit"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 10.00 (leave blank for no limit)"
-                  defaultValue={spendingLimitDollars ?? ""}
-                  className={styles.limitInput}
-                />
-                <button type="submit" className={styles.limitBtn}>
-                  Save Limit
-                </button>
-              </div>
-            </form>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{
+                  width: `${Math.min(100, (currentUsageDollars / 4) * 100)}%`,
+                }}
+              />
+            </div>
           </div>
         )}
       </main>

@@ -1,26 +1,16 @@
 /**
- * TDD tests for billing utility functions.
- * Tests the new spending-limit-aware logic added to billing.ts.
+ * Tests for billing utility functions.
+ * canAccessPaidFeatures and selectChatModel remain unchanged — limitReached
+ * now reflects the combined $4 Pro + extra usage budget rather than a user-set cap.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   canAccessPaidFeatures,
   selectChatModel,
-  isSpendingLimitAware,
 } from "@/lib/billing";
 
-describe("isSpendingLimitAware", () => {
-  it("returns false when limitReached is false (no limit or under limit)", () => {
-    expect(isSpendingLimitAware(false)).toBe(false);
-  });
-
-  it("returns true when limitReached is true", () => {
-    expect(isSpendingLimitAware(true)).toBe(true);
-  });
-});
-
-// selectChatModel with spending limit override
-describe("selectChatModel with spending limit", () => {
+// selectChatModel with limit flag
+describe("selectChatModel with limit flag", () => {
   const originalModel = process.env.OPENROUTER_MODEL;
   const originalFreeModel = process.env.OPENROUTER_FREE_MODEL;
 
@@ -42,17 +32,17 @@ describe("selectChatModel with spending limit", () => {
     }
   });
 
-  it("returns free model for paid user when spending limit is reached", () => {
+  it("returns free model for paid user when all usage is exhausted (limitReached=true)", () => {
     const model = selectChatModel("user", "paid", true);
     expect(model).toBe("openrouter/auto");
   });
 
-  it("returns paid model for paid user when spending limit is NOT reached", () => {
+  it("returns paid model for paid user when usage is within budget (limitReached=false)", () => {
     const model = selectChatModel("user", "paid", false);
     expect(model).toBe("openrouter/openai/gpt-oss-120b");
   });
 
-  it("returns paid model for admin even when spending limit is reached (admin bypass)", () => {
+  it("returns paid model for admin even when limitReached=true (admin bypass)", () => {
     const model = selectChatModel("admin", "free", true);
     expect(model).toBe("openrouter/openai/gpt-oss-120b");
   });
@@ -62,7 +52,7 @@ describe("selectChatModel with spending limit", () => {
     expect(model).toBe("openrouter/auto");
   });
 
-  it("returns free model for free user when limit reached", () => {
+  it("returns free model for free user when limitReached=true", () => {
     const model = selectChatModel("user", "free", true);
     expect(model).toBe("openrouter/auto");
   });
@@ -74,17 +64,17 @@ describe("selectChatModel with spending limit", () => {
   });
 });
 
-// canAccessPaidFeatures with spending limit check
-describe("canAccessPaidFeatures with spending limit", () => {
-  it("returns false for paid user when spending limit is reached", () => {
+// canAccessPaidFeatures with limit check
+describe("canAccessPaidFeatures with limit check", () => {
+  it("returns false for paid user when all usage is exhausted (limitReached=true)", () => {
     expect(canAccessPaidFeatures("user", "paid", true)).toBe(false);
   });
 
-  it("returns true for paid user when spending limit is NOT reached", () => {
+  it("returns true for paid user when usage is within budget (limitReached=false)", () => {
     expect(canAccessPaidFeatures("user", "paid", false)).toBe(true);
   });
 
-  it("returns true for admin even when spending limit is reached", () => {
+  it("returns true for admin even when limitReached=true", () => {
     expect(canAccessPaidFeatures("admin", "free", true)).toBe(true);
   });
 

@@ -64,6 +64,13 @@
       "when": 1744700000000,
       "tag": "0008_add_stripe_billing",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1744800000000,
+      "tag": "0009_add_extra_usage",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@ import {
   getUserIdByStripeCustomerId,
   setStripeSubscriptionId,
   resetMonthlyUsage,
+  addExtraUsage,
 } from "@/lib/dal/billing";
 
 export async function POST(req: NextRequest) {
@@ -53,6 +54,16 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         break;
       }
 
+      if (session.mode === "payment") {
+        // One-time extra usage purchase
+        const extraUsageCents = session.metadata?.extraUsageCents;
+        if (extraUsageCents) {
+          await addExtraUsage(userId, parseInt(extraUsageCents, 10));
+        }
+        break;
+      }
+
+      // Subscription checkout
       const stripeCustomerId = session.customer as string;
       const stripeSubscriptionId = session.subscription as string;
 
