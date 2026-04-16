@@ -4,7 +4,7 @@ import { useState } from "react";
 import styles from "./ExtraUsageButton.module.css";
 
 interface Props {
-  amountCents: 200 | 1000;
+  amountCents: 200 | 500;
   label: string;
 }
 

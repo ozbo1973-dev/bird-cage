@@ -377,7 +377,7 @@ describe("resetMonthlyUsage", () => {
     expect(rows.rows[0][0]).toBe(0);
   });
 
-  it("also resets extra_usage_cents to 0 (extra usage does not carry over)", async () => {
+  it("preserves extra_usage_cents on reset (extra usage rolls over to next month)", async () => {
     await addExtraUsage(USER_ID, 1000);
     await resetMonthlyUsage(USER_ID);
 
@@ -385,7 +385,7 @@ describe("resetMonthlyUsage", () => {
       sql: `SELECT extra_usage_cents FROM "user" WHERE id = ?`,
       args: [USER_ID],
     });
-    expect(rows.rows[0][0]).toBe(0);
+    expect(rows.rows[0][0]).toBe(1000);
   });
 
   it("does not affect other users", async () => {

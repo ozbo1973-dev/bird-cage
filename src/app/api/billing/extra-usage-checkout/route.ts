@@ -4,13 +4,13 @@ import { stripe } from "@/lib/stripe";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 import { getStripeCustomerId } from "@/lib/dal/billing";
 
-const ALLOWED_AMOUNTS = [200, 1000] as const; // $2 or $10 in cents
+const ALLOWED_AMOUNTS = [200, 500] as const; // $2 or $5 in cents
 
 type AllowedAmount = (typeof ALLOWED_AMOUNTS)[number];
 
 function getPriceId(amountCents: AllowedAmount): string | undefined {
   if (amountCents === 200) return process.env.STRIPE_EXTRA_USAGE_2_PRICE_ID;
-  if (amountCents === 1000) return process.env.STRIPE_EXTRA_USAGE_10_PRICE_ID;
+  if (amountCents === 500) return process.env.STRIPE_EXTRA_USAGE_5_PRICE_ID;
 }
 
 export async function POST(req: NextRequest) {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   if (!ALLOWED_AMOUNTS.includes(amountCents as AllowedAmount)) {
     return NextResponse.json(
-      { error: "Invalid amount. Must be 200 ($2) or 1000 ($10)." },
+      { error: "Invalid amount. Must be 200 ($2) or 500 ($5)." },
       { status: 400 },
     );
   }

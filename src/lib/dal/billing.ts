@@ -215,13 +215,13 @@ export async function pauseSubscriptionByCustomerId(
 }
 
 /**
- * Reset the current month usage and extra usage to 0 for a specific user.
- * Called on subscription renewal — extra usage does not carry over.
+ * Reset the current month usage to 0 for a specific user.
+ * Called on subscription renewal — extra usage carries over to the next month.
  */
 export async function resetMonthlyUsage(userId: string): Promise<void> {
   await db
     .update(userTable)
-    .set({ currentMonthUsageCents: 0, extraUsageCents: 0 })
+    .set({ currentMonthUsageCents: 0 })
     .where(eq(userTable.id, userId));
 }
 

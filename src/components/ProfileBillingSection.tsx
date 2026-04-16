@@ -92,7 +92,7 @@ export default function ProfileBillingSection({
               </p>
               <div className={styles.extraButtons}>
                 <ExtraUsageButton amountCents={200} label="+ $2 Extra Usage" />
-                <ExtraUsageButton amountCents={1000} label="+ $10 Extra Usage" />
+                <ExtraUsageButton amountCents={500} label="+ $5 Extra Usage" />
               </div>
             </div>
           )}
