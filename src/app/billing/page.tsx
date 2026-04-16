@@ -4,6 +4,7 @@ import { getBillingInfo } from "@/lib/dal/billing";
 import { updateSpendingLimitAction } from "./actions";
 import BillingCheckoutButton from "@/components/BillingCheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
 import styles from "./page.module.css";
 
@@ -32,6 +33,9 @@ export default async function BillingPage({
           ← Back to Dashboard
         </Link>
         <h1 className={styles.headerTitle}>Billing &amp; Plan</h1>
+        <div className={styles.headerRight}>
+          <NavDropdown isAdmin={isAdmin} returnPath="/billing" />
+        </div>
       </header>
 
       <main className={styles.main}>
