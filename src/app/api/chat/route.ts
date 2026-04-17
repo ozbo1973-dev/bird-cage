@@ -3,6 +3,11 @@ import { NextRequest } from "next/server";
 import { auth } from "../../../lib/auth";
 import { getAuthBaseUrl } from "../../../lib/get-auth-base-url";
 import { getUserBillingInfo, selectChatModel } from "../../../lib/billing";
+import { isLimitReached, logUsage } from "../../../lib/dal/billing";
+
+// Estimated cost per chat completion (in cents). This is an approximate value
+// since streaming doesn't return token counts. Adjust per actual pricing.
+const CHAT_COST_CENTS = 1;
 
 const SYSTEM_PROMPT = `You are an expert ornithologist helping birding enthusiasts identify birds.
 
@@ -39,10 +44,13 @@ export async function POST(req: NextRequest) {
   };
 
   const billingInfo = await getUserBillingInfo(session.user.id);
-  const model = selectChatModel(
-    billingInfo?.role ?? "user",
-    billingInfo?.billingPlan ?? "free",
-  );
+  const role = billingInfo?.role ?? "user";
+  const billingPlan = billingInfo?.billingPlan ?? "free";
+
+  // Check spending limit (admins bypass)
+  const limitReached = role !== "admin" && (await isLimitReached(session.user.id));
+
+  const model = selectChatModel(role, billingPlan, limitReached);
   const client = getClient();
 
   // Create the stream first — allows errors (auth, quota, bad model) to surface as HTTP errors
@@ -68,6 +76,8 @@ export async function POST(req: NextRequest) {
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
 
+  // Log usage after streaming completes
+  const userId = session.user.id;
   (async () => {
     try {
       for await (const chunk of stream) {
@@ -76,12 +86,19 @@ export async function POST(req: NextRequest) {
           await writer.write(encoder.encode(text));
         }
       }
+      // Log usage after successful completion
+      await logUsage(userId, model, CHAT_COST_CENTS).catch((err) => {
+        console.error("Failed to log chat usage:", err);
+      });
     } finally {
       await writer.close();
     }
   })();
 
   return new Response(readable, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Limit-Reached": limitReached ? "true" : "false",
+    },
   });
 }

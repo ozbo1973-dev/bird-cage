@@ -1,11 +1,13 @@
 import { requireVerifiedAuth } from "../../lib/session";
 import { getUserEvents } from "../../lib/dal/events";
 import { getUserById } from "../../lib/dal/users";
+import { getBillingInfo } from "../../lib/dal/billing";
 import Link from "next/link";
 import Image from "next/image";
 import { CalendarPlus, Zap } from "lucide-react";
 import NavDropdown from "../../components/NavDropdown";
 import DashboardTabs from "../../components/DashboardTabs";
+import UsageSummary from "../../components/UsageSummary";
 import styles from "./page.module.css";
 
 export default async function DashboardPage({
@@ -16,9 +18,10 @@ export default async function DashboardPage({
   const session = await requireVerifiedAuth();
   const { view = "timeline" } = await searchParams;
 
-  const [eventsWithBirds, dbUser] = await Promise.all([
+  const [eventsWithBirds, dbUser, billingDetails] = await Promise.all([
     getUserEvents(session.user.id),
     getUserById(session.user.id),
+    getBillingInfo(session.user.id),
   ]);
 
   const billingPlan = dbUser?.billingPlan ?? "free";
@@ -65,6 +68,12 @@ export default async function DashboardPage({
             </Link>
           </div>
         )}
+        <UsageSummary
+          currentMonthUsageCents={billingDetails?.currentMonthUsageCents ?? 0}
+          extraUsageCents={billingDetails?.extraUsageCents ?? 0}
+          billingPlan={billingPlan}
+          isAdmin={isAdmin}
+        />
         <DashboardTabs view={view} events={eventsWithBirds} />
       </main>
     </div>
