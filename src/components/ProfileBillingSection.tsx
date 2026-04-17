@@ -2,9 +2,7 @@ import Link from "next/link";
 import ManageSubscriptionButton from "./ManageSubscriptionButton";
 import ExtraUsageButton from "./ExtraUsageButton";
 import styles from "./ProfileBillingSection.module.css";
-
-/** Fixed monthly Pro AI usage allowance in cents ($4.00). */
-const PRO_LIMIT_CENTS = 400;
+import { PRO_LIMIT_CENTS } from "@/lib/dal/billing";
 
 interface Props {
   billingPlan: string;
