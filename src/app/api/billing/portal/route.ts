@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 import { getStripeCustomerId } from "@/lib/dal/billing";
 
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   const origin = getAuthBaseUrl();
 
-  const portalSession = await stripe.billingPortal.sessions.create({
+  const portalSession = await getStripe().billingPortal.sessions.create({
     customer: stripeCustomerId,
     return_url: `${origin}/billing`,
   });

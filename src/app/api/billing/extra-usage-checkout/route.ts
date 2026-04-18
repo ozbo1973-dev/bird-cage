@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 import { getStripeCustomerId } from "@/lib/dal/billing";
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   const origin = getAuthBaseUrl();
   const existingCustomerId = await getStripeCustomerId(session.user.id);
 
-  const checkoutSession = await stripe.checkout.sessions.create({
+  const checkoutSession = await getStripe().checkout.sessions.create({
     mode: "payment",
     customer: existingCustomerId ?? undefined,
     customer_email: existingCustomerId ? undefined : session.user.email,

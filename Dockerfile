@@ -39,6 +39,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Standalone output bundles the minimal server
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 # Migration artifacts
 COPY --from=builder /app/drizzle ./drizzle
