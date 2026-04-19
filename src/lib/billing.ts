@@ -40,26 +40,41 @@ export async function getUserBillingInfo(
 
 /**
  * Returns true if the user can access paid features.
- * Admins always have access. Paid plan users have access.
+ * Admins always have access.
+ * Paid users have access unless their spending limit is reached.
+ *
+ * @param role - User's role
+ * @param billingPlan - User's billing plan
+ * @param limitReached - Whether the spending limit has been reached (default false)
  */
 export function canAccessPaidFeatures(
   role: string,
   billingPlan: BillingPlan,
+  limitReached = false,
 ): boolean {
-  return role === "admin" || billingPlan === "paid";
+  if (role === "admin") return true;
+  if (billingPlan !== "paid") return false;
+  return !limitReached;
 }
 
 /**
- * Returns the appropriate chat model based on billing plan and role.
- * Admins and paid users get the paid model.
- * Free users get the free model.
+ * Returns the appropriate chat model based on billing plan, role, and spending limit.
+ * Admins always get the paid model (bypass limit).
+ * Paid users get the paid model unless their spending limit is reached.
+ * Free users always get the free model.
+ *
+ * @param role - User's role
+ * @param billingPlan - User's billing plan
+ * @param limitReached - Whether the spending limit has been reached (default false)
  */
 export function selectChatModel(
   role: string,
   billingPlan: BillingPlan,
+  limitReached = false,
 ): string {
-  if (canAccessPaidFeatures(role, billingPlan)) {
+  if (canAccessPaidFeatures(role, billingPlan, limitReached)) {
     return process.env.OPENROUTER_MODEL ?? PAID_MODEL_DEFAULT;
   }
   return process.env.OPENROUTER_FREE_MODEL ?? FREE_MODEL_DEFAULT;
 }
+

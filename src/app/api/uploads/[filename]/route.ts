@@ -39,11 +39,11 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const filePath = getUploadPath(filename);
+  const filePath = await getUploadPath(filename);
 
   // Canonical path check — reject any path that escapes the upload directory
   const resolvedFile = path.resolve(filePath);
-  const resolvedDir = path.resolve(getUploadDir());
+  const resolvedDir = path.resolve(await getUploadDir());
   if (!resolvedFile.startsWith(resolvedDir + path.sep)) {
     return new Response("Not found", { status: 404 });
   }

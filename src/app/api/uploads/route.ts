@@ -43,6 +43,6 @@ export async function POST(req: NextRequest) {
   }
 
   // Local filesystem fallback (development)
-  await fs.writeFile(path.join(getUploadDir(), filename), buffer);
+  await fs.writeFile(path.join(await getUploadDir(), filename), buffer);
   return NextResponse.json({ path: filename });
 }

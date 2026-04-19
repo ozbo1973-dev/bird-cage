@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Calendar, Bird, Sparkles, Camera } from "lucide-react";
 import styles from "./landing.module.css";
+import LogoImage from "@/components/LogoImage";
 
 export default async function Home() {
   const session = await getSession();
@@ -16,7 +17,7 @@ export default async function Home() {
       {/* Navigation */}
       <nav className={styles.nav}>
         <div className={styles.navBrand}>
-          <img src="/logo.svg" alt="Bird Cage" className={styles.navLogo} />
+          <LogoImage width={120} height={50} priority styles={styles.navLogo} />
 
           <span className={styles.navTitle}>Bird Cage</span>
         </div>

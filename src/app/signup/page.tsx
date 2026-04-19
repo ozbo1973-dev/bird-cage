@@ -3,7 +3,7 @@ import { getSession } from "../../lib/session";
 import SignupForm from "../../components/SignupForm";
 import styles from "../login/page.module.css";
 import Link from "next/link";
-import Image from "next/image";
+import LogoImage from "@/components/LogoImage";
 
 export default async function SignupPage() {
   const session = await getSession();
@@ -15,7 +15,7 @@ export default async function SignupPage() {
   return (
     <main className={styles.main}>
       <div className={styles.card}>
-        <Image src="/logo.svg" alt="Bird Cage" width={220} height={147} className={styles.logoImg} />
+        <LogoImage width={220} height={147} priority />
         <h1 className={styles.title}>Bird Cage</h1>
         <p className={styles.subtitle}>Create your account</p>
         <SignupForm />

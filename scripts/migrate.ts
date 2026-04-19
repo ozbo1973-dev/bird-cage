@@ -84,6 +84,70 @@ async function main() {
     console.log("billing_plan column added successfully");
   }
 
+  // Idempotent schema safety check: ensure Stripe billing columns exist on user table.
+  const userTableInfo3 = await client.execute("PRAGMA table_info(user)");
+  const colNames = userTableInfo3.rows.map((row) => row[1] as string);
+
+  if (!colNames.includes("stripe_customer_id")) {
+    console.log("stripe_customer_id column missing — applying schema fix");
+    // SQLite/LibSQL does not allow UNIQUE on ALTER TABLE ADD COLUMN; add the index separately
+    await client.execute("ALTER TABLE `user` ADD COLUMN `stripe_customer_id` text");
+    await client.execute(
+      "CREATE UNIQUE INDEX IF NOT EXISTS `user_stripe_customer_id_unique` ON `user` (`stripe_customer_id`)"
+    );
+    console.log("stripe_customer_id column and unique index added");
+  }
+  if (!colNames.includes("stripe_subscription_id")) {
+    console.log("stripe_subscription_id column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `stripe_subscription_id` text");
+    console.log("stripe_subscription_id column added");
+  }
+  if (!colNames.includes("subscription_status")) {
+    console.log("subscription_status column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `subscription_status` text");
+    console.log("subscription_status column added");
+  }
+  if (!colNames.includes("spending_limit_cents")) {
+    console.log("spending_limit_cents column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `spending_limit_cents` integer");
+    console.log("spending_limit_cents column added");
+  }
+  if (!colNames.includes("current_month_usage_cents")) {
+    console.log("current_month_usage_cents column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `current_month_usage_cents` integer NOT NULL DEFAULT 0");
+    console.log("current_month_usage_cents column added");
+  }
+
+  // Idempotent schema safety check: ensure extra_usage_cents column exists on user table.
+  const userTableInfo4 = await client.execute("PRAGMA table_info(user)");
+  const colNames4 = userTableInfo4.rows.map((row) => row[1] as string);
+  if (!colNames4.includes("extra_usage_cents")) {
+    console.log("extra_usage_cents column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `extra_usage_cents` integer NOT NULL DEFAULT 0");
+    console.log("extra_usage_cents column added");
+  }
+
+  // Idempotent schema safety check: ensure usage_logs table exists.
+  const usageLogsCheck = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='usage_logs'"
+  );
+  if (usageLogsCheck.rows.length === 0) {
+    console.log("usage_logs table missing — applying schema fix");
+    await client.execute(
+      `CREATE TABLE \`usage_logs\` (
+        \`id\` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        \`user_id\` text NOT NULL REFERENCES \`user\`(\`id\`) ON DELETE CASCADE,
+        \`model_used\` text NOT NULL,
+        \`cost_cents\` integer NOT NULL DEFAULT 0,
+        \`created_at\` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+      )`
+    );
+    await client.execute(
+      "CREATE INDEX `usage_logs_userId_createdAt_idx` ON `usage_logs` (`user_id`, `created_at`)"
+    );
+    console.log("usage_logs table created successfully");
+  }
+
   await client.close();
 }
 

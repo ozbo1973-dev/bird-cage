@@ -1,13 +1,27 @@
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserBillingInfo } from "@/lib/billing";
-import { updateBillingPlan } from "./actions";
+import { getBillingInfo } from "@/lib/dal/billing";
+import BillingCheckoutButton from "@/components/BillingCheckoutButton";
+import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
 import styles from "./page.module.css";
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; canceled?: string }>;
+}) {
   const session = await requireVerifiedAuth();
+  const { success, canceled } = await searchParams;
   const info = await getUserBillingInfo(session.user.id);
+  const billingDetails = await getBillingInfo(session.user.id);
   const currentPlan = info?.billingPlan ?? "free";
+  const isAdmin = info?.role === "admin";
+  const subscriptionStatus = billingDetails?.subscriptionStatus ?? null;
+  const hasStripeSubscription = !!billingDetails?.stripeCustomerId;
+  const currentUsageDollars = (billingDetails?.currentMonthUsageCents ?? 0) / 100;
+  const extraUsageDollars = (billingDetails?.extraUsageCents ?? 0) / 100;
 
   return (
     <div className={styles.page}>
@@ -15,23 +29,44 @@ export default async function BillingPage() {
         <Link href="/dashboard" className={styles.back}>
           ← Back to Dashboard
         </Link>
-        <h1 className={styles.headerTitle}>Choose Your Plan</h1>
+        <h1 className={styles.headerTitle}>Billing &amp; Plan</h1>
+        <div className={styles.headerRight}>
+          <NavDropdown isAdmin={isAdmin} returnPath="/billing" />
+        </div>
       </header>
 
       <main className={styles.main}>
+        {success && (
+          <div className={styles.successBanner}>
+            🎉 Subscription activated! You now have access to all Pro features.
+          </div>
+        )}
+        {canceled && (
+          <div className={styles.cancelBanner}>
+            Checkout was canceled. Your plan has not changed.
+          </div>
+        )}
+
         <div className={styles.intro}>
-          <h2 className={styles.pageTitle}>Upgrade Bird Cage</h2>
+          <h2 className={styles.pageTitle}>Your Plan</h2>
           <p className={styles.subtitle}>
-            Start free and upgrade when you&apos;re ready for more powerful AI features.
+            {isAdmin
+              ? "As an admin, you have access to all features."
+              : "Start free and upgrade when you're ready for more powerful AI features."}
           </p>
           <span className={styles.currentPlan}>
-            Current plan: {currentPlan === "paid" ? "Paid" : "Free"}
+            Current plan:{" "}
+            {isAdmin
+              ? "Admin (all access)"
+              : currentPlan === "paid"
+                ? `Paid${subscriptionStatus ? ` (${subscriptionStatus})` : ""}`
+                : "Free"}
           </span>
         </div>
 
         <div className={styles.cards}>
           {/* Free Plan Card */}
-          <div className={currentPlan === "free" ? `${styles.card} ${styles.cardActive}` : styles.card}>
+          <div className={currentPlan === "free" && !isAdmin ? `${styles.card} ${styles.cardActive}` : styles.card}>
             <div className={styles.cardHeader}>
               <span className={`${styles.planBadge} ${styles.planBadgeFree}`}>Free</span>
               <span className={styles.planName}>Starter</span>
@@ -56,7 +91,7 @@ export default async function BillingPage() {
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                Location tracking & map view
+                Location tracking &amp; map view
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureX}>✗</span>
@@ -68,24 +103,13 @@ export default async function BillingPage() {
               </li>
             </ul>
 
-            {currentPlan === "free" ? (
+            {currentPlan === "free" && !isAdmin ? (
               <div className={styles.activeBadge}>Current Plan</div>
-            ) : (
-              <form
-                action={async () => {
-                  "use server";
-                  await updateBillingPlan("free");
-                }}
-              >
-                <button type="submit" className={`${styles.selectBtn} ${styles.selectBtnFree}`}>
-                  Switch to Free
-                </button>
-              </form>
-            )}
+            ) : null}
           </div>
 
           {/* Paid Plan Card */}
-          <div className={currentPlan === "paid" ? `${styles.card} ${styles.cardActive}` : styles.card}>
+          <div className={currentPlan === "paid" || isAdmin ? `${styles.card} ${styles.cardActive}` : styles.card}>
             <div className={styles.cardHeader}>
               <span className={`${styles.planBadge} ${styles.planBadgePaid}`}>Pro</span>
               <span className={styles.planName}>Birder Pro</span>
@@ -110,30 +134,68 @@ export default async function BillingPage() {
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                Priority AI response speed
+                $4/month AI usage included
+              </li>
+              <li className={styles.featureItem}>
+                <span className={styles.featureCheck}>✓</span>
+                Add extra AI usage ($2 or $10) when needed
               </li>
             </ul>
 
-            {currentPlan === "paid" ? (
-              <div className={styles.activeBadge}>Current Plan</div>
+            {isAdmin ? (
+              <div className={styles.activeBadge}>Admin — Full Access</div>
+            ) : currentPlan === "paid" ? (
+              <div>
+                <div className={styles.activeBadge}>
+                  {subscriptionStatus === "paused"
+                    ? "Payment Issue — Update Payment"
+                    : "Current Plan"}
+                </div>
+                {hasStripeSubscription && (
+                  <div className={styles.manageRow}>
+                    <ManageSubscriptionButton label="Manage / Cancel Subscription" />
+                  </div>
+                )}
+              </div>
             ) : (
-              <form
-                action={async () => {
-                  "use server";
-                  await updateBillingPlan("paid");
-                }}
-              >
-                <button type="submit" className={`${styles.selectBtn} ${styles.selectBtnPaid}`}>
-                  Upgrade to Pro
-                </button>
-              </form>
+              <BillingCheckoutButton />
             )}
           </div>
         </div>
 
-        <p className={styles.note}>
-          No payment required — billing plan is a feature flag for this demo.
-        </p>
+        {/* Usage summary — visible for paid users */}
+        {currentPlan === "paid" && !isAdmin && (
+          <div className={styles.spendingSection}>
+            <h3 className={styles.sectionTitle}>AI Usage This Month</h3>
+            <p className={styles.sectionDesc}>
+              Your Pro plan includes $4.00 of AI usage per month. When the
+              allowance is reached, you can purchase extra usage ($2 or $10)
+              from your profile page. Unused extra usage does not carry over to
+              the next month.
+            </p>
+
+            <div className={styles.usageRow}>
+              <span className={styles.usageLabel}>This month&apos;s usage:</span>
+              <span className={styles.usageValue}>
+                ${currentUsageDollars.toFixed(2)} / $4.00 Pro allowance
+                {extraUsageDollars > 0 && (
+                  <span className={styles.extraNote}>
+                    {" "}+${extraUsageDollars.toFixed(2)} extra purchased
+                  </span>
+                )}
+              </span>
+            </div>
+
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{
+                  width: `${Math.min(100, (currentUsageDollars / 4) * 100)}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

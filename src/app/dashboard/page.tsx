@@ -1,12 +1,15 @@
 import { requireVerifiedAuth } from "../../lib/session";
 import { getUserEvents } from "../../lib/dal/events";
 import { getUserById } from "../../lib/dal/users";
+import { getBillingInfo } from "../../lib/dal/billing";
 import Link from "next/link";
 import Image from "next/image";
 import { CalendarPlus, Zap } from "lucide-react";
 import NavDropdown from "../../components/NavDropdown";
 import DashboardTabs from "../../components/DashboardTabs";
+import UsageSummary from "../../components/UsageSummary";
 import styles from "./page.module.css";
+import LogoImage from "@/components/LogoImage";
 
 export default async function DashboardPage({
   searchParams,
@@ -16,9 +19,10 @@ export default async function DashboardPage({
   const session = await requireVerifiedAuth();
   const { view = "timeline" } = await searchParams;
 
-  const [eventsWithBirds, dbUser] = await Promise.all([
+  const [eventsWithBirds, dbUser, billingDetails] = await Promise.all([
     getUserEvents(session.user.id),
     getUserById(session.user.id),
+    getBillingInfo(session.user.id),
   ]);
 
   const billingPlan = dbUser?.billingPlan ?? "free";
@@ -34,14 +38,22 @@ export default async function DashboardPage({
           width={120}
           height={50}
           className={styles.logo}
+          priority
         />
         <div className={styles.headerActions}>
           <span className={styles.username}>Welcome, {session.user.name}</span>
-          <Link href="/events/new" className={`${styles.newEventBtn} ${styles.headerNewEventBtn}`}>
+          <Link
+            href="/events/new"
+            className={`${styles.newEventBtn} ${styles.headerNewEventBtn}`}
+          >
             <CalendarPlus size={16} />
             New Event
           </Link>
-          <NavDropdown returnPath="/dashboard" isAdmin={isAdmin} hasEvents={eventsWithBirds.length > 0} />
+          <NavDropdown
+            returnPath="/dashboard"
+            isAdmin={isAdmin}
+            hasEvents={eventsWithBirds.length > 0}
+          />
         </div>
       </header>
 
@@ -57,7 +69,8 @@ export default async function DashboardPage({
             <div className={styles.upgradeBannerContent}>
               <Zap size={18} />
               <span>
-                You&apos;re on the <strong>Free plan</strong>. Upgrade to unlock AI photo identification and premium models.
+                You&apos;re on the <strong>Free plan</strong>. Upgrade to unlock
+                AI photo identification and premium models.
               </span>
             </div>
             <Link href="/billing" className={styles.upgradeBtn}>
@@ -65,6 +78,12 @@ export default async function DashboardPage({
             </Link>
           </div>
         )}
+        <UsageSummary
+          currentMonthUsageCents={billingDetails?.currentMonthUsageCents ?? 0}
+          extraUsageCents={billingDetails?.extraUsageCents ?? 0}
+          billingPlan={billingPlan}
+          isAdmin={isAdmin}
+        />
         <DashboardTabs view={view} events={eventsWithBirds} />
       </main>
     </div>
