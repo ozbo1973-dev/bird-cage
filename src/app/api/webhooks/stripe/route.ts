@@ -9,6 +9,8 @@ import {
   setStripeSubscriptionId,
   resetMonthlyUsage,
   addExtraUsage,
+  scheduleCancellation,
+  reactivateSubscription,
 } from "@/lib/dal/billing";
 
 export async function POST(req: NextRequest) {
@@ -68,7 +70,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       const stripeSubscriptionId = session.subscription as string;
 
       if (stripeCustomerId && stripeSubscriptionId) {
-        await activateSubscription(userId, stripeCustomerId, stripeSubscriptionId);
+        const sub = await getStripe().subscriptions.retrieve(stripeSubscriptionId);
+        await activateSubscription(userId, stripeCustomerId, stripeSubscriptionId, sub.current_period_end);
       }
       break;
     }
@@ -86,7 +89,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
       if (sub.status === "active" || sub.status === "trialing") {
         await setStripeSubscriptionId(userId, sub.id);
-        await activateSubscription(userId, customerId, sub.id);
+        await activateSubscription(userId, customerId, sub.id, sub.current_period_end);
       }
       break;
     }
@@ -114,8 +117,32 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       if (customerId) {
         const userId = await getUserIdByStripeCustomerId(customerId);
         if (userId) {
-          await resetMonthlyUsage(userId);
+          let currentPeriodEnd: number | undefined;
+          const subscriptionId = invoice.subscription as string | null;
+          if (subscriptionId) {
+            const sub = await getStripe().subscriptions.retrieve(subscriptionId);
+            currentPeriodEnd = sub.current_period_end;
+          }
+          await resetMonthlyUsage(userId, currentPeriodEnd);
         }
+      }
+      break;
+    }
+
+    case "customer.subscription.updated": {
+      const sub = event.data.object as Stripe.Subscription;
+      const customerId = sub.customer as string;
+
+      const userId = await getUserIdByStripeCustomerId(customerId);
+      if (!userId) {
+        console.warn("customer.subscription.updated: user not found for customer", customerId);
+        break;
+      }
+
+      if (sub.cancel_at_period_end) {
+        await scheduleCancellation(customerId, sub.current_period_end);
+      } else if (sub.status === "active") {
+        await reactivateSubscription(customerId, sub.current_period_end);
       }
       break;
     }
