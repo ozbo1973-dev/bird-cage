@@ -148,6 +148,22 @@ async function main() {
     console.log("usage_logs table created successfully");
   }
 
+  // Idempotent schema safety check: ensure cancel_at_period_end and current_period_end exist.
+  const userTableInfo5 = await client.execute("PRAGMA table_info(user)");
+  const colNames5 = userTableInfo5.rows.map((row) => row[1] as string);
+  if (!colNames5.includes("cancel_at_period_end")) {
+    console.log("cancel_at_period_end column missing — applying schema fix");
+    await client.execute(
+      "ALTER TABLE `user` ADD COLUMN `cancel_at_period_end` integer NOT NULL DEFAULT 0"
+    );
+    console.log("cancel_at_period_end column added");
+  }
+  if (!colNames5.includes("current_period_end")) {
+    console.log("current_period_end column missing — applying schema fix");
+    await client.execute("ALTER TABLE `user` ADD COLUMN `current_period_end` integer");
+    console.log("current_period_end column added");
+  }
+
   await client.close();
 }
 
