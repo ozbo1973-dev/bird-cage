@@ -71,7 +71,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
       if (stripeCustomerId && stripeSubscriptionId) {
         const sub = await getStripe().subscriptions.retrieve(stripeSubscriptionId);
-        await activateSubscription(userId, stripeCustomerId, stripeSubscriptionId, sub.current_period_end);
+        await activateSubscription(userId, stripeCustomerId, stripeSubscriptionId, sub.items.data[0]?.current_period_end);
       }
       break;
     }
@@ -89,7 +89,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
       if (sub.status === "active" || sub.status === "trialing") {
         await setStripeSubscriptionId(userId, sub.id);
-        await activateSubscription(userId, customerId, sub.id, sub.current_period_end);
+        await activateSubscription(userId, customerId, sub.id, sub.items.data[0]?.current_period_end);
       }
       break;
     }
@@ -118,10 +118,11 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         const userId = await getUserIdByStripeCustomerId(customerId);
         if (userId) {
           let currentPeriodEnd: number | undefined;
-          const subscriptionId = invoice.subscription as string | null;
+          const subRef = invoice.parent?.subscription_details?.subscription;
+          const subscriptionId: string | null = typeof subRef === 'string' ? subRef : (subRef?.id ?? null);
           if (subscriptionId) {
             const sub = await getStripe().subscriptions.retrieve(subscriptionId);
-            currentPeriodEnd = sub.current_period_end;
+            currentPeriodEnd = sub.items.data[0]?.current_period_end;
           }
           await resetMonthlyUsage(userId, currentPeriodEnd);
         }
@@ -140,9 +141,9 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       }
 
       if (sub.cancel_at_period_end) {
-        await scheduleCancellation(customerId, sub.current_period_end);
+        await scheduleCancellation(customerId, sub.items.data[0]?.current_period_end ?? 0);
       } else if (sub.status === "active") {
-        await reactivateSubscription(customerId, sub.current_period_end);
+        await reactivateSubscription(customerId, sub.items.data[0]?.current_period_end ?? 0);
       }
       break;
     }

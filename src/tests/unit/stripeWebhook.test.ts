@@ -81,7 +81,7 @@ describe("checkout.session.completed", () => {
       subscription: "sub_1",
     });
     mocks.constructEvent.mockReturnValue(event);
-    mocks.subscriptionsRetrieve.mockResolvedValue({ current_period_end: 1800000000 });
+    mocks.subscriptionsRetrieve.mockResolvedValue({ items: { data: [{ current_period_end: 1800000000 }] } });
 
     const res = await POST(makeRequest());
 
@@ -130,7 +130,7 @@ describe("customer.subscription.created", () => {
       id: "sub_2",
       customer: "cus_2",
       status: "active",
-      current_period_end: 1810000000,
+      items: { data: [{ current_period_end: 1810000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_2");
@@ -147,7 +147,7 @@ describe("customer.subscription.created", () => {
       id: "sub_3",
       customer: "cus_3",
       status: "trialing",
-      current_period_end: 1820000000,
+      items: { data: [{ current_period_end: 1820000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_3");
@@ -163,7 +163,7 @@ describe("customer.subscription.created", () => {
       id: "sub_4",
       customer: "cus_4",
       status: "active",
-      current_period_end: 1800000000,
+      items: { data: [{ current_period_end: 1800000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue(null);
@@ -180,11 +180,11 @@ describe("invoice.paid", () => {
   it("retrieves subscription and passes current_period_end to resetMonthlyUsage", async () => {
     const event = makeEvent("invoice.paid", {
       customer: "cus_5",
-      subscription: "sub_5",
+      parent: { subscription_details: { subscription: "sub_5" } },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_5");
-    mocks.subscriptionsRetrieve.mockResolvedValue({ current_period_end: 1830000000 });
+    mocks.subscriptionsRetrieve.mockResolvedValue({ items: { data: [{ current_period_end: 1830000000 }] } });
 
     const res = await POST(makeRequest());
 
@@ -196,7 +196,7 @@ describe("invoice.paid", () => {
   it("resets monthly usage without period_end when no subscription on invoice", async () => {
     const event = makeEvent("invoice.paid", {
       customer: "cus_6",
-      subscription: null,
+      parent: null,
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_6");
@@ -211,7 +211,7 @@ describe("invoice.paid", () => {
   it("is a no-op when user not found for customer", async () => {
     const event = makeEvent("invoice.paid", {
       customer: "cus_7",
-      subscription: "sub_7",
+      parent: { subscription_details: { subscription: "sub_7" } },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue(null);
@@ -231,7 +231,7 @@ describe("customer.subscription.updated", () => {
       customer: "cus_8",
       status: "active",
       cancel_at_period_end: true,
-      current_period_end: 1840000000,
+      items: { data: [{ current_period_end: 1840000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_8");
@@ -249,7 +249,7 @@ describe("customer.subscription.updated", () => {
       customer: "cus_9",
       status: "active",
       cancel_at_period_end: false,
-      current_period_end: 1850000000,
+      items: { data: [{ current_period_end: 1850000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_9");
@@ -267,7 +267,7 @@ describe("customer.subscription.updated", () => {
       customer: "cus_10",
       status: "active",
       cancel_at_period_end: false,
-      current_period_end: 1860000000,
+      items: { data: [{ current_period_end: 1860000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue(null);
@@ -285,7 +285,7 @@ describe("customer.subscription.updated", () => {
       customer: "cus_11",
       status: "paused",
       cancel_at_period_end: false,
-      current_period_end: 1870000000,
+      items: { data: [{ current_period_end: 1870000000 }] },
     });
     mocks.constructEvent.mockReturnValue(event);
     mocks.getUserIdByStripeCustomerId.mockResolvedValue("user_11");
