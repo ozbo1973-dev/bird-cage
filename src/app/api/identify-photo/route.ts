@@ -3,13 +3,10 @@ import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { parseIdentification } from "@/lib/chat";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
-import { getUserBillingInfo, canAccessPaidFeatures } from "@/lib/billing";
+import { getUserBillingInfo, canAccessPaidFeatures, extractCostCents } from "@/lib/billing";
 import { isLimitReached, logUsage } from "@/lib/dal/billing";
 
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
-
-// Estimated cost for a photo identification request (in cents)
-const PHOTO_IDENTIFY_COST_CENTS = 3;
 
 const IDENTIFY_PROMPT =
   "You are an expert ornithologist. Identify the bird in this photo. " +
@@ -62,6 +59,7 @@ export async function POST(req: NextRequest) {
   const client = getClient();
 
   let responseText: string;
+  let costCents = 0;
   try {
     const completion = await client.chat.completions.create({
       model: VISION_MODEL,
@@ -77,16 +75,19 @@ export async function POST(req: NextRequest) {
       ],
     });
     responseText = completion.choices[0]?.message?.content ?? "";
+    costCents = extractCostCents(completion.usage);
   } catch (err) {
     const message =
       (err as { message?: string }).message ?? "AI request failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  // Log usage after successful AI call
-  await logUsage(session.user.id, VISION_MODEL, PHOTO_IDENTIFY_COST_CENTS).catch((err) => {
-    console.error("Failed to log photo identify usage:", err);
-  });
+  // Log usage after successful AI call (paid users only, when cost is non-zero)
+  if (billingPlan === "paid" && costCents > 0) {
+    await logUsage(session.user.id, VISION_MODEL, costCents).catch((err) => {
+      console.error("Failed to log photo identify usage:", err);
+    });
+  }
 
   const result = parseIdentification(responseText);
   if (result.ok) {

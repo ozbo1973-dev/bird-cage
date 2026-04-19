@@ -58,6 +58,15 @@ export function canAccessPaidFeatures(
 }
 
 /**
+ * Extracts the cost in whole cents from an OpenRouter usage object.
+ * Returns 0 when usage is absent or cost is missing/zero.
+ */
+export function extractCostCents(usage: unknown): number {
+  const cost = (usage as { cost?: number })?.cost ?? 0;
+  return Math.round(cost * 100);
+}
+
+/**
  * Returns the appropriate chat model based on billing plan, role, and spending limit.
  * Admins always get the paid model (bypass limit).
  * Paid users get the paid model unless their spending limit is reached.

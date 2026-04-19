@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   canAccessPaidFeatures,
   selectChatModel,
+  extractCostCents,
 } from "@/lib/billing";
 
 // selectChatModel with limit flag
@@ -61,6 +62,45 @@ describe("selectChatModel with limit flag", () => {
     process.env.OPENROUTER_FREE_MODEL = "openrouter/mistral/mistral-7b";
     const model = selectChatModel("user", "paid", true);
     expect(model).toBe("openrouter/mistral/mistral-7b");
+  });
+});
+
+// extractCostCents
+describe("extractCostCents", () => {
+  it("converts a fractional dollar amount to whole cents", () => {
+    expect(extractCostCents({ cost: 0.01 })).toBe(1);
+  });
+
+  it("rounds to nearest cent", () => {
+    expect(extractCostCents({ cost: 0.0356 })).toBe(4);
+  });
+
+  it("rounds 0.5 up", () => {
+    expect(extractCostCents({ cost: 0.035 })).toBe(4);
+  });
+
+  it("returns 0 when cost is undefined", () => {
+    expect(extractCostCents({ cost: undefined })).toBe(0);
+  });
+
+  it("returns 0 when usage is null", () => {
+    expect(extractCostCents(null)).toBe(0);
+  });
+
+  it("returns 0 when usage is undefined", () => {
+    expect(extractCostCents(undefined)).toBe(0);
+  });
+
+  it("returns 0 when cost is 0", () => {
+    expect(extractCostCents({ cost: 0 })).toBe(0);
+  });
+
+  it("returns 0 when cost is sub-cent (rounds down)", () => {
+    expect(extractCostCents({ cost: 0.001 })).toBe(0);
+  });
+
+  it("handles a realistic multi-cent cost", () => {
+    expect(extractCostCents({ cost: 0.03 })).toBe(3);
   });
 });
 

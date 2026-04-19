@@ -2,12 +2,8 @@ import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import { auth } from "../../../lib/auth";
 import { getAuthBaseUrl } from "../../../lib/get-auth-base-url";
-import { getUserBillingInfo, selectChatModel } from "../../../lib/billing";
+import { getUserBillingInfo, selectChatModel, extractCostCents } from "../../../lib/billing";
 import { isLimitReached, logUsage } from "../../../lib/dal/billing";
-
-// Estimated cost per chat completion (in cents). This is an approximate value
-// since streaming doesn't return token counts. Adjust per actual pricing.
-const CHAT_COST_CENTS = 1;
 
 const SYSTEM_PROMPT = `You are an expert ornithologist helping birding enthusiasts identify birds.
 
@@ -60,6 +56,7 @@ export async function POST(req: NextRequest) {
       model,
       max_tokens: 1024,
       stream: true,
+      stream_options: { include_usage: true },
       messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     });
   } catch (err) {
@@ -80,16 +77,20 @@ export async function POST(req: NextRequest) {
   const userId = session.user.id;
   (async () => {
     try {
+      let lastUsage: unknown = null;
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? "";
         if (text) {
           await writer.write(encoder.encode(text));
         }
+        if (chunk.usage) lastUsage = chunk.usage;
       }
-      // Log usage after successful completion
-      await logUsage(userId, model, CHAT_COST_CENTS).catch((err) => {
-        console.error("Failed to log chat usage:", err);
-      });
+      const costCents = extractCostCents(lastUsage);
+      if (billingPlan === "paid" && costCents > 0) {
+        await logUsage(userId, model, costCents).catch((err) => {
+          console.error("Failed to log chat usage:", err);
+        });
+      }
     } finally {
       await writer.close();
     }
