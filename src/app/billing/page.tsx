@@ -3,8 +3,15 @@ import { getUserBillingInfo } from "@/lib/billing";
 import { getBillingInfo } from "@/lib/dal/billing";
 import BillingCheckoutButton from "@/components/BillingCheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import CancelSubscriptionButton from "@/components/CancelSubscriptionButton";
 import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
+import {
+  computeBillingState,
+  formatPeriodEndDate,
+  getPlanLabel,
+  getVisibleActions,
+} from "@/lib/billing-ui";
 import styles from "./page.module.css";
 
 export default async function BillingPage({
@@ -19,9 +26,28 @@ export default async function BillingPage({
   const currentPlan = info?.billingPlan ?? "free";
   const isAdmin = info?.role === "admin";
   const subscriptionStatus = billingDetails?.subscriptionStatus ?? null;
-  const hasStripeSubscription = !!billingDetails?.stripeCustomerId;
+  const cancelAtPeriodEnd = billingDetails?.cancelAtPeriodEnd ?? false;
+  const currentPeriodEnd = billingDetails?.currentPeriodEnd ?? null;
+  const stripeSubscriptionId = billingDetails?.stripeSubscriptionId ?? null;
   const currentUsageDollars = (billingDetails?.currentMonthUsageCents ?? 0) / 100;
   const extraUsageDollars = (billingDetails?.extraUsageCents ?? 0) / 100;
+
+  const billingState = computeBillingState({
+    currentPlan,
+    isAdmin,
+    subscriptionStatus,
+    cancelAtPeriodEnd,
+    stripeSubscriptionId,
+  });
+  const visibleActions = getVisibleActions(billingState);
+  const planLabel = getPlanLabel({
+    currentPlan,
+    isAdmin,
+    cancelAtPeriodEnd,
+    isDraining: billingState === "draining",
+    subscriptionStatus,
+  });
+  const periodEndFormatted = currentPeriodEnd ? formatPeriodEndDate(currentPeriodEnd) : undefined;
 
   return (
     <div className={styles.page}>
@@ -55,12 +81,7 @@ export default async function BillingPage({
               : "Start free and upgrade when you're ready for more powerful AI features."}
           </p>
           <span className={styles.currentPlan}>
-            Current plan:{" "}
-            {isAdmin
-              ? "Admin (all access)"
-              : currentPlan === "paid"
-                ? `Paid${subscriptionStatus ? ` (${subscriptionStatus})` : ""}`
-                : "Free"}
+            Current plan: {planLabel}
           </span>
         </div>
 
@@ -146,14 +167,44 @@ export default async function BillingPage({
               <div className={styles.activeBadge}>Admin — Full Access</div>
             ) : currentPlan === "paid" ? (
               <div>
-                <div className={styles.activeBadge}>
-                  {subscriptionStatus === "paused"
-                    ? "Payment Issue — Update Payment"
-                    : "Current Plan"}
-                </div>
-                {hasStripeSubscription && (
+                {billingState === "canceling" && periodEndFormatted && (
+                  <div className={styles.cancelingBadge}>
+                    Active until {periodEndFormatted}
+                  </div>
+                )}
+                {billingState === "draining" ? (
+                  <div className={styles.drainNotice}>
+                    Your subscription has ended. You have ${extraUsageDollars.toFixed(2)} in unused
+                    credits remaining — paid features stay active until they&apos;re used up.
+                  </div>
+                ) : (
+                  <div className={styles.activeBadge}>
+                    {subscriptionStatus === "paused"
+                      ? "Payment Issue — Update Payment"
+                      : "Current Plan"}
+                  </div>
+                )}
+                {visibleActions.showCancel && (
                   <div className={styles.manageRow}>
-                    <ManageSubscriptionButton label="Manage / Cancel Subscription" />
+                    <CancelSubscriptionButton
+                      action="cancel"
+                      label="Cancel Subscription"
+                      periodEndDate={periodEndFormatted}
+                      extraUsageDollars={extraUsageDollars}
+                    />
+                  </div>
+                )}
+                {visibleActions.showUpdatePayment && (
+                  <div className={styles.manageRow}>
+                    <ManageSubscriptionButton />
+                  </div>
+                )}
+                {visibleActions.showResubscribe && (
+                  <div className={styles.manageRow}>
+                    <CancelSubscriptionButton
+                      action="reactivate"
+                      label="Resubscribe"
+                    />
                   </div>
                 )}
               </div>
