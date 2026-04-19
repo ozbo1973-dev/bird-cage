@@ -26,6 +26,10 @@ export const user = sqliteTable("user", {
     .default(0)
     .notNull(),
   extraUsageCents: integer("extra_usage_cents").default(0).notNull(),
+  cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
+    .default(false)
+    .notNull(),
+  currentPeriodEnd: integer("current_period_end"),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

@@ -33,6 +33,11 @@ import {
   setStripeCustomerId,
   setStripeSubscriptionId,
   resetMonthlyUsage,
+  getBillingInfo,
+  activateSubscription,
+  cancelSubscriptionByCustomerId,
+  scheduleCancellation,
+  reactivateSubscription,
   PRO_LIMIT_CENTS,
 } from "@/lib/dal/billing";
 
@@ -60,6 +65,8 @@ beforeAll(async () => {
       spending_limit_cents        integer,
       current_month_usage_cents   integer NOT NULL DEFAULT 0,
       extra_usage_cents           integer NOT NULL DEFAULT 0,
+      cancel_at_period_end        integer NOT NULL DEFAULT 0,
+      current_period_end          integer,
       created_at                  integer NOT NULL DEFAULT 0,
       updated_at                  integer NOT NULL DEFAULT 0
     )
@@ -113,7 +120,10 @@ beforeEach(async () => {
             extra_usage_cents = 0,
             stripe_customer_id = NULL,
             stripe_subscription_id = NULL,
-            subscription_status = NULL
+            subscription_status = NULL,
+            billing_plan = 'paid',
+            cancel_at_period_end = 0,
+            current_period_end = NULL
           WHERE id IN (?, ?)`,
     args: [USER_ID, USER_ID_2],
   });
@@ -398,5 +408,255 @@ describe("resetMonthlyUsage", () => {
       args: [USER_ID_2],
     });
     expect(rows.rows[0][0]).toBe(50);
+  });
+
+  it("stores updated currentPeriodEnd when provided", async () => {
+    const periodEnd = 1800000000;
+    await resetMonthlyUsage(USER_ID, periodEnd);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT current_period_end FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(periodEnd);
+  });
+
+  it("does not change currentPeriodEnd when not provided", async () => {
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET current_period_end = 1700000000 WHERE id = ?`,
+      args: [USER_ID],
+    });
+    await resetMonthlyUsage(USER_ID);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT current_period_end FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(1700000000);
+  });
+});
+
+// ── activateSubscription ──────────────────────────────────────────────────────
+describe("activateSubscription", () => {
+  it("sets billing_plan to paid, subscription status to active", async () => {
+    await activateSubscription(USER_ID, "cus_act1", "sub_act1");
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan, subscription_status FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("paid");
+    expect(rows.rows[0][1]).toBe("active");
+  });
+
+  it("stores currentPeriodEnd when provided", async () => {
+    const periodEnd = 1750000000;
+    await activateSubscription(USER_ID, "cus_act2", "sub_act2", periodEnd);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT current_period_end, cancel_at_period_end FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(periodEnd);
+    expect(rows.rows[0][1]).toBe(0);
+  });
+
+  it("resets cancelAtPeriodEnd to false", async () => {
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET cancel_at_period_end = 1 WHERE id = ?`,
+      args: [USER_ID],
+    });
+    await activateSubscription(USER_ID, "cus_act3", "sub_act3");
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT cancel_at_period_end FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(0);
+  });
+});
+
+// ── getBillingInfo (new fields) ───────────────────────────────────────────────
+describe("getBillingInfo (new fields)", () => {
+  it("returns cancelAtPeriodEnd=false and currentPeriodEnd=null by default", async () => {
+    const info = await getBillingInfo(USER_ID);
+    expect(info).not.toBeNull();
+    expect(info!.cancelAtPeriodEnd).toBe(false);
+    expect(info!.currentPeriodEnd).toBeNull();
+  });
+
+  it("returns cancelAtPeriodEnd=true when set", async () => {
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET cancel_at_period_end = 1, current_period_end = 1800000000 WHERE id = ?`,
+      args: [USER_ID],
+    });
+    const info = await getBillingInfo(USER_ID);
+    expect(info!.cancelAtPeriodEnd).toBe(true);
+    expect(info!.currentPeriodEnd).toBe(1800000000);
+  });
+});
+
+// ── scheduleCancellation ──────────────────────────────────────────────────────
+describe("scheduleCancellation", () => {
+  it("sets cancelAtPeriodEnd=true, currentPeriodEnd, and subscriptionStatus=canceled", async () => {
+    await setStripeCustomerId(USER_ID, "cus_sched1");
+    const periodEnd = 1790000000;
+    await scheduleCancellation("cus_sched1", periodEnd);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT cancel_at_period_end, current_period_end, subscription_status FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(1);
+    expect(rows.rows[0][1]).toBe(periodEnd);
+    expect(rows.rows[0][2]).toBe("canceled");
+  });
+
+  it("only affects the user matching the stripeCustomerId", async () => {
+    await setStripeCustomerId(USER_ID, "cus_sched2");
+    await scheduleCancellation("cus_sched2", 1790000000);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT cancel_at_period_end FROM "user" WHERE id = ?`,
+      args: [USER_ID_2],
+    });
+    expect(rows.rows[0][0]).toBe(0);
+  });
+});
+
+// ── reactivateSubscription ────────────────────────────────────────────────────
+describe("reactivateSubscription", () => {
+  it("sets cancelAtPeriodEnd=false, updates currentPeriodEnd, and subscriptionStatus=active", async () => {
+    await setStripeCustomerId(USER_ID, "cus_react1");
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET cancel_at_period_end = 1, current_period_end = 1700000000, subscription_status = 'canceled' WHERE id = ?`,
+      args: [USER_ID],
+    });
+
+    const newPeriodEnd = 1820000000;
+    await reactivateSubscription("cus_react1", newPeriodEnd);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT cancel_at_period_end, current_period_end, subscription_status FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(0);
+    expect(rows.rows[0][1]).toBe(newPeriodEnd);
+    expect(rows.rows[0][2]).toBe("active");
+  });
+
+  it("does NOT reset current month usage", async () => {
+    await setStripeCustomerId(USER_ID, "cus_react2");
+    await logUsage(USER_ID, "openrouter/auto", 150);
+    await reactivateSubscription("cus_react2", 1820000000);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT current_month_usage_cents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(150);
+  });
+});
+
+// ── cancelSubscriptionByCustomerId (drain logic) ──────────────────────────────
+describe("cancelSubscriptionByCustomerId (drain logic)", () => {
+  it("flips billing_plan to free when extra_usage_cents is 0", async () => {
+    await setStripeCustomerId(USER_ID, "cus_cancel1");
+    await cancelSubscriptionByCustomerId("cus_cancel1");
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan, stripe_subscription_id FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("free");
+    expect(rows.rows[0][1]).toBeNull();
+  });
+
+  it("keeps billing_plan as paid (drain state) when extra_usage_cents > 0", async () => {
+    await setStripeCustomerId(USER_ID, "cus_cancel2");
+    await addExtraUsage(USER_ID, 500);
+    await cancelSubscriptionByCustomerId("cus_cancel2");
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan, stripe_subscription_id FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("paid");
+    expect(rows.rows[0][1]).toBeNull();
+  });
+
+  it("always nulls stripeSubscriptionId and clears cancelAtPeriodEnd and currentPeriodEnd", async () => {
+    await setStripeCustomerId(USER_ID, "cus_cancel3");
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET stripe_subscription_id = 'sub_old', cancel_at_period_end = 1, current_period_end = 1700000000 WHERE id = ?`,
+      args: [USER_ID],
+    });
+    await cancelSubscriptionByCustomerId("cus_cancel3");
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT stripe_subscription_id, cancel_at_period_end, current_period_end FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBeNull();
+    expect(rows.rows[0][1]).toBe(0);
+    expect(rows.rows[0][2]).toBeNull();
+  });
+});
+
+// ── logUsage drain state flip ─────────────────────────────────────────────────
+describe("logUsage drain state flip", () => {
+  it("flips billing_plan to free when drain-state user hits the usage limit", async () => {
+    // Drain state: subscription canceled, stripeSubscriptionId=null, extra_usage > 0
+    await addExtraUsage(USER_ID, 100); // total budget = 400 + 100 = 500
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET subscription_status = 'canceled' WHERE id = ?`,
+      args: [USER_ID],
+    });
+    await logUsage(USER_ID, "openrouter/auto", 500);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("free");
+  });
+
+  it("does NOT flip billing_plan when active subscription user hits limit", async () => {
+    // Active subscription: stripeSubscriptionId is set
+    await setStripeSubscriptionId(USER_ID, "sub_active");
+    await logUsage(USER_ID, "openrouter/auto", 500);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("paid");
+  });
+
+  it("does NOT flip billing_plan for drain-state user below limit", async () => {
+    await addExtraUsage(USER_ID, 200); // budget = 400 + 200 = 600
+    await testState.client!.execute({
+      sql: `UPDATE "user" SET subscription_status = 'canceled' WHERE id = ?`,
+      args: [USER_ID],
+    });
+    await logUsage(USER_ID, "openrouter/auto", 400); // usage = 400, below 600
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("paid");
+  });
+
+  it("does NOT flip billing_plan for paid user with null subscriptionStatus", async () => {
+    // User has no subscription set (fresh signup) — not drain state
+    await addExtraUsage(USER_ID, 200);
+    await logUsage(USER_ID, "openrouter/auto", 600);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe("paid");
   });
 });
