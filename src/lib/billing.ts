@@ -78,3 +78,9 @@ export function selectChatModel(
   return process.env.OPENROUTER_FREE_MODEL ?? FREE_MODEL_DEFAULT;
 }
 
+export function extractCostCents(usage: unknown): number {
+  const cost = (usage as { cost?: number } | null)?.cost;
+  if (typeof cost !== "number" || !(cost > 0)) return 0;
+  return Math.round(cost * 100);
+}
+

@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   canAccessPaidFeatures,
   selectChatModel,
+  extractCostCents,
 } from "@/lib/billing";
 
 // selectChatModel with limit flag
@@ -61,6 +62,37 @@ describe("selectChatModel with limit flag", () => {
     process.env.OPENROUTER_FREE_MODEL = "openrouter/mistral/mistral-7b";
     const model = selectChatModel("user", "paid", true);
     expect(model).toBe("openrouter/mistral/mistral-7b");
+  });
+});
+
+// extractCostCents
+describe("extractCostCents", () => {
+  it("returns 0 when usage is null", () => {
+    expect(extractCostCents(null)).toBe(0);
+  });
+  it("returns 0 when usage is undefined", () => {
+    expect(extractCostCents(undefined)).toBe(0);
+  });
+  it("returns 0 when usage has no cost field", () => {
+    expect(extractCostCents({ prompt_tokens: 100 })).toBe(0);
+  });
+  it("returns 0 when usage.cost is 0", () => {
+    expect(extractCostCents({ cost: 0 })).toBe(0);
+  });
+  it("returns 0 when usage.cost rounds down to 0 (0.001)", () => {
+    expect(extractCostCents({ cost: 0.001 })).toBe(0);
+  });
+  it("returns 1 when usage.cost rounds up (0.005)", () => {
+    expect(extractCostCents({ cost: 0.005 })).toBe(1);
+  });
+  it("returns 1 when usage.cost is 0.01", () => {
+    expect(extractCostCents({ cost: 0.01 })).toBe(1);
+  });
+  it("returns 12 when usage.cost is 0.123 (Math.round(12.3))", () => {
+    expect(extractCostCents({ cost: 0.123 })).toBe(12);
+  });
+  it("returns 12 when usage.cost is 0.1234 (Math.round(12.34))", () => {
+    expect(extractCostCents({ cost: 0.1234 })).toBe(12);
   });
 });
 
