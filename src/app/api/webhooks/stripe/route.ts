@@ -80,7 +80,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       const sub = event.data.object as Stripe.Subscription;
       const customerId = sub.customer as string;
 
-      // Find the user by Stripe customer ID
       const userId = await getUserIdByStripeCustomerId(customerId);
       if (!userId) {
         console.warn("customer.subscription.created: user not found for customer", customerId);
@@ -111,7 +110,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     case "invoice.paid": {
-      // Renewal: reset monthly usage for the user
       const invoice = event.data.object as Stripe.Invoice;
       const customerId = invoice.customer as string;
       if (customerId) {
@@ -140,8 +138,12 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         break;
       }
 
-      if (sub.cancel_at_period_end) {
-        await scheduleCancellation(customerId, sub.items.data[0]?.current_period_end ?? 0);
+      // Handle both cancel_at_period_end (app cancel) and cancel_at (portal fixed-date cancel)
+      const isCanceling = sub.cancel_at_period_end || (sub.cancel_at != null && sub.cancel_at > 0);
+      const periodEnd = (sub.cancel_at ?? sub.items.data[0]?.current_period_end) ?? 0;
+
+      if (isCanceling) {
+        await scheduleCancellation(customerId, periodEnd);
       } else if (sub.status === "active") {
         await reactivateSubscription(customerId, sub.items.data[0]?.current_period_end ?? 0);
       }
@@ -149,7 +151,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     }
 
     default:
-      // Unhandled event type — not an error
       break;
   }
 }

@@ -78,6 +78,13 @@
       "when": 1776393410283,
       "tag": "0010_bored_ulik",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1776617756999,
+      "tag": "0011_wild_kat_farrell",
+      "breakpoints": true
     }
   ]
 }

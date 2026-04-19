@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user as userTable, usageLogs } from "@/db/schema";
+import { getStripe } from "@/lib/stripe";
 
 export type SubscriptionStatus = "active" | "canceled" | "paused";
 
@@ -347,4 +348,55 @@ export async function getBillingInfo(userId: string): Promise<{
 
   if (!row) return null;
   return row;
+}
+
+/**
+ * Fetch the current subscription state from Stripe and sync it to the DB.
+ * Handles the case where a user cancels via the Stripe Customer Portal
+ * and the webhook hasn't arrived yet.
+ */
+export async function syncSubscriptionFromStripe(userId: string): Promise<void> {
+  const [row] = await db
+    .select({
+      stripeSubscriptionId: userTable.stripeSubscriptionId,
+      cancelAtPeriodEnd: userTable.cancelAtPeriodEnd,
+      subscriptionStatus: userTable.subscriptionStatus,
+    })
+    .from(userTable)
+    .where(eq(userTable.id, userId))
+    .limit(1);
+
+  if (!row?.stripeSubscriptionId) return;
+
+  const sub = await getStripe().subscriptions.retrieve(row.stripeSubscriptionId);
+
+  // Subscription is canceling if either cancel_at_period_end or cancel_at (portal fixed-date cancel) is set
+  const stripeCanceling = sub.cancel_at_period_end || (sub.cancel_at != null && sub.cancel_at > 0);
+  const stripeStatus = sub.status;
+  const periodEnd = sub.cancel_at ?? sub.items.data[0]?.current_period_end ?? 0;
+
+  const dbCanceling = row.cancelAtPeriodEnd;
+  const dbStatus = row.subscriptionStatus;
+
+  // Only update if Stripe disagrees with the DB
+  if (stripeCanceling === dbCanceling && stripeStatus !== "past_due") return;
+
+  if (stripeCanceling && !dbCanceling) {
+    // Portal cancel: mark canceling in DB
+    await db
+      .update(userTable)
+      .set({ cancelAtPeriodEnd: true, currentPeriodEnd: periodEnd, subscriptionStatus: "canceled" })
+      .where(eq(userTable.id, userId));
+  } else if (!stripeCanceling && dbCanceling && stripeStatus === "active") {
+    // Portal reactivation: mark active in DB
+    await db
+      .update(userTable)
+      .set({ cancelAtPeriodEnd: false, currentPeriodEnd: periodEnd, subscriptionStatus: "active" })
+      .where(eq(userTable.id, userId));
+  } else if (stripeStatus === "past_due" && dbStatus !== "paused") {
+    await db
+      .update(userTable)
+      .set({ subscriptionStatus: "paused" })
+      .where(eq(userTable.id, userId));
+  }
 }

@@ -7,9 +7,10 @@ interface Props {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  confirmLabel?: string;
 }
 
-export default function ConfirmDialog({ open, message, onConfirm, onCancel }: Props) {
+export default function ConfirmDialog({ open, message, onConfirm, onCancel, confirmLabel = "Delete" }: Props) {
   if (!open) return null;
 
   return (
@@ -21,7 +22,7 @@ export default function ConfirmDialog({ open, message, onConfirm, onCancel }: Pr
             Cancel
           </button>
           <button type="button" onClick={onConfirm} className={styles.confirmBtn}>
-            Delete
+            {confirmLabel}
           </button>
         </div>
       </dialog>

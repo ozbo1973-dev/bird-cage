@@ -1,6 +1,7 @@
+import { SUBSCRIPTION_PRICE_DOLLARS } from "@/lib/billing-config";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserBillingInfo } from "@/lib/billing";
-import { getBillingInfo } from "@/lib/dal/billing";
+import { getBillingInfo, syncSubscriptionFromStripe } from "@/lib/dal/billing";
 import BillingCheckoutButton from "@/components/BillingCheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import CancelSubscriptionButton from "@/components/CancelSubscriptionButton";
@@ -21,6 +22,7 @@ export default async function BillingPage({
 }) {
   const session = await requireVerifiedAuth();
   const { success, canceled } = await searchParams;
+  await syncSubscriptionFromStripe(session.user.id);
   const info = await getUserBillingInfo(session.user.id);
   const billingDetails = await getBillingInfo(session.user.id);
   const currentPlan = info?.billingPlan ?? "free";
@@ -137,7 +139,7 @@ export default async function BillingPage({
             </div>
 
             <p className={styles.planPrice}>
-              $9 <span>/ month</span>
+              ${SUBSCRIPTION_PRICE_DOLLARS} <span>/ month</span>
             </p>
 
             <ul className={styles.featureList}>
@@ -159,7 +161,7 @@ export default async function BillingPage({
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                Add extra AI usage ($2 or $10) when needed
+                Add extra AI usage ($2 or $5) when needed
               </li>
             </ul>
 
@@ -220,7 +222,7 @@ export default async function BillingPage({
             <h3 className={styles.sectionTitle}>AI Usage This Month</h3>
             <p className={styles.sectionDesc}>
               Your Pro plan includes $4.00 of AI usage per month. When the
-              allowance is reached, you can purchase extra usage ($2 or $10)
+              allowance is reached, you can purchase extra usage ($2 or $5)
               from your profile page. Unused extra usage does not carry over to
               the next month.
             </p>

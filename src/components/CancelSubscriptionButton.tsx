@@ -66,6 +66,7 @@ export default function CancelSubscriptionButton({
         message={dialogMessage}
         onConfirm={handleConfirm}
         onCancel={() => setShowConfirm(false)}
+        confirmLabel={action === "reactivate" ? "Resubscribe" : "Delete"}
       />
     </div>
   );

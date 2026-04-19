@@ -4,6 +4,7 @@ import CancelSubscriptionButton from "./CancelSubscriptionButton";
 import ExtraUsageButton from "./ExtraUsageButton";
 import styles from "./ProfileBillingSection.module.css";
 import { PRO_LIMIT_CENTS } from "@/lib/dal/billing";
+import { EXTRA_USAGE_OPTIONS } from "@/lib/billing-config";
 import {
   computeBillingState,
   formatPeriodEndDate,
@@ -117,8 +118,9 @@ export default function ProfileBillingSection({
                   : "You've used your $4 monthly Pro allowance. Your purchased extra usage is being drawn from. Add more if needed."}
               </p>
               <div className={styles.extraButtons}>
-                <ExtraUsageButton amountCents={200} label="+ $2 Extra Usage" />
-                <ExtraUsageButton amountCents={500} label="+ $5 Extra Usage" />
+                {EXTRA_USAGE_OPTIONS.map((opt) => (
+                  <ExtraUsageButton key={opt.cents} amountCents={opt.cents} label={opt.label} />
+                ))}
               </div>
             </div>
           )}
