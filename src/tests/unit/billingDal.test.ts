@@ -480,6 +480,17 @@ describe("resetMonthlyUsage", () => {
     });
     expect(rows.rows[0][0]).toBe(1700000000);
   });
+
+  it("resets fragment_millicents to 0 alongside current_month_usage_cents", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 0, 400);
+    await resetMonthlyUsage(USER_ID);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT fragment_millicents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(0);
+  });
 });
 
 // ── activateSubscription ──────────────────────────────────────────────────────

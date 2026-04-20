@@ -285,6 +285,7 @@ export async function resetMonthlyUsage(
     .update(userTable)
     .set({
       currentMonthUsageCents: 0,
+      fragmentMillicents: 0,
       ...(currentPeriodEnd !== undefined ? { currentPeriodEnd } : {}),
     })
     .where(eq(userTable.id, userId));
