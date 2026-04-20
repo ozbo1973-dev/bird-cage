@@ -84,9 +84,9 @@ export async function POST(req: NextRequest) {
         }
         if (chunk.usage) lastUsage = chunk.usage;
       }
-      const { wholeCents } = extractCost(lastUsage);
-      if (billingPlan === "paid" && wholeCents > 0) {
-        await logUsage(userId, model, wholeCents).catch((err) => {
+      const { wholeCents, remainderMillicents } = extractCost(lastUsage);
+      if (billingPlan === "paid") {
+        await logUsage(userId, model, wholeCents, remainderMillicents).catch((err) => {
           console.error("Failed to log chat usage:", err);
         });
       }

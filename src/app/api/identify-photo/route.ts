@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
 
   let responseText: string;
   let wholeCents = 0;
+  let remainderMillicents = 0;
   try {
     const completion = await client.chat.completions.create({
       model: VISION_MODEL,
@@ -75,15 +76,15 @@ export async function POST(req: NextRequest) {
       ],
     });
     responseText = completion.choices[0]?.message?.content ?? "";
-    wholeCents = extractCost(completion.usage).wholeCents;
+    ({ wholeCents, remainderMillicents } = extractCost(completion.usage));
   } catch (err) {
     const message =
       (err as { message?: string }).message ?? "AI request failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  if (billingPlan === "paid" && wholeCents > 0) {
-    await logUsage(session.user.id, VISION_MODEL, wholeCents).catch((err) => {
+  if (billingPlan === "paid") {
+    await logUsage(session.user.id, VISION_MODEL, wholeCents, remainderMillicents).catch((err) => {
       console.error("Failed to log photo identify usage:", err);
     });
   }
