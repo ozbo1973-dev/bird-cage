@@ -30,6 +30,7 @@ export const user = sqliteTable("user", {
     .default(false)
     .notNull(),
   currentPeriodEnd: integer("current_period_end"),
+  fragmentMillicents: integer("fragment_millicents").default(0).notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),
@@ -149,6 +150,7 @@ export const usageLogs = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     modelUsed: text("model_used").notNull(),
     costCents: integer("cost_cents").notNull().default(0),
+    costMillicents: integer("cost_millicents").notNull().default(0),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
