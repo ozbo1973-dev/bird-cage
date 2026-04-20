@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { parseIdentification } from "@/lib/chat";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
-import { getUserBillingInfo, canAccessPaidFeatures, extractCostCents } from "@/lib/billing";
+import { getUserBillingInfo, canAccessPaidFeatures, extractCost } from "@/lib/billing";
 import { isLimitReached, logUsage } from "@/lib/dal/billing";
 
 const VISION_MODEL = process.env.OPENROUTER_VISION_MODEL ?? "openai/gpt-4o";
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   const client = getClient();
 
   let responseText: string;
-  let costCents = 0;
+  let wholeCents = 0;
   try {
     const completion = await client.chat.completions.create({
       model: VISION_MODEL,
@@ -75,15 +75,15 @@ export async function POST(req: NextRequest) {
       ],
     });
     responseText = completion.choices[0]?.message?.content ?? "";
-    costCents = extractCostCents(completion.usage);
+    wholeCents = extractCost(completion.usage).wholeCents;
   } catch (err) {
     const message =
       (err as { message?: string }).message ?? "AI request failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  if (billingPlan === "paid" && costCents > 0) {
-    await logUsage(session.user.id, VISION_MODEL, costCents).catch((err) => {
+  if (billingPlan === "paid" && wholeCents > 0) {
+    await logUsage(session.user.id, VISION_MODEL, wholeCents).catch((err) => {
       console.error("Failed to log photo identify usage:", err);
     });
   }

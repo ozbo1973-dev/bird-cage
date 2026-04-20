@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import { auth } from "../../../lib/auth";
 import { getAuthBaseUrl } from "../../../lib/get-auth-base-url";
-import { getUserBillingInfo, selectChatModel, extractCostCents } from "../../../lib/billing";
+import { getUserBillingInfo, selectChatModel, extractCost } from "../../../lib/billing";
 import { isLimitReached, logUsage } from "../../../lib/dal/billing";
 
 const SYSTEM_PROMPT = `You are an expert ornithologist helping birding enthusiasts identify birds.
@@ -84,9 +84,9 @@ export async function POST(req: NextRequest) {
         }
         if (chunk.usage) lastUsage = chunk.usage;
       }
-      const costCents = extractCostCents(lastUsage);
-      if (billingPlan === "paid" && costCents > 0) {
-        await logUsage(userId, model, costCents).catch((err) => {
+      const { wholeCents } = extractCost(lastUsage);
+      if (billingPlan === "paid" && wholeCents > 0) {
+        await logUsage(userId, model, wholeCents).catch((err) => {
           console.error("Failed to log chat usage:", err);
         });
       }
