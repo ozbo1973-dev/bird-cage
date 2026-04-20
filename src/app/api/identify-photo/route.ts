@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  if (billingPlan === "paid") {
+  if (wholeCents > 0 || remainderMillicents > 0) {
     await logUsage(session.user.id, VISION_MODEL, wholeCents, remainderMillicents).catch((err) => {
       console.error("Failed to log photo identify usage:", err);
     });

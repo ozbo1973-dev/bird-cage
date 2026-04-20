@@ -233,7 +233,7 @@ describe("chat route — usage logging guards", () => {
     expect(usageCents).toBe(5);
   });
 
-  it("free user: does not insert usage_logs row", async () => {
+  it("free user with non-zero cost: inserts usage_logs row and increments currentMonthUsageCents", async () => {
     vi.mocked(auth.api.getSession).mockResolvedValue(makeSession(FREE_USER_ID) as never);
     mockCreate.mockReturnValue(makeStreamChunks({ costDollars: 0.05 }));
 
@@ -242,10 +242,11 @@ describe("chat route — usage logging guards", () => {
     await consumeStream(response);
 
     const logs = await getUsageLogs(FREE_USER_ID);
-    expect(logs.rows).toHaveLength(0);
+    expect(logs.rows).toHaveLength(1);
+    expect(logs.rows[0][2]).toBe(5); // 0.05 * 100 = 5 cents
 
     const usageCents = await getCurrentUsageCents(FREE_USER_ID);
-    expect(usageCents).toBe(0);
+    expect(usageCents).toBe(5);
   });
 
   it("paid user with usage.cost missing: does not insert usage_logs row and leaves currentMonthUsageCents unchanged", async () => {
