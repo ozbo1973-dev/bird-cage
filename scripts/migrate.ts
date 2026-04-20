@@ -164,6 +164,28 @@ async function main() {
     console.log("current_period_end column added");
   }
 
+  // Idempotent schema safety check: ensure fragment_millicents column exists on user table.
+  const userTableInfo6 = await client.execute("PRAGMA table_info(user)");
+  const colNames6 = userTableInfo6.rows.map((row) => row[1] as string);
+  if (!colNames6.includes("fragment_millicents")) {
+    console.log("fragment_millicents column missing — applying schema fix");
+    await client.execute(
+      "ALTER TABLE `user` ADD COLUMN `fragment_millicents` integer NOT NULL DEFAULT 0"
+    );
+    console.log("fragment_millicents column added");
+  }
+
+  // Idempotent schema safety check: ensure cost_millicents column exists on usage_logs table.
+  const usageLogsTableInfo = await client.execute("PRAGMA table_info(usage_logs)");
+  const usageLogsCols = usageLogsTableInfo.rows.map((row) => row[1] as string);
+  if (!usageLogsCols.includes("cost_millicents")) {
+    console.log("cost_millicents column missing from usage_logs — applying schema fix");
+    await client.execute(
+      "ALTER TABLE `usage_logs` ADD COLUMN `cost_millicents` integer NOT NULL DEFAULT 0"
+    );
+    console.log("cost_millicents column added to usage_logs");
+  }
+
   await client.close();
 }
 

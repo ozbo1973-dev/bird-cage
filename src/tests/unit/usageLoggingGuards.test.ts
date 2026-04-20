@@ -94,6 +94,7 @@ beforeAll(async () => {
       extra_usage_cents           integer NOT NULL DEFAULT 0,
       cancel_at_period_end        integer NOT NULL DEFAULT 0,
       current_period_end          integer,
+      fragment_millicents         integer NOT NULL DEFAULT 0,
       created_at                  integer NOT NULL DEFAULT 0,
       updated_at                  integer NOT NULL DEFAULT 0
     )
@@ -103,9 +104,10 @@ beforeAll(async () => {
     CREATE TABLE IF NOT EXISTS usage_logs (
       id           integer PRIMARY KEY AUTOINCREMENT NOT NULL,
       user_id      text    NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-      model_used   text    NOT NULL,
-      cost_cents   integer NOT NULL DEFAULT 0,
-      created_at   integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+      model_used       text    NOT NULL,
+      cost_cents       integer NOT NULL DEFAULT 0,
+      cost_millicents  integer NOT NULL DEFAULT 0,
+      created_at       integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
     )
   `);
 
