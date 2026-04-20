@@ -16,14 +16,23 @@ export const PRO_LIMIT_CENTS = 400; // $4.00
 export async function logUsage(
   userId: string,
   modelUsed: string,
-  costCents: number,
+  wholeCents: number,
+  remainderMillicents: number,
 ): Promise<void> {
-  await db.insert(usageLogs).values({ userId, modelUsed, costCents });
+  if (wholeCents === 0 && remainderMillicents === 0) return;
+
+  await db.insert(usageLogs).values({
+    userId,
+    modelUsed,
+    costCents: wholeCents,
+    costMillicents: remainderMillicents,
+  });
 
   await db
     .update(userTable)
     .set({
-      currentMonthUsageCents: sql`${userTable.currentMonthUsageCents} + ${costCents}`,
+      currentMonthUsageCents: sql`${userTable.currentMonthUsageCents} + ${wholeCents} + (${userTable.fragmentMillicents} + CAST(${remainderMillicents} AS INTEGER)) / 1000`,
+      fragmentMillicents: sql`(${userTable.fragmentMillicents} + CAST(${remainderMillicents} AS INTEGER)) % 1000`,
     })
     .where(eq(userTable.id, userId));
 
