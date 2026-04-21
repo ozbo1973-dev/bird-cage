@@ -1,1 +1,1 @@
--- columns cost_millicents and fragment_millicents already added in 0012_add_millicents.sql
+SELECT 1; -- no-op: cost_millicents and fragment_millicents already added in 0012_add_millicents.sql
