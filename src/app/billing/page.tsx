@@ -1,4 +1,4 @@
-import { SUBSCRIPTION_PRICE_DOLLARS } from "@/lib/billing-config";
+import { SUBSCRIPTION_PRICE_DOLLARS, PRO_LIMIT_CENTS } from "@/lib/billing-config";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserBillingInfo } from "@/lib/billing";
 import { getBillingInfo, syncSubscriptionFromStripe } from "@/lib/dal/billing";
@@ -157,7 +157,7 @@ export default async function BillingPage({
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                $4/month AI usage included
+                Monthly AI usage allowance included
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
@@ -221,16 +221,13 @@ export default async function BillingPage({
           <div className={styles.spendingSection}>
             <h3 className={styles.sectionTitle}>AI Usage This Month</h3>
             <p className={styles.sectionDesc}>
-              Your Pro plan includes $4.00 of AI usage per month. When the
-              allowance is reached, you can purchase extra usage ($2 or $5)
-              from your profile page. Unused extra usage does not carry over to
-              the next month.
+              AI usage is metered. Purchase extra usage when your monthly allowance is reached. Extra usage never expires.
             </p>
 
             <div className={styles.usageRow}>
               <span className={styles.usageLabel}>This month&apos;s usage:</span>
               <span className={styles.usageValue}>
-                ${currentUsageDollars.toFixed(2)} / $4.00 Pro allowance
+                {Math.round(Math.min(100, (currentUsageDollars / (PRO_LIMIT_CENTS / 100)) * 100))}% of monthly allowance
                 {extraUsageDollars > 0 && (
                   <span className={styles.extraNote}>
                     {" "}+${extraUsageDollars.toFixed(2)} extra purchased
@@ -243,7 +240,7 @@ export default async function BillingPage({
               <div
                 className={styles.progressFill}
                 style={{
-                  width: `${Math.min(100, (currentUsageDollars / 4) * 100)}%`,
+                  width: `${Math.min(100, (currentUsageDollars / (PRO_LIMIT_CENTS / 100)) * 100)}%`,
                 }}
               />
             </div>

@@ -3,8 +3,7 @@ import ManageSubscriptionButton from "./ManageSubscriptionButton";
 import CancelSubscriptionButton from "./CancelSubscriptionButton";
 import ExtraUsageButton from "./ExtraUsageButton";
 import styles from "./ProfileBillingSection.module.css";
-import { PRO_LIMIT_CENTS } from "@/lib/dal/billing";
-import { EXTRA_USAGE_OPTIONS } from "@/lib/billing-config";
+import { PRO_LIMIT_CENTS, EXTRA_USAGE_OPTIONS } from "@/lib/billing-config";
 import {
   computeBillingState,
   formatPeriodEndDate,
@@ -38,7 +37,6 @@ export default function ProfileBillingSection({
   if (isAdmin) return null;
 
   const usageDollars = currentMonthUsageCents / 100;
-  const limitDollars = PRO_LIMIT_CENTS / 100; // $4.00 fixed
   const extraDollars = extraUsageCents / 100;
 
   const billingState = computeBillingState({
@@ -59,7 +57,7 @@ export default function ProfileBillingSection({
   const periodEndFormatted = currentPeriodEnd ? formatPeriodEndDate(currentPeriodEnd) : undefined;
 
   const pct = billingPlan === "paid"
-    ? Math.min(100, (usageDollars / limitDollars) * 100)
+    ? Math.min(100, (currentMonthUsageCents / PRO_LIMIT_CENTS) * 100)
     : 0;
 
   // Pro allowance exhausted (usage >= $4)
@@ -90,7 +88,7 @@ export default function ProfileBillingSection({
           <div className={styles.row}>
             <span className={styles.label}>This month&apos;s AI usage</span>
             <span className={styles.value}>
-              ${usageDollars.toFixed(2)} / ${limitDollars.toFixed(2)} Pro allowance
+              {Math.round(pct)}% of monthly allowance used
               {proLimitReached && !allUsageExhausted && extraUsageCents > 0 && (
                 <span className={styles.extraBadge}>
                   +${extraRemaining.toFixed(2)} extra remaining
@@ -114,8 +112,8 @@ export default function ProfileBillingSection({
               <p className={styles.extraTitle}>Add Extra AI Usage</p>
               <p className={styles.extraDesc}>
                 {allUsageExhausted
-                  ? "You've used your $4 monthly Pro allowance and all purchased extra usage. Purchase more to re-enable photo identification and the advanced AI model."
-                  : "You've used your $4 monthly Pro allowance. Your purchased extra usage is being drawn from. Add more if needed."}
+                  ? "You've reached your monthly allowance and used all purchased extra usage. Purchase more to re-enable photo identification and the advanced AI model."
+                  : "You've reached your monthly allowance. Your purchased extra usage is being drawn from. Add more if needed."}
               </p>
               <div className={styles.extraButtons}>
                 {EXTRA_USAGE_OPTIONS.map((opt) => (

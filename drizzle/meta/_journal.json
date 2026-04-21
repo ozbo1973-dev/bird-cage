@@ -92,6 +92,13 @@
       "when": 1745112000000,
       "tag": "0012_add_millicents",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1776733371444,
+      "tag": "0013_known_fantastic_four",
+      "breakpoints": true
     }
   ]
 }

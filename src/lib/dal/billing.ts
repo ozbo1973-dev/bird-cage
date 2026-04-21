@@ -2,11 +2,11 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { user as userTable, usageLogs } from "@/db/schema";
 import { getStripe } from "@/lib/stripe";
+import { PRO_LIMIT_CENTS } from "@/lib/billing-config";
 
 export type SubscriptionStatus = "active" | "canceled" | "paused";
 
-/** Fixed monthly AI usage allowance for Pro plan users (in cents). */
-export const PRO_LIMIT_CENTS = 400; // $4.00
+export { PRO_LIMIT_CENTS };
 
 /**
  * Log a usage entry and increment the user's current month usage.
