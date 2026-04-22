@@ -78,3 +78,10 @@ export function selectChatModel(
   return process.env.OPENROUTER_FREE_MODEL ?? FREE_MODEL_DEFAULT;
 }
 
+export function extractCost(usage: unknown): { wholeCents: number; remainderMillicents: number } {
+  const cost = (usage as { cost?: number } | null)?.cost;
+  if (typeof cost !== "number" || !(cost > 0)) return { wholeCents: 0, remainderMillicents: 0 };
+  const totalMillicents = Math.round(cost * 100000);
+  return { wholeCents: Math.floor(totalMillicents / 1000), remainderMillicents: totalMillicents % 1000 };
+}
+

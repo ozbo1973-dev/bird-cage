@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   canAccessPaidFeatures,
   selectChatModel,
+  extractCost,
 } from "@/lib/billing";
 
 // selectChatModel with limit flag
@@ -61,6 +62,31 @@ describe("selectChatModel with limit flag", () => {
     process.env.OPENROUTER_FREE_MODEL = "openrouter/mistral/mistral-7b";
     const model = selectChatModel("user", "paid", true);
     expect(model).toBe("openrouter/mistral/mistral-7b");
+  });
+});
+
+// extractCost
+describe("extractCost", () => {
+  it("returns zero struct when usage is null", () => {
+    expect(extractCost(null)).toEqual({ wholeCents: 0, remainderMillicents: 0 });
+  });
+  it("returns zero struct when usage is undefined", () => {
+    expect(extractCost(undefined)).toEqual({ wholeCents: 0, remainderMillicents: 0 });
+  });
+  it("returns zero struct when usage has no cost field", () => {
+    expect(extractCost({ prompt_tokens: 100 })).toEqual({ wholeCents: 0, remainderMillicents: 0 });
+  });
+  it("returns zero struct when cost is 0", () => {
+    expect(extractCost({ cost: 0 })).toEqual({ wholeCents: 0, remainderMillicents: 0 });
+  });
+  it("returns only remainderMillicents for sub-penny cost ($0.004)", () => {
+    expect(extractCost({ cost: 0.004 })).toEqual({ wholeCents: 0, remainderMillicents: 400 });
+  });
+  it("returns only wholeCents for exact-cent cost ($0.05)", () => {
+    expect(extractCost({ cost: 0.05 })).toEqual({ wholeCents: 5, remainderMillicents: 0 });
+  });
+  it("returns both parts for mixed cost ($0.054)", () => {
+    expect(extractCost({ cost: 0.054 })).toEqual({ wholeCents: 5, remainderMillicents: 400 });
   });
 });
 

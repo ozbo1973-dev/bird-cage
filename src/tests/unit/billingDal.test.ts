@@ -67,6 +67,7 @@ beforeAll(async () => {
       extra_usage_cents           integer NOT NULL DEFAULT 0,
       cancel_at_period_end        integer NOT NULL DEFAULT 0,
       current_period_end          integer,
+      fragment_millicents         integer NOT NULL DEFAULT 0,
       created_at                  integer NOT NULL DEFAULT 0,
       updated_at                  integer NOT NULL DEFAULT 0
     )
@@ -76,9 +77,10 @@ beforeAll(async () => {
     CREATE TABLE IF NOT EXISTS usage_logs (
       id           integer PRIMARY KEY AUTOINCREMENT NOT NULL,
       user_id      text    NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-      model_used   text    NOT NULL,
-      cost_cents   integer NOT NULL DEFAULT 0,
-      created_at   integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+      model_used       text    NOT NULL,
+      cost_cents       integer NOT NULL DEFAULT 0,
+      cost_millicents  integer NOT NULL DEFAULT 0,
+      created_at       integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
     )
   `);
 
@@ -123,7 +125,8 @@ beforeEach(async () => {
             subscription_status = NULL,
             billing_plan = 'paid',
             cancel_at_period_end = 0,
-            current_period_end = NULL
+            current_period_end = NULL,
+            fragment_millicents = 0
           WHERE id IN (?, ?)`,
     args: [USER_ID, USER_ID_2],
   });
@@ -139,7 +142,7 @@ describe("PRO_LIMIT_CENTS", () => {
 // ── logUsage ──────────────────────────────────────────────────────────────────
 describe("logUsage", () => {
   it("inserts a usage log entry", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 10);
+    await logUsage(USER_ID, "openrouter/auto", 10, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT user_id, model_used, cost_cents FROM usage_logs WHERE user_id = ?`,
@@ -152,7 +155,7 @@ describe("logUsage", () => {
   });
 
   it("also increments current_month_usage_cents on the user", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 25);
+    await logUsage(USER_ID, "openrouter/auto", 25, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT current_month_usage_cents FROM "user" WHERE id = ?`,
@@ -162,8 +165,8 @@ describe("logUsage", () => {
   });
 
   it("accumulates multiple usage entries", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 10);
-    await logUsage(USER_ID, "openrouter/openai/gpt-4o", 20);
+    await logUsage(USER_ID, "openrouter/auto", 10, 0);
+    await logUsage(USER_ID, "openrouter/openai/gpt-4o", 20, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT current_month_usage_cents FROM "user" WHERE id = ?`,
@@ -173,11 +176,54 @@ describe("logUsage", () => {
   });
 
   it("does not affect other users", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 50);
+    await logUsage(USER_ID, "openrouter/auto", 50, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT current_month_usage_cents FROM "user" WHERE id = ?`,
       args: [USER_ID_2],
+    });
+    expect(rows.rows[0][0]).toBe(0);
+  });
+
+  it("records cost_millicents in the usage_logs row", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 0, 400);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT cost_cents, cost_millicents FROM usage_logs WHERE user_id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows).toHaveLength(1);
+    expect(rows.rows[0][0]).toBe(0);
+    expect(rows.rows[0][1]).toBe(400);
+  });
+
+  it("accumulates fragment_millicents atomically — 3 calls × 400 millicents promotes 1 cent on 3rd call", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 0, 400);
+    await logUsage(USER_ID, "openrouter/auto", 0, 400);
+
+    const afterTwo = await testState.client!.execute({
+      sql: `SELECT current_month_usage_cents, fragment_millicents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(afterTwo.rows[0][0]).toBe(0);
+    expect(afterTwo.rows[0][1]).toBe(800);
+
+    await logUsage(USER_ID, "openrouter/auto", 0, 400);
+
+    const afterThree = await testState.client!.execute({
+      sql: `SELECT current_month_usage_cents, fragment_millicents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(afterThree.rows[0][0]).toBe(1);
+    expect(afterThree.rows[0][1]).toBe(200);
+  });
+
+  it("makes no DB call when both wholeCents and remainderMillicents are 0", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 0, 0);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT COUNT(*) FROM usage_logs WHERE user_id = ?`,
+      args: [USER_ID],
     });
     expect(rows.rows[0][0]).toBe(0);
   });
@@ -191,7 +237,7 @@ describe("getCurrentMonthUsage", () => {
   });
 
   it("returns the current month usage in cents", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 42);
+    await logUsage(USER_ID, "openrouter/auto", 42, 0);
 
     const usage = await getCurrentMonthUsage(USER_ID);
     expect(usage).toBe(42);
@@ -206,28 +252,28 @@ describe("getCurrentMonthUsage", () => {
 // ── isLimitReached ────────────────────────────────────────────────────────────
 describe("isLimitReached", () => {
   it("returns false when usage is below the $4 Pro limit (no extra usage)", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 399);
+    await logUsage(USER_ID, "openrouter/auto", 399, 0);
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(false);
   });
 
   it("returns true when usage equals the $4 Pro limit (no extra usage)", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 400);
+    await logUsage(USER_ID, "openrouter/auto", 400, 0);
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(true);
   });
 
   it("returns true when usage exceeds the $4 Pro limit (no extra usage)", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 450);
+    await logUsage(USER_ID, "openrouter/auto", 450, 0);
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(true);
   });
 
   it("returns false when usage exceeds $4 but extra usage covers it", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 450);
+    await logUsage(USER_ID, "openrouter/auto", 450, 0);
     await addExtraUsage(USER_ID, 200); // $2 extra
 
     const reached = await isLimitReached(USER_ID);
@@ -236,7 +282,7 @@ describe("isLimitReached", () => {
 
   it("returns true when usage exhausts both $4 Pro limit and extra usage", async () => {
     await addExtraUsage(USER_ID, 200); // $2 extra
-    await logUsage(USER_ID, "openrouter/auto", 600); // usage >= 400 + 200
+    await logUsage(USER_ID, "openrouter/auto", 600, 0); // usage >= 400 + 200
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(true);
@@ -244,7 +290,7 @@ describe("isLimitReached", () => {
 
   it("returns false when usage equals exactly $4 + extra usage (still within limit)", async () => {
     await addExtraUsage(USER_ID, 200); // $2 extra = total $6 budget
-    await logUsage(USER_ID, "openrouter/auto", 599); // just under $6
+    await logUsage(USER_ID, "openrouter/auto", 599, 0); // just under $6
 
     const reached = await isLimitReached(USER_ID);
     expect(reached).toBe(false);
@@ -259,13 +305,13 @@ describe("isLimitReached", () => {
 // ── isProAllowanceReached ─────────────────────────────────────────────────────
 describe("isProAllowanceReached", () => {
   it("returns false when usage is below $4", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 399);
+    await logUsage(USER_ID, "openrouter/auto", 399, 0);
     expect(await isProAllowanceReached(USER_ID)).toBe(false);
   });
 
   it("returns true when usage reaches $4 even with extra usage remaining", async () => {
     await addExtraUsage(USER_ID, 1000);
-    await logUsage(USER_ID, "openrouter/auto", 400);
+    await logUsage(USER_ID, "openrouter/auto", 400, 0);
     expect(await isProAllowanceReached(USER_ID)).toBe(true);
   });
 
@@ -377,7 +423,7 @@ describe("setStripeSubscriptionId", () => {
 // ── resetMonthlyUsage ─────────────────────────────────────────────────────────
 describe("resetMonthlyUsage", () => {
   it("resets current_month_usage_cents to 0", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 200);
+    await logUsage(USER_ID, "openrouter/auto", 200, 0);
     await resetMonthlyUsage(USER_ID);
 
     const rows = await testState.client!.execute({
@@ -399,8 +445,8 @@ describe("resetMonthlyUsage", () => {
   });
 
   it("does not affect other users", async () => {
-    await logUsage(USER_ID, "openrouter/auto", 100);
-    await logUsage(USER_ID_2, "openrouter/auto", 50);
+    await logUsage(USER_ID, "openrouter/auto", 100, 0);
+    await logUsage(USER_ID_2, "openrouter/auto", 50, 0);
     await resetMonthlyUsage(USER_ID);
 
     const rows = await testState.client!.execute({
@@ -433,6 +479,17 @@ describe("resetMonthlyUsage", () => {
       args: [USER_ID],
     });
     expect(rows.rows[0][0]).toBe(1700000000);
+  });
+
+  it("resets fragment_millicents to 0 alongside current_month_usage_cents", async () => {
+    await logUsage(USER_ID, "openrouter/auto", 0, 400);
+    await resetMonthlyUsage(USER_ID);
+
+    const rows = await testState.client!.execute({
+      sql: `SELECT fragment_millicents FROM "user" WHERE id = ?`,
+      args: [USER_ID],
+    });
+    expect(rows.rows[0][0]).toBe(0);
   });
 });
 
@@ -547,7 +604,7 @@ describe("reactivateSubscription", () => {
 
   it("does NOT reset current month usage", async () => {
     await setStripeCustomerId(USER_ID, "cus_react2");
-    await logUsage(USER_ID, "openrouter/auto", 150);
+    await logUsage(USER_ID, "openrouter/auto", 150, 0);
     await reactivateSubscription("cus_react2", 1820000000);
 
     const rows = await testState.client!.execute({
@@ -612,7 +669,7 @@ describe("logUsage drain state flip", () => {
       sql: `UPDATE "user" SET subscription_status = 'canceled' WHERE id = ?`,
       args: [USER_ID],
     });
-    await logUsage(USER_ID, "openrouter/auto", 500);
+    await logUsage(USER_ID, "openrouter/auto", 500, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
@@ -624,7 +681,7 @@ describe("logUsage drain state flip", () => {
   it("does NOT flip billing_plan when active subscription user hits limit", async () => {
     // Active subscription: stripeSubscriptionId is set
     await setStripeSubscriptionId(USER_ID, "sub_active");
-    await logUsage(USER_ID, "openrouter/auto", 500);
+    await logUsage(USER_ID, "openrouter/auto", 500, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
@@ -639,7 +696,7 @@ describe("logUsage drain state flip", () => {
       sql: `UPDATE "user" SET subscription_status = 'canceled' WHERE id = ?`,
       args: [USER_ID],
     });
-    await logUsage(USER_ID, "openrouter/auto", 400); // usage = 400, below 600
+    await logUsage(USER_ID, "openrouter/auto", 400, 0); // usage = 400, below 600
 
     const rows = await testState.client!.execute({
       sql: `SELECT billing_plan FROM "user" WHERE id = ?`,
@@ -651,7 +708,7 @@ describe("logUsage drain state flip", () => {
   it("does NOT flip billing_plan for paid user with null subscriptionStatus", async () => {
     // User has no subscription set (fresh signup) — not drain state
     await addExtraUsage(USER_ID, 200);
-    await logUsage(USER_ID, "openrouter/auto", 600);
+    await logUsage(USER_ID, "openrouter/auto", 600, 0);
 
     const rows = await testState.client!.execute({
       sql: `SELECT billing_plan FROM "user" WHERE id = ?`,

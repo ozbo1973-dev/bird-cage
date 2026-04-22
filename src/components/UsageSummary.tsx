@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styles from "./UsageSummary.module.css";
-import { PRO_LIMIT_CENTS } from "@/lib/dal/billing";
+import { PRO_LIMIT_CENTS } from "@/lib/billing-config";
 
 interface Props {
   currentMonthUsageCents: number;
@@ -18,9 +18,7 @@ export default function UsageSummary({
   if (isAdmin) return null;
   if (billingPlan !== "paid") return null;
 
-  const usageDollars = currentMonthUsageCents / 100;
-  const limitDollars = PRO_LIMIT_CENTS / 100;
-  const pct = Math.min(100, (usageDollars / limitDollars) * 100);
+  const pct = Math.min(100, (currentMonthUsageCents / PRO_LIMIT_CENTS) * 100);
   const proLimitReached = currentMonthUsageCents >= PRO_LIMIT_CENTS;
   const allUsageExhausted = currentMonthUsageCents >= PRO_LIMIT_CENTS + extraUsageCents;
 
@@ -34,8 +32,8 @@ export default function UsageSummary({
       </div>
 
       <div className={styles.amounts}>
-        <span className={styles.usage}>${usageDollars.toFixed(2)}</span>
-        <span className={styles.limit}>/ ${limitDollars.toFixed(2)} Pro allowance</span>
+        <span className={styles.usage}>{Math.round(pct)}%</span>
+        <span className={styles.limit}>of monthly allowance used</span>
         {proLimitReached && !allUsageExhausted && extraUsageCents > 0 && (
           <span className={styles.extra}>
             +${(extraUsageCents / 100).toFixed(2)} extra

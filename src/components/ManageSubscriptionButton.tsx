@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function ManageSubscriptionButton({
-  label = "Manage Subscription",
+  label = "Update Payment Method",
   className,
 }: Props) {
   const [loading, setLoading] = useState(false);

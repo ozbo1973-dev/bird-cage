@@ -3,12 +3,14 @@ import { auth } from "@/lib/auth";
 import { getStripe } from "@/lib/stripe";
 import { getAuthBaseUrl } from "@/lib/get-auth-base-url";
 import { getStripeCustomerId } from "@/lib/dal/billing";
+import {
+  EXTRA_USAGE_OPTIONS,
+  type ExtraUsageCents,
+} from "@/lib/billing-config";
 
-const ALLOWED_AMOUNTS = [200, 500] as const; // $2 or $5 in cents
+const ALLOWED_AMOUNTS = EXTRA_USAGE_OPTIONS.map((o) => o.cents) as unknown as readonly ExtraUsageCents[];
 
-type AllowedAmount = (typeof ALLOWED_AMOUNTS)[number];
-
-function getPriceId(amountCents: AllowedAmount): string | undefined {
+function getPriceId(amountCents: ExtraUsageCents): string | undefined {
   if (amountCents === 200) return process.env.STRIPE_EXTRA_USAGE_2_PRICE_ID;
   if (amountCents === 500) return process.env.STRIPE_EXTRA_USAGE_5_PRICE_ID;
 }
@@ -23,14 +25,14 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as { amountCents?: number };
   const amountCents = body.amountCents;
 
-  if (!ALLOWED_AMOUNTS.includes(amountCents as AllowedAmount)) {
+  if (!ALLOWED_AMOUNTS.includes(amountCents as ExtraUsageCents)) {
     return NextResponse.json(
-      { error: "Invalid amount. Must be 200 ($2) or 500 ($5)." },
+      { error: `Invalid amount. Must be one of: ${ALLOWED_AMOUNTS.join(", ")} cents.` },
       { status: 400 },
     );
   }
 
-  const priceId = getPriceId(amountCents as AllowedAmount);
+  const priceId = getPriceId(amountCents as ExtraUsageCents);
   if (!priceId) {
     return NextResponse.json(
       { error: "Extra usage price not configured for this amount" },

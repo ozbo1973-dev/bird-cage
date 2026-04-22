@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import styles from "./ExtraUsageButton.module.css";
+import type { ExtraUsageCents } from "@/lib/billing-config";
 
 interface Props {
-  amountCents: 200 | 500;
+  amountCents: ExtraUsageCents;
   label: string;
 }
 

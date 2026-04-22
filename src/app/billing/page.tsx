@@ -1,10 +1,18 @@
+import { SUBSCRIPTION_PRICE_DOLLARS, PRO_LIMIT_CENTS } from "@/lib/billing-config";
 import { requireVerifiedAuth } from "@/lib/session";
 import { getUserBillingInfo } from "@/lib/billing";
-import { getBillingInfo } from "@/lib/dal/billing";
+import { getBillingInfo, syncSubscriptionFromStripe } from "@/lib/dal/billing";
 import BillingCheckoutButton from "@/components/BillingCheckoutButton";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import CancelSubscriptionButton from "@/components/CancelSubscriptionButton";
 import NavDropdown from "@/components/NavDropdown";
 import Link from "next/link";
+import {
+  computeBillingState,
+  formatPeriodEndDate,
+  getPlanLabel,
+  getVisibleActions,
+} from "@/lib/billing-ui";
 import styles from "./page.module.css";
 
 export default async function BillingPage({
@@ -14,14 +22,34 @@ export default async function BillingPage({
 }) {
   const session = await requireVerifiedAuth();
   const { success, canceled } = await searchParams;
+  await syncSubscriptionFromStripe(session.user.id);
   const info = await getUserBillingInfo(session.user.id);
   const billingDetails = await getBillingInfo(session.user.id);
   const currentPlan = info?.billingPlan ?? "free";
   const isAdmin = info?.role === "admin";
   const subscriptionStatus = billingDetails?.subscriptionStatus ?? null;
-  const hasStripeSubscription = !!billingDetails?.stripeCustomerId;
+  const cancelAtPeriodEnd = billingDetails?.cancelAtPeriodEnd ?? false;
+  const currentPeriodEnd = billingDetails?.currentPeriodEnd ?? null;
+  const stripeSubscriptionId = billingDetails?.stripeSubscriptionId ?? null;
   const currentUsageDollars = (billingDetails?.currentMonthUsageCents ?? 0) / 100;
   const extraUsageDollars = (billingDetails?.extraUsageCents ?? 0) / 100;
+
+  const billingState = computeBillingState({
+    currentPlan,
+    isAdmin,
+    subscriptionStatus,
+    cancelAtPeriodEnd,
+    stripeSubscriptionId,
+  });
+  const visibleActions = getVisibleActions(billingState);
+  const planLabel = getPlanLabel({
+    currentPlan,
+    isAdmin,
+    cancelAtPeriodEnd,
+    isDraining: billingState === "draining",
+    subscriptionStatus,
+  });
+  const periodEndFormatted = currentPeriodEnd ? formatPeriodEndDate(currentPeriodEnd) : undefined;
 
   return (
     <div className={styles.page}>
@@ -55,12 +83,7 @@ export default async function BillingPage({
               : "Start free and upgrade when you're ready for more powerful AI features."}
           </p>
           <span className={styles.currentPlan}>
-            Current plan:{" "}
-            {isAdmin
-              ? "Admin (all access)"
-              : currentPlan === "paid"
-                ? `Paid${subscriptionStatus ? ` (${subscriptionStatus})` : ""}`
-                : "Free"}
+            Current plan: {planLabel}
           </span>
         </div>
 
@@ -116,7 +139,7 @@ export default async function BillingPage({
             </div>
 
             <p className={styles.planPrice}>
-              $9 <span>/ month</span>
+              ${SUBSCRIPTION_PRICE_DOLLARS} <span>/ month</span>
             </p>
 
             <ul className={styles.featureList}>
@@ -134,11 +157,11 @@ export default async function BillingPage({
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                $4/month AI usage included
+                Monthly AI usage allowance included
               </li>
               <li className={styles.featureItem}>
                 <span className={styles.featureCheck}>✓</span>
-                Add extra AI usage ($2 or $10) when needed
+                Add extra AI usage ($2 or $5) when needed
               </li>
             </ul>
 
@@ -146,14 +169,44 @@ export default async function BillingPage({
               <div className={styles.activeBadge}>Admin — Full Access</div>
             ) : currentPlan === "paid" ? (
               <div>
-                <div className={styles.activeBadge}>
-                  {subscriptionStatus === "paused"
-                    ? "Payment Issue — Update Payment"
-                    : "Current Plan"}
-                </div>
-                {hasStripeSubscription && (
+                {billingState === "canceling" && periodEndFormatted && (
+                  <div className={styles.cancelingBadge}>
+                    Active until {periodEndFormatted}
+                  </div>
+                )}
+                {billingState === "draining" ? (
+                  <div className={styles.drainNotice}>
+                    Your subscription has ended. You have ${extraUsageDollars.toFixed(2)} in unused
+                    credits remaining — paid features stay active until they&apos;re used up.
+                  </div>
+                ) : (
+                  <div className={styles.activeBadge}>
+                    {subscriptionStatus === "paused"
+                      ? "Payment Issue — Update Payment"
+                      : "Current Plan"}
+                  </div>
+                )}
+                {visibleActions.showCancel && (
                   <div className={styles.manageRow}>
-                    <ManageSubscriptionButton label="Manage / Cancel Subscription" />
+                    <CancelSubscriptionButton
+                      action="cancel"
+                      label="Cancel Subscription"
+                      periodEndDate={periodEndFormatted}
+                      extraUsageDollars={extraUsageDollars}
+                    />
+                  </div>
+                )}
+                {visibleActions.showUpdatePayment && (
+                  <div className={styles.manageRow}>
+                    <ManageSubscriptionButton />
+                  </div>
+                )}
+                {visibleActions.showResubscribe && (
+                  <div className={styles.manageRow}>
+                    <CancelSubscriptionButton
+                      action="reactivate"
+                      label="Resubscribe"
+                    />
                   </div>
                 )}
               </div>
@@ -168,16 +221,13 @@ export default async function BillingPage({
           <div className={styles.spendingSection}>
             <h3 className={styles.sectionTitle}>AI Usage This Month</h3>
             <p className={styles.sectionDesc}>
-              Your Pro plan includes $4.00 of AI usage per month. When the
-              allowance is reached, you can purchase extra usage ($2 or $10)
-              from your profile page. Unused extra usage does not carry over to
-              the next month.
+              AI usage is metered. Purchase extra usage when your monthly allowance is reached. Extra usage never expires.
             </p>
 
             <div className={styles.usageRow}>
               <span className={styles.usageLabel}>This month&apos;s usage:</span>
               <span className={styles.usageValue}>
-                ${currentUsageDollars.toFixed(2)} / $4.00 Pro allowance
+                {Math.round(Math.min(100, (currentUsageDollars / (PRO_LIMIT_CENTS / 100)) * 100))}% of monthly allowance
                 {extraUsageDollars > 0 && (
                   <span className={styles.extraNote}>
                     {" "}+${extraUsageDollars.toFixed(2)} extra purchased
@@ -190,7 +240,7 @@ export default async function BillingPage({
               <div
                 className={styles.progressFill}
                 style={{
-                  width: `${Math.min(100, (currentUsageDollars / 4) * 100)}%`,
+                  width: `${Math.min(100, (currentUsageDollars / (PRO_LIMIT_CENTS / 100)) * 100)}%`,
                 }}
               />
             </div>

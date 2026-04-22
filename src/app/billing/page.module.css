@@ -354,3 +354,28 @@
   color: var(--color-success, #2e7d32);
   font-weight: 500;
 }
+
+.cancelingBadge {
+  display: inline-block;
+  background: var(--color-bg-yellow-light);
+  color: #b45309;
+  border: 1px solid var(--color-primary-yellow);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.drainNotice {
+  background: var(--color-bg-yellow-light);
+  border: 1px solid var(--color-primary-yellow);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  font-size: 0.9rem;
+  color: var(--color-primary-navy);
+  margin-bottom: 0.75rem;
+}

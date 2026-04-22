@@ -18,6 +18,9 @@ export const auth = betterAuth({
     ...(process.env.VERCEL_URL
       ? [`https://${process.env.VERCEL_URL}`]
       : []),
+    ...(process.env.VERCEL_BRANCH_URL
+      ? [`https://${process.env.VERCEL_BRANCH_URL}`]
+      : []),
   ],
   database: drizzleAdapter(db, { provider: "sqlite" }),
   emailAndPassword: {
