@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import NavDropdown from "@/components/NavDropdown";
 import { getTitlePreFill } from "@/lib/birdyChatUtils";
 import type { BillingPlan } from "@/lib/billing";
 import styles from "./BirdyChatPage.module.css";
@@ -155,7 +156,7 @@ export default function BirdyChatPage({ billingPlan, isAdmin }: Props) {
         <Link href="/dashboard" className={styles.back}>
           ← Dashboard
         </Link>
-        <h1 className={styles.title}>Birdy Chat</h1>
+        <h1 className={styles.title}>Let&apos;s Talk Birdy</h1>
         <div className={styles.headerRight}>
           <span className={isPro ? styles.proBadge : styles.freeBadge}>
             {isPro ? "Pro" : "Free"} model
@@ -163,6 +164,7 @@ export default function BirdyChatPage({ billingPlan, isAdmin }: Props) {
           <Link href="/birdy-chat/discussions" className={styles.viewDiscussions}>
             View Saved Discussions
           </Link>
+          <NavDropdown isAdmin={isAdmin} returnPath="/birdy-chat" />
         </div>
       </header>
 
