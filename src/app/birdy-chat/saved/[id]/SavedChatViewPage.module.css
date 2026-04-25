@@ -101,4 +101,5 @@
   background: var(--color-bg-white);
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
 }
