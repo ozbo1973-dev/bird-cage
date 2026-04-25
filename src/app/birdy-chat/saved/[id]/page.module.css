@@ -1,0 +1,170 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-light);
+}
+
+.header {
+  background: linear-gradient(135deg, var(--color-primary-navy) 0%, #0a3566 60%, #0d3d74 100%);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 2px 12px rgba(3, 33, 71, 0.25);
+}
+
+.logo {
+  display: block;
+  width: 200px !important;
+  height: auto !important;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.username {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.875rem;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.backLink {
+  font-size: 0.875rem;
+  color: var(--color-primary-blue);
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.backLink:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 1.4rem;
+  color: var(--color-primary-navy);
+  margin: 0;
+}
+
+.title svg {
+  color: var(--color-primary-blue);
+  flex-shrink: 0;
+}
+
+.date {
+  font-size: 0.8rem;
+  color: var(--color-text-medium);
+}
+
+/* Transcript */
+.transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bubbleUser,
+.bubbleAssistant {
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  max-width: 85%;
+}
+
+.bubbleUser {
+  background: var(--color-primary-navy);
+  color: #fff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.bubbleAssistant {
+  background: var(--color-bg-white);
+  color: var(--color-text-chat, #333);
+  border: 1px solid var(--color-border-chat, #cce8f5);
+  align-self: flex-start;
+}
+
+.bubbleRole {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  opacity: 0.65;
+}
+
+.bubbleUser .bubbleRole {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.bubbleAssistant .bubbleRole {
+  color: var(--color-primary-blue);
+}
+
+.bubbleContent {
+  margin: 0;
+  font-size: 0.925rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-medium);
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 0.6rem 1rem;
+  }
+
+  .logo {
+    width: 130px !important;
+  }
+
+  .username {
+    display: none;
+  }
+
+  .main {
+    padding: 1rem;
+  }
+
+  .bubbleUser,
+  .bubbleAssistant {
+    max-width: 95%;
+  }
+}

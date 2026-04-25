@@ -182,6 +182,25 @@ export const emailLogs = sqliteTable(
   ],
 );
 
+export const chatDiscussions = sqliteTable(
+  "chat_discussions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    messages: text("messages").notNull().default("[]"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("chat_discussions_userId_idx").on(table.userId)],
+);
+
+export type ChatDiscussion = typeof chatDiscussions.$inferSelect;
+export type NewChatDiscussion = typeof chatDiscussions.$inferInsert;
+
 export type EmailLog = typeof emailLogs.$inferSelect;
 export type NewEmailLog = typeof emailLogs.$inferInsert;
 export type UsageLog = typeof usageLogs.$inferSelect;
@@ -195,6 +214,11 @@ export const userRelations = relations(user, ({ many }) => ({
   sentEmails: many(emailLogs, { relationName: "sentEmails" }),
   receivedEmails: many(emailLogs, { relationName: "receivedEmails" }),
   usageLogs: many(usageLogs),
+  chatDiscussions: many(chatDiscussions),
+}));
+
+export const chatDiscussionRelations = relations(chatDiscussions, ({ one }) => ({
+  user: one(user, { fields: [chatDiscussions.userId], references: [user.id] }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
