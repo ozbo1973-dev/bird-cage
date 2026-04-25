@@ -6,7 +6,12 @@ const mocks = vi.hoisted(() => ({
   setFontSize: vi.fn(),
   setFont: vi.fn(),
   splitTextToSize: vi.fn((str: string) => [str]),
+  setDrawColor: vi.fn(),
+  setLineWidth: vi.fn(),
+  line: vi.fn(),
+  addPage: vi.fn(),
   getPageWidth: vi.fn().mockReturnValue(210),
+  getPageHeight: vi.fn().mockReturnValue(297),
 }));
 
 vi.mock("jspdf", () => ({
@@ -16,7 +21,11 @@ vi.mock("jspdf", () => ({
     setFontSize = mocks.setFontSize;
     setFont = mocks.setFont;
     splitTextToSize = mocks.splitTextToSize;
-    internal = { pageSize: { getWidth: mocks.getPageWidth } };
+    setDrawColor = mocks.setDrawColor;
+    setLineWidth = mocks.setLineWidth;
+    line = mocks.line;
+    addPage = mocks.addPage;
+    internal = { pageSize: { getWidth: mocks.getPageWidth, getHeight: mocks.getPageHeight } };
   },
 }));
 
@@ -87,5 +96,18 @@ describe("generateChatPDF", () => {
     generateChatPDF("Chat", new Date(), messages);
 
     expect(mocks.splitTextToSize).toHaveBeenCalledTimes(messages.length);
+  });
+
+  it("draws a horizontal divider line instead of text dashes", () => {
+    generateChatPDF("Chat", new Date(), messages);
+
+    expect(mocks.line).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses a narrower content width with larger right margin to prevent cutoff", () => {
+    generateChatPDF("Chat", new Date(), messages);
+
+    // contentWidth = 210 - 15 (left) - 20 (right) = 175
+    expect(mocks.splitTextToSize).toHaveBeenCalledWith(expect.any(String), 175);
   });
 });

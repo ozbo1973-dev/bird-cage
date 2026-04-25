@@ -34,14 +34,16 @@ export function generateChatPDF(
 ): void {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 15;
-  const contentWidth = pageWidth - margin * 2;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const leftMargin = 15;
+  const rightMargin = 20;
+  const contentWidth = pageWidth - leftMargin - rightMargin;
   let y = 20;
 
   // Title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text(title, margin, y);
+  doc.text(title, leftMargin, y);
   y += 8;
 
   // Date
@@ -52,12 +54,13 @@ export function generateChatPDF(
     month: "long",
     day: "numeric",
   });
-  doc.text(dateStr, margin, y);
+  doc.text(dateStr, leftMargin, y);
   y += 10;
 
-  // Divider via a thin line of dashes
-  doc.setFontSize(10);
-  doc.text("─".repeat(60), margin, y);
+  // Divider line
+  doc.setDrawColor(180, 180, 180);
+  doc.setLineWidth(0.3);
+  doc.line(leftMargin, y, pageWidth - rightMargin, y);
   y += 8;
 
   // Messages
@@ -66,18 +69,18 @@ export function generateChatPDF(
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text(label, margin, y);
+    doc.text(label, leftMargin, y);
     y += 5;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     const lines = doc.splitTextToSize(message.content, contentWidth);
     for (const line of lines) {
-      if (y > 280) {
+      if (y > pageHeight - 20) {
         doc.addPage();
         y = 20;
       }
-      doc.text(line, margin, y);
+      doc.text(line, leftMargin, y);
       y += 5;
     }
     y += 4;
