@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Menu, Home, UserCircle, Shield, Download, LogOut, CreditCard, MessageSquare } from "lucide-react";
+import { Menu, Home, UserCircle, Shield, Download, LogOut, CreditCard, MessageSquare, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authClient } from "../lib/auth-client";
 import styles from "./NavDropdown.module.css";
@@ -72,6 +72,14 @@ export default function NavDropdown({ returnPath = "/dashboard", isAdmin = false
           >
             <MessageSquare size={16} />
             Birdy Chat
+          </Link>
+          <Link
+            href="/birdy-chat/saved"
+            className={styles.menuItem}
+            onClick={() => setOpen(false)}
+          >
+            <BookOpen size={16} />
+            Saved Chats
           </Link>
           <Link
             href="/billing"

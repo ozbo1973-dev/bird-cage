@@ -1,0 +1,127 @@
+.page {
+  min-height: 100vh;
+  background: var(--color-bg-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: var(--color-primary-navy);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.backLink {
+  color: var(--color-primary-blue);
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+}
+
+.main {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-gray);
+}
+
+.startChatLink {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--color-primary-blue);
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.startChatLink:hover {
+  opacity: 0.9;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card {
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border-medium);
+  border-radius: 8px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+
+.card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cardBody {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary-navy);
+}
+
+.cardDate {
+  font-size: 0.8125rem;
+  color: var(--color-text-gray);
+}
+
+.cardPreview {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-left: 1px solid var(--color-border-light-gray);
+}
