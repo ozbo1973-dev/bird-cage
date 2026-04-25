@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 
 /**
  * Mirrors the menu item list built by NavDropdown based on the isAdmin and hasEvents props.
- * Home, Profile, Billing, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
+ * Home, Profile, Billing, Saved Chats, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
  */
 function getNavMenuItems(isAdmin: boolean, hasEvents = true): string[] {
-  const items = ["Home", "Profile", "Billing"];
+  const items = ["Home", "Profile", "Billing", "Saved Chats"];
   if (isAdmin) items.push("Admin Management");
   if (hasEvents) items.push("Download CSV");
   items.push("Sign Out");
@@ -103,6 +103,23 @@ describe("shouldShowAdminMenuItem", () => {
 describe("NavDropdown Home link href", () => {
   it("Home link points to /dashboard", () => {
     expect(HOME_HREF).toBe("/dashboard");
+  });
+});
+
+describe("NavDropdown Saved Chats menu item", () => {
+  it("renders Saved Chats for non-admin users", () => {
+    expect(getNavMenuItems(false)).toContain("Saved Chats");
+  });
+
+  it("renders Saved Chats for admin users", () => {
+    expect(getNavMenuItems(true)).toContain("Saved Chats");
+  });
+
+  it("Saved Chats appears after Billing", () => {
+    const items = getNavMenuItems(false);
+    const billingIndex = items.indexOf("Billing");
+    const savedChatsIndex = items.indexOf("Saved Chats");
+    expect(savedChatsIndex).toBeGreaterThan(billingIndex);
   });
 });
 
