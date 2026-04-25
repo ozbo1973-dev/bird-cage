@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
  * Home, Profile, Billing, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
  */
 function getNavMenuItems(isAdmin: boolean, hasEvents = true): string[] {
-  const items = ["Home", "Profile", "Billing"];
+  const items = ["Home", "Profile", "Billing", "Talk to Birdy"];
   if (isAdmin) items.push("Admin Management");
   if (hasEvents) items.push("Download CSV");
   items.push("Sign Out");
@@ -19,6 +19,9 @@ function shouldShowAdminMenuItem(isAdmin: boolean): boolean {
 
 /** The href for the Home menu item */
 const HOME_HREF = "/dashboard";
+
+/** The href for the Talk to Birdy menu item */
+const BIRDY_CHAT_HREF = "/birdy-chat";
 
 describe("NavDropdown menu items for non-admin users", () => {
   it("renders Home menu item", () => {
@@ -121,5 +124,33 @@ describe("NavDropdown Download CSV visibility based on hasEvents", () => {
 
   it("shows Download CSV by default (hasEvents defaults to true)", () => {
     expect(getNavMenuItems(false)).toContain("Download CSV");
+  });
+});
+
+describe("NavDropdown Talk to Birdy menu item", () => {
+  it("renders Talk to Birdy for non-admin users", () => {
+    expect(getNavMenuItems(false)).toContain("Talk to Birdy");
+  });
+
+  it("renders Talk to Birdy for admin users", () => {
+    expect(getNavMenuItems(true)).toContain("Talk to Birdy");
+  });
+
+  it("Talk to Birdy appears after Billing", () => {
+    const items = getNavMenuItems(false);
+    const billingIndex = items.indexOf("Billing");
+    const birdyIndex = items.indexOf("Talk to Birdy");
+    expect(birdyIndex).toBeGreaterThan(billingIndex);
+  });
+
+  it("Talk to Birdy appears after Billing for admin users", () => {
+    const items = getNavMenuItems(true);
+    const billingIndex = items.indexOf("Billing");
+    const birdyIndex = items.indexOf("Talk to Birdy");
+    expect(birdyIndex).toBeGreaterThan(billingIndex);
+  });
+
+  it("Talk to Birdy link points to /birdy-chat", () => {
+    expect(BIRDY_CHAT_HREF).toBe("/birdy-chat");
   });
 });

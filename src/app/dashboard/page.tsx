@@ -4,7 +4,7 @@ import { getUserById } from "../../lib/dal/users";
 import { getBillingInfo } from "../../lib/dal/billing";
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarPlus, Zap } from "lucide-react";
+import { CalendarPlus, Zap, MessageCircle } from "lucide-react";
 import NavDropdown from "../../components/NavDropdown";
 import DashboardTabs from "../../components/DashboardTabs";
 import UsageSummary from "../../components/UsageSummary";
@@ -42,6 +42,13 @@ export default async function DashboardPage({
         />
         <div className={styles.headerActions}>
           <span className={styles.username}>Welcome, {session.user.name}</span>
+          <Link
+            href="/birdy-chat"
+            className={`${styles.talkToBirdyBtn} ${styles.headerTalkToBirdyBtn}`}
+          >
+            <MessageCircle size={16} />
+            Talk to Birdy
+          </Link>
           <Link
             href="/events/new"
             className={`${styles.newEventBtn} ${styles.headerNewEventBtn}`}
