@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
  * Home, Profile, Birdy Chat, Billing, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
  */
 function getNavMenuItems(isAdmin: boolean, hasEvents = true): string[] {
-  const items = ["Home", "Profile", "Birdy Chat", "Billing"];
+  const items = ["Home", "Profile", "Birdy Chat", "Saved Chats", "Billing"];
   if (isAdmin) items.push("Admin Management");
   if (hasEvents) items.push("Download CSV");
   items.push("Sign Out");
@@ -138,5 +138,29 @@ describe("NavDropdown Download CSV visibility based on hasEvents", () => {
 
   it("shows Download CSV by default (hasEvents defaults to true)", () => {
     expect(getNavMenuItems(false)).toContain("Download CSV");
+  });
+});
+
+describe("NavDropdown Saved Chats menu item", () => {
+  it("renders Saved Chats menu item for non-admin users", () => {
+    expect(getNavMenuItems(false)).toContain("Saved Chats");
+  });
+
+  it("renders Saved Chats menu item for admin users", () => {
+    expect(getNavMenuItems(true)).toContain("Saved Chats");
+  });
+
+  it("Saved Chats appears after Birdy Chat", () => {
+    const items = getNavMenuItems(false);
+    const birdyChatIndex = items.indexOf("Birdy Chat");
+    const savedChatsIndex = items.indexOf("Saved Chats");
+    expect(savedChatsIndex).toBeGreaterThan(birdyChatIndex);
+  });
+
+  it("Saved Chats appears before Billing", () => {
+    const items = getNavMenuItems(false);
+    const savedChatsIndex = items.indexOf("Saved Chats");
+    const billingIndex = items.indexOf("Billing");
+    expect(savedChatsIndex).toBeLessThan(billingIndex);
   });
 });
