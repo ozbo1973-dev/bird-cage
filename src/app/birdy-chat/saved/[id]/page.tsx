@@ -5,6 +5,7 @@ import { getBirdyChat } from "@/lib/dal/birdyChats";
 import { formatChatDate } from "@/lib/savedChatsUtils";
 import NavDropdown from "@/components/NavDropdown";
 import DeleteChatButton from "@/components/DeleteChatButton";
+import DownloadChatButton from "@/components/DownloadChatButton";
 import styles from "./SavedChatViewPage.module.css";
 
 export default async function SavedChatViewPage({
@@ -55,6 +56,11 @@ export default async function SavedChatViewPage({
       </main>
 
       <footer className={styles.footer}>
+        <DownloadChatButton
+          title={chat.title}
+          date={chat.createdAt}
+          messages={chat.messages}
+        />
         <DeleteChatButton chatId={chat.id} redirectAfterDelete />
       </footer>
     </div>
