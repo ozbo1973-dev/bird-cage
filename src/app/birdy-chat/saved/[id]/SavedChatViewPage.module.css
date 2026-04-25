@@ -6,8 +6,8 @@
 }
 
 .header {
-  background: var(--color-primary-navy);
-  color: white;
+  background: var(--color-bg-white);
+  border-bottom: 1px solid var(--color-border-medium);
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
@@ -35,12 +35,12 @@
   margin: 0 0 0.1rem;
   font-size: 1.125rem;
   font-weight: 600;
-  color: white;
+  color: var(--color-primary-navy);
 }
 
 .date {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--color-text-gray);
 }
 
 .main {
