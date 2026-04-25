@@ -161,7 +161,7 @@ export default function BirdyChatPage({ billingPlan, isAdmin }: Props) {
           <span className={isPro ? styles.proBadge : styles.freeBadge}>
             {isPro ? "Pro" : "Free"} model
           </span>
-          <Link href="/birdy-chat/discussions" className={styles.viewDiscussions}>
+          <Link href="/birdy-chat/saved" className={styles.viewDiscussions}>
             View Saved Discussions
           </Link>
           <NavDropdown isAdmin={isAdmin} returnPath="/birdy-chat" />
@@ -193,7 +193,7 @@ export default function BirdyChatPage({ billingPlan, isAdmin }: Props) {
           {savedChatId !== null && (
             <div className={styles.savedBanner}>
               Discussion saved.{" "}
-              <Link href={`/birdy-chat/discussions/${savedChatId}`} className={styles.savedLink}>
+              <Link href={`/birdy-chat/saved/${savedChatId}`} className={styles.savedLink}>
                 View saved discussion
               </Link>
             </div>
