@@ -35,16 +35,17 @@ export function generateChatPDF(
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const leftMargin = 15;
-  const rightMargin = 20;
+  const leftMargin = 20;
+  const rightMargin = 25;
   const contentWidth = pageWidth - leftMargin - rightMargin;
   let y = 20;
 
   // Title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text(title, leftMargin, y);
-  y += 8;
+  const titleLines = doc.splitTextToSize(title, contentWidth);
+  doc.text(titleLines, leftMargin, y);
+  y += titleLines.length * 8;
 
   // Date
   doc.setFont("helvetica", "normal");

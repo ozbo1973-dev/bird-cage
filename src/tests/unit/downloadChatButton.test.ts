@@ -74,7 +74,9 @@ describe("generateChatPDF", () => {
   it("writes the chat title into the PDF", () => {
     generateChatPDF("Hawk Spotting", new Date("2026-01-15"), messages);
 
-    const allTextArgs = mocks.text.mock.calls.map((call) => call[0] as string);
+    const allTextArgs = mocks.text.mock.calls.flatMap((call) =>
+      Array.isArray(call[0]) ? (call[0] as string[]) : [call[0] as string],
+    );
     expect(allTextArgs).toContain("Hawk Spotting");
   });
 
@@ -95,7 +97,8 @@ describe("generateChatPDF", () => {
   it("uses splitTextToSize for each message content to handle long lines", () => {
     generateChatPDF("Chat", new Date(), messages);
 
-    expect(mocks.splitTextToSize).toHaveBeenCalledTimes(messages.length);
+    // 1 call for the title + 1 per message
+    expect(mocks.splitTextToSize).toHaveBeenCalledTimes(messages.length + 1);
   });
 
   it("draws a horizontal divider line instead of text dashes", () => {
@@ -104,10 +107,17 @@ describe("generateChatPDF", () => {
     expect(mocks.line).toHaveBeenCalledTimes(1);
   });
 
-  it("uses a narrower content width with larger right margin to prevent cutoff", () => {
+  it("uses generous margins to prevent right-margin cutoff", () => {
     generateChatPDF("Chat", new Date(), messages);
 
-    // contentWidth = 210 - 15 (left) - 20 (right) = 175
-    expect(mocks.splitTextToSize).toHaveBeenCalledWith(expect.any(String), 175);
+    // contentWidth = 210 - 20 (left) - 25 (right) = 165
+    expect(mocks.splitTextToSize).toHaveBeenCalledWith(expect.any(String), 165);
+  });
+
+  it("wraps the title via splitTextToSize to prevent overflow", () => {
+    generateChatPDF("A Very Long Title That Could Overflow The Right Margin", new Date(), messages);
+
+    // first splitTextToSize call is for the title
+    expect(mocks.splitTextToSize.mock.calls[0][1]).toBe(165);
   });
 });
