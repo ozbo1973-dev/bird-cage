@@ -186,6 +186,46 @@ async function main() {
     console.log("cost_millicents column added to usage_logs");
   }
 
+  // Idempotent schema safety check: ensure birdy_chats and birdy_chat_messages tables exist.
+  const birdyChatsCheck = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='birdy_chats'"
+  );
+  if (birdyChatsCheck.rows.length === 0) {
+    console.log("birdy_chats table missing — applying schema fix");
+    await client.execute(
+      `CREATE TABLE IF NOT EXISTS \`birdy_chats\` (
+        \`id\` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        \`user_id\` text NOT NULL REFERENCES \`user\`(\`id\`) ON DELETE CASCADE,
+        \`title\` text NOT NULL,
+        \`created_at\` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+      )`
+    );
+    await client.execute(
+      "CREATE INDEX IF NOT EXISTS `birdy_chats_user_id_idx` ON `birdy_chats` (`user_id`)"
+    );
+    console.log("birdy_chats table created successfully");
+  }
+
+  const birdyChatMessagesCheck = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='birdy_chat_messages'"
+  );
+  if (birdyChatMessagesCheck.rows.length === 0) {
+    console.log("birdy_chat_messages table missing — applying schema fix");
+    await client.execute(
+      `CREATE TABLE IF NOT EXISTS \`birdy_chat_messages\` (
+        \`id\` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+        \`chat_id\` integer NOT NULL REFERENCES \`birdy_chats\`(\`id\`) ON DELETE CASCADE,
+        \`role\` text NOT NULL,
+        \`content\` text NOT NULL,
+        \`created_at\` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+      )`
+    );
+    await client.execute(
+      "CREATE INDEX IF NOT EXISTS `birdy_chat_messages_chat_id_idx` ON `birdy_chat_messages` (`chat_id`)"
+    );
+    console.log("birdy_chat_messages table created successfully");
+  }
+
   await client.close();
 }
 

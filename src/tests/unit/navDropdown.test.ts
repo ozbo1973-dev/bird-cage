@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 
 /**
  * Mirrors the menu item list built by NavDropdown based on the isAdmin and hasEvents props.
- * Home, Profile, Billing, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
+ * Home, Profile, Talk to Birdy, Saved Chats, Billing, [Admin Management if admin], [Download CSV if hasEvents], Sign Out
  */
 function getNavMenuItems(isAdmin: boolean, hasEvents = true): string[] {
-  const items = ["Home", "Profile", "Billing"];
+  const items = ["Home", "Profile", "Talk to Birdy", "Saved Chats", "Billing"];
   if (isAdmin) items.push("Admin Management");
   if (hasEvents) items.push("Download CSV");
   items.push("Sign Out");
@@ -19,6 +19,9 @@ function shouldShowAdminMenuItem(isAdmin: boolean): boolean {
 
 /** The href for the Home menu item */
 const HOME_HREF = "/dashboard";
+
+/** The href for the Talk to Birdy menu item */
+const BIRDY_CHAT_HREF = "/birdy-chat";
 
 describe("NavDropdown menu items for non-admin users", () => {
   it("renders Home menu item", () => {
@@ -49,6 +52,19 @@ describe("NavDropdown menu items for non-admin users", () => {
     expect(getNavMenuItems(false)[0]).toBe("Home");
   });
 
+  it("renders Talk to Birdy menu item for non-admin users", () => {
+    expect(getNavMenuItems(false)).toContain("Talk to Birdy");
+  });
+
+  it("Talk to Birdy appears after Profile and before Saved Chats", () => {
+    const items = getNavMenuItems(false);
+    const profileIndex = items.indexOf("Profile");
+    const talkToBirdyIndex = items.indexOf("Talk to Birdy");
+    const savedChatsIndex = items.indexOf("Saved Chats");
+    expect(talkToBirdyIndex).toBeGreaterThan(profileIndex);
+    expect(talkToBirdyIndex).toBeLessThan(savedChatsIndex);
+  });
+
   it("Billing appears after Profile", () => {
     const items = getNavMenuItems(false);
     const profileIndex = items.indexOf("Profile");
@@ -64,6 +80,10 @@ describe("NavDropdown menu items for admin users", () => {
 
   it("renders Billing menu item for admin users", () => {
     expect(getNavMenuItems(true)).toContain("Billing");
+  });
+
+  it("renders Talk to Birdy menu item for admin users", () => {
+    expect(getNavMenuItems(true)).toContain("Talk to Birdy");
   });
 
   it("Admin Management appears after Billing", () => {
@@ -106,6 +126,20 @@ describe("NavDropdown Home link href", () => {
   });
 });
 
+describe("NavDropdown Talk to Birdy link href", () => {
+  it("Talk to Birdy link points to /birdy-chat", () => {
+    expect(BIRDY_CHAT_HREF).toBe("/birdy-chat");
+  });
+
+  it("Talk to Birdy href is /birdy-chat for non-admin users", () => {
+    expect(BIRDY_CHAT_HREF).toBe("/birdy-chat");
+  });
+
+  it("Talk to Birdy href is /birdy-chat for admin users", () => {
+    expect(BIRDY_CHAT_HREF).toBe("/birdy-chat");
+  });
+});
+
 describe("NavDropdown Download CSV visibility based on hasEvents", () => {
   it("shows Download CSV when hasEvents is true", () => {
     expect(getNavMenuItems(false, true)).toContain("Download CSV");
@@ -121,5 +155,29 @@ describe("NavDropdown Download CSV visibility based on hasEvents", () => {
 
   it("shows Download CSV by default (hasEvents defaults to true)", () => {
     expect(getNavMenuItems(false)).toContain("Download CSV");
+  });
+});
+
+describe("NavDropdown Saved Chats menu item", () => {
+  it("renders Saved Chats menu item for non-admin users", () => {
+    expect(getNavMenuItems(false)).toContain("Saved Chats");
+  });
+
+  it("renders Saved Chats menu item for admin users", () => {
+    expect(getNavMenuItems(true)).toContain("Saved Chats");
+  });
+
+  it("Saved Chats appears after Talk to Birdy", () => {
+    const items = getNavMenuItems(false);
+    const talkToBirdyIndex = items.indexOf("Talk to Birdy");
+    const savedChatsIndex = items.indexOf("Saved Chats");
+    expect(savedChatsIndex).toBeGreaterThan(talkToBirdyIndex);
+  });
+
+  it("Saved Chats appears before Billing", () => {
+    const items = getNavMenuItems(false);
+    const savedChatsIndex = items.indexOf("Saved Chats");
+    const billingIndex = items.indexOf("Billing");
+    expect(savedChatsIndex).toBeLessThan(billingIndex);
   });
 });

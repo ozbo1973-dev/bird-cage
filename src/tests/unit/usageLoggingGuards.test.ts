@@ -60,6 +60,7 @@ vi.mock("@/lib/get-auth-base-url", () => ({
 import { auth } from "@/lib/auth";
 import { POST as chatPOST } from "@/app/api/chat/route";
 import { POST as photoPOST } from "@/app/api/identify-photo/route";
+import { POST as birdyChatPOST } from "@/app/api/birdy-chat/route";
 import { NextRequest } from "next/server";
 
 // ── Test constants ─────────────────────────────────────────────────────────
@@ -193,6 +194,14 @@ function makePhotoRequest() {
   return new NextRequest("http://localhost/api/identify-photo", {
     method: "POST",
     body: JSON.stringify({ photoBase64: "data:image/jpeg;base64,abc123" }),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function makeBirdyChatRequest(body = { messages: [{ role: "user", content: "Tell me about herons" }] }) {
+  return new NextRequest("http://localhost/api/birdy-chat", {
+    method: "POST",
+    body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" },
   });
 }
@@ -343,6 +352,74 @@ describe("photo identification route — usage logging guards", () => {
 
     const response = await photoPOST(makePhotoRequest());
     expect(response.status).toBe(200);
+
+    const logs = await getUsageLogs(PAID_USER_ID);
+    expect(logs.rows).toHaveLength(0);
+
+    const usageCents = await getCurrentUsageCents(PAID_USER_ID);
+    expect(usageCents).toBe(0);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Birdy Chat Route — /api/birdy-chat
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("birdy-chat route — usage logging guards", () => {
+  it("paid user with non-zero cost: inserts usage_logs row and increments currentMonthUsageCents", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(makeSession(PAID_USER_ID) as never);
+    mockCreate.mockReturnValue(makeStreamChunks({ costDollars: 0.05 }));
+
+    const response = await birdyChatPOST(makeBirdyChatRequest());
+    expect(response.status).toBe(200);
+    await consumeStream(response);
+
+    const logs = await getUsageLogs(PAID_USER_ID);
+    expect(logs.rows).toHaveLength(1);
+    expect(logs.rows[0][2]).toBe(5); // 0.05 * 100 = 5 cents
+
+    const usageCents = await getCurrentUsageCents(PAID_USER_ID);
+    expect(usageCents).toBe(5);
+  });
+
+  it("free user with non-zero cost: inserts usage_logs row and increments currentMonthUsageCents", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(makeSession(FREE_USER_ID) as never);
+    mockCreate.mockReturnValue(makeStreamChunks({ costDollars: 0.05 }));
+
+    const response = await birdyChatPOST(makeBirdyChatRequest());
+    expect(response.status).toBe(200);
+    await consumeStream(response);
+
+    const logs = await getUsageLogs(FREE_USER_ID);
+    expect(logs.rows).toHaveLength(1);
+    expect(logs.rows[0][2]).toBe(5); // 0.05 * 100 = 5 cents
+
+    const usageCents = await getCurrentUsageCents(FREE_USER_ID);
+    expect(usageCents).toBe(5);
+  });
+
+  it("paid user with usage.cost missing: does not insert usage_logs row", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(makeSession(PAID_USER_ID) as never);
+    mockCreate.mockReturnValue(makeStreamChunks({ includeCost: true, costDollars: undefined }));
+
+    const response = await birdyChatPOST(makeBirdyChatRequest());
+    expect(response.status).toBe(200);
+    await consumeStream(response);
+
+    const logs = await getUsageLogs(PAID_USER_ID);
+    expect(logs.rows).toHaveLength(0);
+
+    const usageCents = await getCurrentUsageCents(PAID_USER_ID);
+    expect(usageCents).toBe(0);
+  });
+
+  it("paid user with usage.cost = 0: does not insert usage_logs row", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(makeSession(PAID_USER_ID) as never);
+    mockCreate.mockReturnValue(makeStreamChunks({ costDollars: 0 }));
+
+    const response = await birdyChatPOST(makeBirdyChatRequest());
+    expect(response.status).toBe(200);
+    await consumeStream(response);
 
     const logs = await getUsageLogs(PAID_USER_ID);
     expect(logs.rows).toHaveLength(0);

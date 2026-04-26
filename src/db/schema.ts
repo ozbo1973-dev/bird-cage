@@ -187,6 +187,42 @@ export type NewEmailLog = typeof emailLogs.$inferInsert;
 export type UsageLog = typeof usageLogs.$inferSelect;
 export type NewUsageLog = typeof usageLogs.$inferInsert;
 
+export const birdyChats = sqliteTable(
+  "birdy_chats",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("birdy_chats_user_id_idx").on(table.userId)],
+);
+
+export const birdyChatMessages = sqliteTable(
+  "birdy_chat_messages",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    chatId: integer("chat_id")
+      .notNull()
+      .references(() => birdyChats.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["user", "assistant"] }).notNull(),
+    content: text("content").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [index("birdy_chat_messages_chat_id_idx").on(table.chatId)],
+);
+
+export type BirdyChat = typeof birdyChats.$inferSelect;
+export type NewBirdyChat = typeof birdyChats.$inferInsert;
+export type BirdyChatMessage = typeof birdyChatMessages.$inferSelect;
+export type NewBirdyChatMessage = typeof birdyChatMessages.$inferInsert;
+
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
@@ -195,6 +231,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sentEmails: many(emailLogs, { relationName: "sentEmails" }),
   receivedEmails: many(emailLogs, { relationName: "receivedEmails" }),
   usageLogs: many(usageLogs),
+  birdyChats: many(birdyChats),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -225,6 +262,15 @@ export const emailLogRelations = relations(emailLogs, ({ one }) => ({
 
 export const usageLogRelations = relations(usageLogs, ({ one }) => ({
   user: one(user, { fields: [usageLogs.userId], references: [user.id] }),
+}));
+
+export const birdyChatsRelations = relations(birdyChats, ({ one, many }) => ({
+  user: one(user, { fields: [birdyChats.userId], references: [user.id] }),
+  messages: many(birdyChatMessages),
+}));
+
+export const birdyChatMessagesRelations = relations(birdyChatMessages, ({ one }) => ({
+  chat: one(birdyChats, { fields: [birdyChatMessages.chatId], references: [birdyChats.id] }),
 }));
 
 // Types
