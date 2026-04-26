@@ -10,6 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "skills:sync": "tsx scripts/sync-skills.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
