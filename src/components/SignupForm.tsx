@@ -24,13 +24,13 @@ export default function SignupForm() {
         const { error } = await signUpAction(name, email, password);
         if (error) {
           setError(error);
+          setLoading(false);
         } else {
           router.push("/verify-email");
         }
       } catch (err) {
         console.error("Signup error:", err);
         setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
-      } finally {
         setLoading(false);
       }
     });

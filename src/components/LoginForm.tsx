@@ -23,15 +23,13 @@ export default function LoginForm() {
         const { error, redirectTo } = await signInAction(email, password);
         if (error) {
           setError(error);
-        } else if (redirectTo) {
-          router.push(redirectTo);
+          setLoading(false);
         } else {
-          router.push("/dashboard");
+          router.push(redirectTo ?? "/dashboard");
         }
       } catch (err) {
         console.error("Sign in error:", err);
         setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
-      } finally {
         setLoading(false);
       }
     });
